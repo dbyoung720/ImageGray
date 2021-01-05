@@ -603,8 +603,6 @@ asm
   {$IFEND}
 end;
 
-procedure SimdBgraToGray(const pColor: PByte; width, height, bgraStride: Integer; Gray: PByte; grayStride: Integer); stdcall; external 'simd.dll';
-
 { 47 ms }
 procedure Gray_Other(bmp: TBitmap);
 var
