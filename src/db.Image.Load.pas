@@ -4,7 +4,7 @@ unit db.Image.Load;
   Name: dbyoung@sina.com
   Date: 2020-10-01
   Ver : Delphi 10.3.2
-  Test: 4096 * 2160 * 32
+  Test: 4096 * 4096 * 32
   Note: GDI+ JPEG 解码效果最好
 }
 
