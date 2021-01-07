@@ -1,5 +1,5 @@
 unit Unit1;
-
+
 interface
 
 uses
@@ -21,6 +21,7 @@ type
     mniSizeStrecth: TMenuItem;
     mniFileLine01: TMenuItem;
     mniFileRestore: TMenuItem;
+    mniColorInvert: TMenuItem;
     procedure mniFileOepnClick(Sender: TObject);
     procedure mniColorGrayClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -28,6 +29,7 @@ type
     procedure mniSizeStrecthClick(Sender: TObject);
     procedure FormResize(Sender: TObject);
     procedure mniFileRestoreClick(Sender: TObject);
+    procedure mniColorInvertClick(Sender: TObject);
   private
     FstrBackFileName: String;
     procedure LoadImageProc(const strFileName: String; img: TImage);
@@ -42,7 +44,7 @@ implementation
 
 {$R *.dfm}
 
-uses db.Image.Load, db.Image.Gray;
+uses db.Image.Load, db.Image.Gray, db.Image.Invert;
 
 procedure TForm1.LoadImageProc(const strFileName: String; img: TImage);
 begin
@@ -126,4 +128,15 @@ begin
   imgShow.Invalidate;
 end;
 
+procedure TForm1.mniColorInvertClick(Sender: TObject);
+begin
+  with TStopwatch.StartNew do
+  begin
+    Invert(imgShow.Picture.Bitmap, itAVX);
+    statTip.Panels[0].Text := Format('反色用时：%d 毫秒', [ElapsedMilliseconds]);
+  end;
+  imgShow.Invalidate;
+end;
+
 end.
+

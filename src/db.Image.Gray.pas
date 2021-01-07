@@ -20,21 +20,21 @@ unit db.Image.Gray;
 }
 
 {$IFDEF WIN32}
-{$LINK gray\x86\gray.obj}
-{$LINK gray\x86\gray_sse2.obj}
-{$LINK gray\x86\gray_sse4.obj}
-{$LINK gray\x86\gray_avx.obj}
-{$LINK gray\x86\gray_avx2.obj}
-{$LINK gray\x86\gray_avx512knl.obj}
-{$LINK gray\x86\gray_avx512skx.obj}
+{$LINK obj\x86\gray.obj}
+{$LINK obj\x86\gray_sse2.obj}
+{$LINK obj\x86\gray_sse4.obj}
+{$LINK obj\x86\gray_avx.obj}
+{$LINK obj\x86\gray_avx2.obj}
+{$LINK obj\x86\gray_avx512knl.obj}
+{$LINK obj\x86\gray_avx512skx.obj}
 {$ELSE}
-{$LINK gray\x64\gray.obj}
-{$LINK gray\x64\gray_sse2.obj}
-{$LINK gray\x64\gray_sse4.obj}
-{$LINK gray\x64\gray_avx.obj}
-{$LINK gray\x64\gray_avx2.obj}
-{$LINK gray\x64\gray_avx512knl.obj}
-{$LINK gray\x64\gray_avx512skx.obj}
+{$LINK obj\x64\gray.obj}
+{$LINK obj\x64\gray_sse2.obj}
+{$LINK obj\x64\gray_sse4.obj}
+{$LINK obj\x64\gray_avx.obj}
+{$LINK obj\x64\gray_avx2.obj}
+{$LINK obj\x64\gray_avx512knl.obj}
+{$LINK obj\x64\gray_avx512skx.obj}
 {$IFEND}
 
 interface
@@ -48,21 +48,12 @@ procedure Gray(bmp: TBitmap; const gt: TGrayType = gtSSE4);
 
 implementation
 
-var
-{$IFDEF WIN32}
-  __fltused: Integer;
-{$ELSE}
-  _fltused: Integer;
-{$IFEND}
-
 procedure rgb2gray_sse2(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_rgb2gray_sse2'{$IFEND};
 procedure rgb2gray_sse4(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_rgb2gray_sse4'{$IFEND};
 procedure rgb2gray_avx(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_rgb2gray_avx'{$IFEND};
 procedure rgb2gray_avx2(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_rgb2gray_avx2'{$IFEND};
 procedure rgb2gray_avx512skx(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_rgb2gray_avx512skx'{$IFEND};
 procedure rgb2gray_avx512knl(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_rgb2gray_avx512knl'{$IFEND};
-
-procedure _abort; cdecl; external 'msvcrt.dll' name 'abort';
 
 { 220 ms }
 procedure Gray_API(bmp: TBitmap);

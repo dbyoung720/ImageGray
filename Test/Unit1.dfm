@@ -73,6 +73,10 @@ object Form1: TForm1
         Caption = #28784#24230#22270
         OnClick = mniColorGrayClick
       end
+      object mniColorInvert: TMenuItem
+        Caption = #21453#33394
+        OnClick = mniColorInvertClick
+      end
     end
     object mniSize: TMenuItem
       Caption = #22823#23567

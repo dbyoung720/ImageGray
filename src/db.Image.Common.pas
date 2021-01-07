@@ -1,5 +1,5 @@
 unit db.Image.Common;
-
+
 interface
 
 uses Winapi.Windows, Vcl.Graphics, Winapi.GDIPAPI;
@@ -73,15 +73,17 @@ const
     13684944, 13750737, 13816530, 13882323, 13948116, 14013909, 14079702, 14145495, 14211288, 14277081, 14342874, 14408667, 14474460, 14540253, 14606046, 14671839, //
     14737632, 14803425, 14869218, 14935011, 15000804, 15066597, 15132390, 15198183, 15263976, 15329769, 15395562, 15461355, 15527148, 15592941, 15658734, 15724527, //
     15790320, 15856113, 15921906, 15987699, 16053492, 16119285, 16185078, 16250871, 16316664, 16382457, 16448250, 16514043, 16579836, 16645629, 16711422, 16777215);
+  c_InvertMask: DWORD             = $00FFFFFF;
+  c_InvertMask2: UINT64           = $00FFFFFF00FFFFFF;
   c_GraySSEMask: DWORD            = $FF;
   c_GraySSEDiv3: DWORD            = $55;
-  c_GrayMMXAdd: UInt64            = $0001000100010001;
-  c_GrayMMXARGB: UInt64           = $0000004D0095001C;
-  c_GrayMMXAMask: UInt64          = $FF000000FF000000;
-  c_GrayMMXMask0: UInt64          = $00FF00FF00FF00FF;
-  c_GrayMMXMask1: UInt64          = $0000FF000000FF00;
-  c_GrayMMXRB: UInt64             = $004D001C004D001C;
-  c_GrayMMXKG_: UInt64            = $0097009700970097;
+  c_GrayMMXAdd: UINT64            = $0001000100010001;
+  c_GrayMMXARGB: UINT64           = $0000004D0095001C;
+  c_GrayMMXAMask: UINT64          = $FF000000FF000000;
+  c_GrayMMXMask0: UINT64          = $00FF00FF00FF00FF;
+  c_GrayMMXMask1: UINT64          = $0000FF000000FF00;
+  c_GrayMMXRB: UINT64             = $004D001C004D001C;
+  c_GrayMMXKG_: UINT64            = $0097009700970097;
   c_GrayColorMatrix: TColorMatrix = ( //
     (0.299, 0.299, 0.299, 0, 0),      //
     (0.587, 0.587, 0.587, 0, 0),      //
@@ -94,10 +96,17 @@ function GetBitsPointer(bmp: TBitmap): Pointer;
 
 function GetPixelGray(const r, g, b: Byte): TRGBQuad; inline;
 
+procedure _abort; cdecl; external 'msvcrt.dll' name 'abort';
+
 type
   TP32Table = array [0 .. 1785] of Integer;
 
 var
+{$IFDEF WIN32}
+  __fltused: Integer;
+{$ELSE}
+  _fltused: Integer;
+{$IFEND}
   gp32t: TP32Table;
 
 implementation
@@ -147,3 +156,4 @@ initialization
   InitGrayTable(gp32t);
 
 end.
+
