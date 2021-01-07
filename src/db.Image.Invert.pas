@@ -107,7 +107,7 @@ end;
 procedure Invert_SSE_Proc(pColor: PByte; const Count: Integer); register;
 asm
   {$IFDEF WIN64}
-  MOV     RAX,  RCX
+  MOV   RAX, RCX
   {$IFEND}
   MOV   ECX, EDX
 
@@ -146,7 +146,7 @@ begin
     itAVX:                                                          //
       Invert_avx(GetBitsPointer(bmp), bmp.width, bmp.height);       // 7 ms
     itAVX2:                                                         //
-      Invert_avx2(GetBitsPointer(bmp), bmp.width, bmp.height);      // 7 ms
+      Invert_avx2(GetBitsPointer(bmp), bmp.width, bmp.height);      // 5 ms
     itAVX512:                                                       //
       Invert_avx512skx(GetBitsPointer(bmp), bmp.width, bmp.height); // 7 ms
   end;

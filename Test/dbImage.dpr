@@ -9,7 +9,8 @@ uses
   db.Image.Gray in '..\src\db.Image.Gray.pas',
   db.Image.Load in '..\src\db.Image.Load.pas',
   db.Image.Common in '..\src\db.Image.Common.pas',
-  db.Image.Invert in '..\src\db.Image.Invert.pas';
+  db.Image.Invert in '..\src\db.Image.Invert.pas',
+  Unit2 in 'Unit2.pas' {Form2};
 
 {$R *.res}
 
