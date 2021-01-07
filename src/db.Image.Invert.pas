@@ -106,6 +106,9 @@ end;
 
 procedure Invert_SSE_Proc(pColor: PByte; const Count: Integer); register;
 asm
+  {$IFDEF WIN64}
+  MOV     RAX,  RCX
+  {$IFEND}
   MOV   ECX, EDX
 
 @LOOP:
