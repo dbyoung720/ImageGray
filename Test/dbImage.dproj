@@ -156,6 +156,9 @@
             <Form>Form2</Form>
             <FormType>dfm</FormType>
         </DCCReference>
+        <DCCReference Include="..\src\db.Image.Light.pas"/>
+        <DCCReference Include="..\src\db.Image.Contrast.pas"/>
+        <DCCReference Include="..\src\db.Image.Saturation.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

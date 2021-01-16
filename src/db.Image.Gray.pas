@@ -39,21 +39,21 @@ unit db.Image.Gray;
 
 interface
 
-uses Winapi.Windows, System.Classes, System.SysUtils, System.StrUtils, {$IF CompilerVersion >= 24.0} System.Threading, {$IFEND} System.Diagnostics, System.SyncObjs, Vcl.Graphics, Winapi.GDIPOBJ, Winapi.GDIPAPI, db.Image.Common;
+uses Winapi.Windows, System.Classes, System.SysUtils, System.StrUtils, System.Threading, System.Diagnostics, System.SyncObjs, Vcl.Graphics, Winapi.GDIPOBJ, Winapi.GDIPAPI, db.Image.Common;
 
 type
-  TGrayType = (gtAPI, gtScanLine, gtDelphi, gtFourPoint, gtGDIPLUS, gtTable, gtASM, gtMMX, gtSSE, gtSSE2, gtSSE4, gtAVX, gtAVX2, gtAVX512, gtGPU, gtOther);
+  TGrayType = (gtAPI, gtScanLine, gtDelphi, gtFourPoint, gtParallel, gtGDIPLUS, gtTable, gtASM, gtMMX, gtSSE, gtSSE2, gtSSE4, gtAVX, gtAVX2, gtAVX512, gtGPU, gtOther);
 
 procedure Gray(bmp: TBitmap; const gt: TGrayType = gtSSE4);
 
 implementation
 
-procedure rgb2gray_sse2(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_rgb2gray_sse2'{$IFEND};
-procedure rgb2gray_sse4(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_rgb2gray_sse4'{$IFEND};
-procedure rgb2gray_avx(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_rgb2gray_avx'{$IFEND};
-procedure rgb2gray_avx2(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_rgb2gray_avx2'{$IFEND};
-procedure rgb2gray_avx512skx(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_rgb2gray_avx512skx'{$IFEND};
-procedure rgb2gray_avx512knl(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_rgb2gray_avx512knl'{$IFEND};
+procedure rgb2gray_sse2(src: PByte; Width, Height: Integer); cdecl; external {$IFDEF WIN32}name '_rgb2gray_sse2'{$IFEND};
+procedure rgb2gray_sse4(src: PByte; Width, Height: Integer); cdecl; external {$IFDEF WIN32}name '_rgb2gray_sse4'{$IFEND};
+procedure rgb2gray_avx(src: PByte; Width, Height: Integer); cdecl; external {$IFDEF WIN32}name '_rgb2gray_avx'{$IFEND};
+procedure rgb2gray_avx2(src: PByte; Width, Height: Integer); cdecl; external {$IFDEF WIN32}name '_rgb2gray_avx2'{$IFEND};
+procedure rgb2gray_avx512skx(src: PByte; Width, Height: Integer); cdecl; external {$IFDEF WIN32}name '_rgb2gray_avx512skx'{$IFEND};
+procedure rgb2gray_avx512knl(src: PByte; Width, Height: Integer); cdecl; external {$IFDEF WIN32}name '_rgb2gray_avx512knl'{$IFEND};
 
 { 220 ms }
 procedure Gray_API(bmp: TBitmap);
@@ -62,7 +62,7 @@ var
   pColor  : PRGBQuad;
   byeGray : Byte;
 begin
-  Count := bmp.width * bmp.height;
+  Count := bmp.Width * bmp.Height;
   GetMem(pColor, Count * 4);
   try
     GetBitmapBits(bmp.Handle, Count * 4, pColor);
@@ -85,10 +85,10 @@ var
   I, J  : Integer;
   pColor: PRGBQuad;
 begin
-  for I := 0 to bmp.height - 1 do
+  for I := 0 to bmp.Height - 1 do
   begin
     pColor := bmp.ScanLine[I];
-    for J  := 0 to bmp.width - 1 do
+    for J  := 0 to bmp.Width - 1 do
     begin
       pColor^ := GetPixelGray(pColor^.rgbRed, pColor^.rgbGreen, pColor^.rgbBlue);
       Inc(pColor);
@@ -102,7 +102,7 @@ var
   I, Count: Integer;
   pColor  : PRGBQuad;
 begin
-  Count  := bmp.width * bmp.height;
+  Count  := bmp.Width * bmp.Height;
   pColor := GetBitsPointer(bmp);
   for I  := 0 to Count - 1 do
   begin
@@ -117,7 +117,7 @@ var
   I, J, Count: Integer;
   pColor     : PRGBQuad;
 begin
-  Count  := bmp.width * bmp.height;
+  Count  := bmp.Width * bmp.Height;
   pColor := GetBitsPointer(bmp);
   for I  := 0 to Count div 4 - 1 do
   begin
@@ -127,6 +127,30 @@ begin
       Inc(pColor);
     end;
   end;
+end;
+
+{ 45 ms  ÐèÒªÍÑÀë IDE Ö´ÐÐ }
+procedure Gray_Parallel(bmp: TBitmap);
+var
+  StartScanLine: Integer;
+  bmpWidthBytes: Integer;
+begin
+  StartScanLine := Integer(bmp.ScanLine[0]);
+  bmpWidthBytes := Integer(bmp.ScanLine[1]) - Integer(bmp.ScanLine[0]);
+
+  TParallel.For(0, bmp.Height - 1,
+    procedure(Y: Integer)
+    var
+      X: Integer;
+      pColor: PRGBQuad;
+    begin
+      pColor := PRGBQuad(StartScanLine + Y * bmpWidthBytes);
+      for X := 0 to bmp.Width - 1 do
+      begin
+        pColor^ := GetPixelGray(pColor^.rgbRed, pColor^.rgbGreen, pColor^.rgbBlue);
+        Inc(pColor);
+      end;
+    end);
 end;
 
 { 1036 ms }
@@ -141,7 +165,7 @@ begin
   iab := TGPImageAttributes.Create;
   try
     iab.SetColorMatrix(c_GrayColorMatrix, ColorMatrixFlagsDefault, ColorAdjustTypeBitmap);
-    gpg.DrawImage(img, TGPRect(bmp.Canvas.ClipRect), 0, 0, bmp.width, bmp.height, UnitPixel, iab);
+    gpg.DrawImage(img, TGPRect(bmp.Canvas.ClipRect), 0, 0, bmp.Width, bmp.Height, UnitPixel, iab);
   finally
     iab.Free;
     gpg.Free;
@@ -155,7 +179,7 @@ var
   I, Count: Integer;
   pColor  : PRGBQuad;
 begin
-  Count  := bmp.width * bmp.height;
+  Count  := bmp.Width * bmp.Height;
   pColor := GetBitsPointer(bmp);
   for I  := 0 to Count - 1 do
   begin
@@ -189,7 +213,7 @@ end;
 { 26 ms }
 procedure Gray_ASM(bmp: TBitmap);
 begin
-  Gray_ASM_Proc_x86(GetBitsPointer(bmp), bmp.width * bmp.height);
+  Gray_ASM_Proc_x86(GetBitsPointer(bmp), bmp.Width * bmp.Height);
 end;
 
 { 36 ms }
@@ -425,7 +449,7 @@ end;
 { 36 ms }
 procedure Gray_MMX(bmp: TBitmap);
 begin
-  Gray_MMX_Proc_P2(GetBitsPointer(bmp), bmp.width * bmp.height * 4);
+  Gray_MMX_Proc_P2(GetBitsPointer(bmp), bmp.Width * bmp.Height * 4);
 end;
 
 {
@@ -489,7 +513,7 @@ end;
 { 17 ms }
 procedure Gray_SSE(bmp: TBitmap);
 begin
-  Gray_SSE_Proc_01(GetBitsPointer(bmp), bmp.width * bmp.height * 4);
+  Gray_SSE_Proc_01(GetBitsPointer(bmp), bmp.Width * bmp.Height * 4);
 end;
 
 { 30 ms }
@@ -498,7 +522,7 @@ var
   pSrc: PByte;
 begin
   pSrc := GetBitsPointer(bmp);
-  rgb2gray_sse2(pSrc, bmp.width, bmp.height);
+  rgb2gray_sse2(pSrc, bmp.Width, bmp.Height);
 end;
 
 { 30 ms }
@@ -507,7 +531,7 @@ var
   pSrc: PByte;
 begin
   pSrc := GetBitsPointer(bmp);
-  rgb2gray_sse4(pSrc, bmp.width, bmp.height);
+  rgb2gray_sse4(pSrc, bmp.Width, bmp.Height);
 end;
 
 { 30 ms }
@@ -516,7 +540,7 @@ var
   pSrc: PByte;
 begin
   pSrc := GetBitsPointer(bmp);
-  rgb2gray_avx(pSrc, bmp.width, bmp.height);
+  rgb2gray_avx(pSrc, bmp.Width, bmp.Height);
 end;
 
 { 30 ms }
@@ -525,7 +549,7 @@ var
   pSrc: PByte;
 begin
   pSrc := GetBitsPointer(bmp);
-  rgb2gray_avx2(pSrc, bmp.width, bmp.height);
+  rgb2gray_avx2(pSrc, bmp.Width, bmp.Height);
 end;
 
 procedure Gray_AVX512(bmp: TBitmap);
@@ -533,7 +557,7 @@ var
   pSrc: PByte;
 begin
   pSrc := GetBitsPointer(bmp);
-  rgb2gray_avx512knl(pSrc, bmp.width, bmp.height);
+  rgb2gray_avx512knl(pSrc, bmp.Width, bmp.Height);
 end;
 
 procedure Gray_GPU(bmp: TBitmap);
@@ -541,7 +565,7 @@ begin
 
 end;
 
-procedure Gray_Other_Proc(pColor: Pointer; const width: Integer; var p32t);
+procedure Gray_Other_Proc(pColor: Pointer; const Width: Integer; var p32t);
 asm
   {$IFDEF WIN32}
   PUSH  EDI
@@ -603,9 +627,9 @@ var
 begin
   pColor        := bmp.ScanLine[0];
   intWidthBytes := Integer(bmp.ScanLine[1]) - Integer(bmp.ScanLine[0]);
-  for I         := 0 to bmp.height - 1 do
+  for I         := 0 to bmp.Height - 1 do
   begin
-    Gray_Other_Proc(pColor, bmp.width, gp32t);
+    Gray_Other_Proc(pColor, bmp.Width, g_GrayTable);
     pColor := Pointer(Integer(pColor) + intWidthBytes);
   end;
 end;
@@ -621,6 +645,8 @@ begin
       Gray_Delphi(bmp);
     gtFourPoint:
       Gray_FourPoint(bmp);
+    gtParallel:
+      Gray_Parallel(bmp);
     gtGDIPLUS:
       Gray_GDIPLUS(bmp);
     gtTable:

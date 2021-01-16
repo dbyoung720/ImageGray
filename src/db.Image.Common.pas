@@ -2,7 +2,7 @@ unit db.Image.Common;
 
 interface
 
-uses Winapi.Windows, Vcl.Graphics, Winapi.GDIPAPI;
+uses Winapi.Windows, Winapi.GDIPAPI,System.Math, Vcl.Graphics;
 
 const
   c_GrayR77: array [0 .. 255] of DWORD = (                                                                          //
@@ -97,17 +97,22 @@ function GetBitsPointer(bmp: TBitmap): Pointer;
 function GetPixelGray(const r, g, b: Byte): TRGBQuad; inline;
 
 procedure _abort; cdecl; external 'msvcrt.dll' name 'abort';
+procedure abort; cdecl; external 'msvcrt.dll' name 'abort';
 
 type
-  TP32Table = array [0 .. 1785] of Integer;
+  TTwoLight255 = array [0 .. 255, -255 .. 255] of Byte;
+  TGrayTable   = array [0 .. 1785] of Integer;
+  TLightTable  = TTwoLight255;
 
 var
+  g_GrayTable : TGrayTable;
+  g_LightTable: TLightTable;
+
 {$IFDEF WIN32}
   __fltused: Integer;
 {$ELSE}
   _fltused: Integer;
 {$IFEND}
-  gp32t: TP32Table;
 
 implementation
 
@@ -140,20 +145,34 @@ begin
   Result  := TRGBQuad(c_GrayValue[byeGray]);
 end;
 
-procedure InitGrayTable(var pt: TP32Table);
+procedure InitGrayTable;
 var
   I      : Integer;
   bytGray: Integer;
 begin
-  for I := Low(pt) to High(pt) do
+  for I := Low(g_GrayTable) to High(g_GrayTable) do
   begin
-    bytGray := Round(I / 7);
-    pt[I]   := bytGray shl 16 + bytGray shl 8 + bytGray;
+    bytGray        := Round(I / 7);
+    g_GrayTable[I] := RGB(bytGray, bytGray, bytGray);
+  end;
+end;
+
+procedure InitLightTable;
+var
+  I, J: Integer;
+begin
+  for I := 0 to 255 do
+  begin
+    for J := -255 to 255 do
+    begin
+      g_LightTable[I, J] := EnsureRange(I + J, 0, 255);
+    end;
   end;
 end;
 
 initialization
-  InitGrayTable(gp32t);
+  InitGrayTable;
+  InitLightTable;
 
 end.
 

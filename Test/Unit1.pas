@@ -23,6 +23,9 @@ type
     mniFileRestore: TMenuItem;
     mniColorInvert: TMenuItem;
     mniColorLight: TMenuItem;
+    mniColorContrast: TMenuItem;
+    mniColorLine01: TMenuItem;
+    mniColorSaturation: TMenuItem;
     procedure mniFileOepnClick(Sender: TObject);
     procedure mniColorGrayClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -124,9 +127,10 @@ procedure TForm1.mniColorGrayClick(Sender: TObject);
 begin
   with TStopwatch.StartNew do
   begin
-    Gray(imgShow.Picture.Bitmap, gtAVX);
+    Gray(imgShow.Picture.Bitmap, gtParallel);
     statTip.Panels[0].Text := Format('灰值化用时：%d 毫秒', [ElapsedMilliseconds]);
   end;
+
   imgShow.Invalidate;
 end;
 
@@ -142,7 +146,7 @@ end;
 
 procedure TForm1.mniColorLightClick(Sender: TObject);
 begin
-  ShowLightChange(Self, imgShow);
+  ShowLightChange(Self, statTip.Panels[0], imgShow, TMenuItem(Sender).tag);
 end;
 
 end.

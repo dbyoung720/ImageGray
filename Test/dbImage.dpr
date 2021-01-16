@@ -10,7 +10,10 @@ uses
   db.Image.Load in '..\src\db.Image.Load.pas',
   db.Image.Common in '..\src\db.Image.Common.pas',
   db.Image.Invert in '..\src\db.Image.Invert.pas',
-  Unit2 in 'Unit2.pas' {Form2};
+  Unit2 in 'Unit2.pas' {Form2},
+  db.Image.Light in '..\src\db.Image.Light.pas',
+  db.Image.Contrast in '..\src\db.Image.Contrast.pas',
+  db.Image.Saturation in '..\src\db.Image.Saturation.pas';
 
 {$R *.res}
 

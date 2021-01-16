@@ -4,7 +4,7 @@ object Form2: TForm2
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = #35843#33410#65306
-  ClientHeight = 293
+  ClientHeight = 570
   ClientWidth = 589
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -23,8 +23,8 @@ object Form2: TForm2
     Caption = #20142#24230#65306
   end
   object lbl2: TLabel
-    Left = 20
-    Top = 88
+    Left = 18
+    Top = 80
     Width = 48
     Height = 13
     Caption = #23545#27604#24230#65306
@@ -39,9 +39,35 @@ object Form2: TForm2
   object lbl4: TLabel
     Left = 540
     Top = 24
-    Width = 24
+    Width = 8
     Height = 13
-    Caption = '000'
+    Caption = '0'
+    Font.Charset = GB2312_CHARSET
+    Font.Color = clRed
+    Font.Height = -13
+    Font.Name = #23435#20307
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
+  object lbl5: TLabel
+    Left = 540
+    Top = 80
+    Width = 8
+    Height = 13
+    Caption = '0'
+    Font.Charset = GB2312_CHARSET
+    Font.Color = clRed
+    Font.Height = -13
+    Font.Name = #23435#20307
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
+  object lbl6: TLabel
+    Left = 540
+    Top = 133
+    Width = 8
+    Height = 13
+    Caption = '0'
     Font.Charset = GB2312_CHARSET
     Font.Color = clRed
     Font.Height = -13
@@ -61,5 +87,33 @@ object Form2: TForm2
     Frequency = 10
     TabOrder = 0
     OnChange = trckbrLightChange
+  end
+  object trckbrContrast: TTrackBar
+    Left = 72
+    Top = 76
+    Width = 441
+    Height = 29
+    LineSize = 10
+    Max = 128
+    Min = -128
+    ParentShowHint = False
+    PageSize = 10
+    Frequency = 10
+    ShowHint = True
+    TabOrder = 1
+    OnChange = trckbrContrastChange
+  end
+  object trckbrSaturation: TTrackBar
+    Left = 72
+    Top = 129
+    Width = 441
+    Height = 29
+    LineSize = 10
+    Max = 255
+    Min = -255
+    PageSize = 10
+    Frequency = 10
+    TabOrder = 2
+    OnChange = trckbrSaturationChange
   end
 end

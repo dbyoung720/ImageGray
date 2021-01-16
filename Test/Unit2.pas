@@ -3,7 +3,7 @@ unit Unit2;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, System.Math, Vcl.Graphics,
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, System.Math, System.Diagnostics, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ComCtrls, Vcl.StdCtrls, Vcl.ExtCtrls, db.Image.Common;
 
 type
@@ -13,27 +13,44 @@ type
     lbl3: TLabel;
     lbl4: TLabel;
     trckbrLight: TTrackBar;
+    lbl5: TLabel;
+    trckbrContrast: TTrackBar;
+    lbl6: TLabel;
+    trckbrSaturation: TTrackBar;
     procedure trckbrLightChange(Sender: TObject);
+    procedure trckbrContrastChange(Sender: TObject);
+    procedure trckbrSaturationChange(Sender: TObject);
   private
     Fimg   : TImage;
+    Fstp   : TStatusPanel;
     FsrcBmp: TBitmap;
     FbakBmp: TBitmap;
   public
     { Public declarations }
   end;
 
-procedure ShowLightChange(frm: TForm; img: TImage);
+procedure ShowLightChange(frm: TForm; stp: TStatusPanel; img: TImage; const mniItemTag: Integer = 0);
 
 implementation
 
 {$R *.dfm}
 
-procedure ShowLightChange(frm: TForm; img: TImage);
+uses db.Image.Light, db.Image.Contrast, db.Image.Saturation;
+
+procedure ShowLightChange(frm: TForm; stp: TStatusPanel; img: TImage; const mniItemTag: Integer = 0);
 begin
   with TForm2.Create(nil) do
   begin
     Fimg    := img;
+    Fstp    := stp;
     FsrcBmp := img.Picture.Bitmap;
+
+    if mniItemTag = 0 then
+      Winapi.Windows.SetFocus(trckbrLight.Handle)
+    else if mniItemTag = 1 then
+      Winapi.Windows.SetFocus(trckbrContrast.Handle)
+    else if mniItemTag = 2 then
+      Winapi.Windows.SetFocus(trckbrSaturation.Handle);
 
     FbakBmp             := TBitmap.Create;
     FbakBmp.PixelFormat := pf32bit;
@@ -50,37 +67,43 @@ begin
   end;
 end;
 
-function CheckValue(color: Byte; value: Integer): Byte;
+procedure TForm2.trckbrLightChange(Sender: TObject);
 begin
-  if color + value > 255 then
-    Result := 255
-  else if color + value < 0 then
-    Result := 0
-  else
-    Result := color + value;
+  lbl4.Caption := Format('%d', [trckbrLight.Position]);
+
+  with TStopwatch.StartNew do
+  begin
+    FsrcBmp.Canvas.Draw(0, 0, FbakBmp);
+    Light(FsrcBmp, trckbrLight.Position, ltDelphi);
+    Fstp.Text := Format('调节亮度用时：%d 毫秒', [ElapsedMilliseconds]);
+  end;
+
+  Fimg.Invalidate;
 end;
 
-procedure TForm2.trckbrLightChange(Sender: TObject);
-var
-  intLightValue: Integer;
-  I, J         : Integer;
-  pColor       : PRGBQuad;
+procedure TForm2.trckbrContrastChange(Sender: TObject);
 begin
-  FsrcBmp.Assign(FbakBmp);
+  lbl5.Caption := Format('%d', [trckbrContrast.Position]);
 
-  intLightValue := trckbrLight.Position;
-  lbl4.Caption  := Format('%.3d', [intLightValue]);
-
-  for I := 0 to FsrcBmp.Height - 1 do
+  with TStopwatch.StartNew do
   begin
-    pColor := FsrcBmp.ScanLine[I];
-    for J  := 0 to FsrcBmp.Width - 1 do
-    begin
-      pColor^.rgbRed   := CheckValue(pColor^.rgbRed, intLightValue);
-      pColor^.rgbGreen := CheckValue(pColor^.rgbGreen, intLightValue);
-      pColor^.rgbBlue  := CheckValue(pColor^.rgbBlue, intLightValue);
-      Inc(pColor);
-    end;
+    FsrcBmp.Canvas.Draw(0, 0, FbakBmp);
+    Contrast(FsrcBmp, trckbrContrast.Position + 128, ctSSE4);
+    Fstp.Text := Format('调节对比度用时：%d 毫秒', [ElapsedMilliseconds]);
+  end;
+
+  Fimg.Invalidate;
+end;
+
+procedure TForm2.trckbrSaturationChange(Sender: TObject);
+begin
+  lbl6.Caption := Format('%d', [trckbrSaturation.Position]);
+
+  with TStopwatch.StartNew do
+  begin
+    FsrcBmp.Canvas.Draw(0, 0, FbakBmp);
+    Saturation(FsrcBmp, trckbrSaturation.Position + 255, stAVX2);
+    Fstp.Text := Format('调节饱和度用时：%d 毫秒', [ElapsedMilliseconds]);
   end;
 
   Fimg.Invalidate;
