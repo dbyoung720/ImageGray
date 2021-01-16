@@ -10,5 +10,5 @@
 ### Delphi implemented function：
 ```
 type
-  TGrayType = (gtAPI, gtScanLine, gtDelphi, gtFourPoint, gtGDIPLUS, gtTable, gtASM, gtMMX, gtSSE, gtSSE2, gtSSE4, gtAVX, gtAVX2, gtAVX512, gtGPU, gtOther);
+  TGrayType = (gtAPI, gtScanLine, gtDelphi, gtFourPoint, gtParallel, gtGDIPLUS, gtTable, gtASM, gtMMX, gtSSE, gtSSE2, gtSSE4, gtAVX, gtAVX2, gtAVX512, gtGPU, gtOther);
 ```
