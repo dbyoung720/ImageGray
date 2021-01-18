@@ -129,7 +129,7 @@ begin
   end;
 end;
 
-{ 45 ms  需要脱离 IDE 执行 }
+{ 45 ms  需要脱离 IDE 执行 / ScanLine 不能用于 TParallel.For 中 }
 procedure Gray_Parallel(bmp: TBitmap);
 var
   StartScanLine: Integer;
