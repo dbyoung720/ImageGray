@@ -10,11 +10,12 @@ unit db.Image.Gray;
   基本原理：
   Gray = (R + G + B) / 3  = (R + G + B) * 85 / 255 = (R + G + B) * 85 >> 8
   Gray = R*0.299 + G*0.587 + B*0.114
+  Gray = R,G,B 中最大值
 
   定点优化：
   Gray = (R*77   + G*151  + B*28)   >> 8
   Gray = (R*0x4D + G*0x97 + B*0x1C) >> 8
-
+  
   查表优化：
   R、G、B，都在 0---255 之间，可以将 R(0---255)*77、G(0---255)*151、B(0---255)*28 预先计算好，存放在表中，优化掉乘法
 }
@@ -502,7 +503,7 @@ asm
   PSLLD   XMM5, 8                         // XMM5  = |00Y30000|00Y20000|00Y10000|00Y00000|
   ORPS    XMM4, XMM5                      // XMM4  = |00Y3Y3Y3|00Y2Y2Y2|00Y1Y1Y1|00Y0Y0Y0|
   ANDPS   XMM0, XMM3                      // XMM0  = |FF000000|FF000000|FF000000|FF000000|
-  ORPS    XMM0, XMM4                      // XMM0  = |FFRGBGR3|FFRGBGR2|FFRGBGR1|FFRGBGR0|
+  ORPS    XMM0, XMM4                      // XMM0  = |FFY3Y3Y3|FFY2Y2Y2|FFY1Y1Y1|FFY0Y0Y0|
   MOVUPS  [EAX], XMM0                     // [EAX] = XMM0
 
   ADD     EAX, 16                         // pColor 地址加 16，EAX 指向下4个像素的地址
