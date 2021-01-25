@@ -8,16 +8,26 @@ unit db.Image.Gray;
   Note：Delphi 的 Release 模式是有优化的，Debug 是没有的；下面的时间，都是在 DEBUG 模式下的用时；
 
   基本原理：
-  Gray = (R + G + B) / 3  = (R + G + B) * 85 / 255 = (R + G + B) * 85 >> 8
+  Gray = (R + G + B) / 3  = (R + G + B) * 85($55) / 255 = (R + G + B) * 85($55) >> 8
   Gray = R*0.299 + G*0.587 + B*0.114
   Gray = R,G,B 中最大值
 
   定点优化：
   Gray = (R*77   + G*151  + B*28)   >> 8
   Gray = (R*0x4D + G*0x97 + B*0x1C) >> 8
-  
+
   查表优化：
   R、G、B，都在 0---255 之间，可以将 R(0---255)*77、G(0---255)*151、B(0---255)*28 预先计算好，存放在表中，优化掉乘法
+
+  CPU :
+  EAX/EBX/ECX/EDX/EDI/ESI 32BITS
+  RAX/RBX/RCX/RDX/RDI/RSI 64BITS
+
+  MMX :
+  MM0---MM7 64 BITS
+
+  SSE
+  XMM0---XMMM7   128BITS
 }
 
 {$IFDEF WIN32}

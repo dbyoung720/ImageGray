@@ -59,7 +59,7 @@ begin
   Count  := bmp.width * bmp.height;
   for I  := 0 to Count - 1 do
   begin
-    pColor^ := c_InvertMask - pColor^;
+    pColor^ := not pColor^;
     Inc(pColor);
   end;
 end;
