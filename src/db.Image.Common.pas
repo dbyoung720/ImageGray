@@ -1,8 +1,9 @@
 unit db.Image.Common;
-
+
+
 interface
 
-uses Winapi.Windows, Winapi.GDIPAPI,System.Math, Vcl.Graphics;
+uses Winapi.Windows, Winapi.GDIPAPI, System.Math, Vcl.Graphics;
 
 const
   c_GrayR77: array [0 .. 255] of DWORD = (                                                                          //
@@ -116,7 +117,7 @@ var
 
 implementation
 
-{ 存取类的私有成员变量 }
+{ 存取类的保护成员变量 }
 type
   TBMPAccess         = class(TBitmap);
   TBitmapImageAccess = class(TBitmapImage);
@@ -175,4 +176,4 @@ initialization
   InitLightTable;
 
 end.
-
+
