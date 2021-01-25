@@ -20,14 +20,14 @@ unit db.Image.Gray;
   R、G、B，都在 0---255 之间，可以将 R(0---255)*77、G(0---255)*151、B(0---255)*28 预先计算好，存放在表中，优化掉乘法
 
   CPU :
-  EAX/EBX/ECX/EDX/EDI/ESI 32BITS
-  RAX/RBX/RCX/RDX/RDI/RSI 64BITS
+  EAX/EBX/ECX/EDX/EDI/ESI 32BITS  (x86)
+  RAX/RBX/RCX/RDX/RDI/RSI 64BITS  (x64)
 
   MMX :
-  MM0---MM7 64 BITS
+  MM0---MM7               64BITS
 
-  SSE
-  XMM0---XMMM7   128BITS
+  SSE :
+  XMM0---XMM7            128BITS
 }
 
 {$IFDEF WIN32}
