@@ -42,25 +42,19 @@ var
   pColor: PRGBQuad;
   value : Integer;
 begin
-  for Y := 0 to bmp.Height - 1 do
+  for Y := 0 to bmp.height - 1 do
   begin
     pColor := bmp.ScanLine[Y];
-    for X  := 0 to bmp.Width - 1 do
+    for X  := 0 to bmp.width - 1 do
     begin
       value          := ((pColor^.rgbRed - 128) * intContrastValue + 12800) div 100;
-      value          := Max(value, 0);
-      value          := Min(value, 255);
-      pColor^.rgbRed := value;
+      pColor^.rgbRed := EnsureRange(value, 0, 255);
 
       value            := ((pColor^.rgbGreen - 128) * intContrastValue + 12800) div 100;
-      value            := Max(value, 0);
-      value            := Min(value, 255);
-      pColor^.rgbGreen := value;
+      pColor^.rgbGreen := EnsureRange(value, 0, 255);
 
       value           := ((pColor^.rgbBlue - 128) * intContrastValue + 12800) div 100;
-      value           := Max(value, 0);
-      value           := Min(value, 255);
-      pColor^.rgbBlue := value;
+      pColor^.rgbBlue := EnsureRange(value, 0, 255);
 
       Inc(pColor);
     end;
@@ -91,15 +85,15 @@ begin
     ctSSE:                                                                              //
       ;                                                                                 //
     ctSSE2:                                                                             //
-      Contrast_sse2(GetBitsPointer(bmp), bmp.Width, bmp.Height, intContrastValue);      // 62 ms
+      Contrast_sse2(GetBitsPointer(bmp), bmp.width, bmp.height, intContrastValue);      // 62 ms
     ctSSE4:                                                                             //
-      Contrast_sse4(GetBitsPointer(bmp), bmp.Width, bmp.Height, intContrastValue);      // 44 ms
+      Contrast_sse4(GetBitsPointer(bmp), bmp.width, bmp.height, intContrastValue);      // 44 ms
     ctAVX:                                                                              //
-      Contrast_avx(GetBitsPointer(bmp), bmp.Width, bmp.Height, intContrastValue);       // 50 ms
+      Contrast_avx(GetBitsPointer(bmp), bmp.width, bmp.height, intContrastValue);       // 50 ms
     ctAVX2:                                                                             //
-      Contrast_avx2(GetBitsPointer(bmp), bmp.Width, bmp.Height, intContrastValue);      //
+      Contrast_avx2(GetBitsPointer(bmp), bmp.width, bmp.height, intContrastValue);      //
     ctAVX512:                                                                           //
-      Contrast_avx512knl(GetBitsPointer(bmp), bmp.Width, bmp.Height, intContrastValue); //
+      Contrast_avx512knl(GetBitsPointer(bmp), bmp.width, bmp.height, intContrastValue); //
   end;
 end;
 

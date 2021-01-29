@@ -50,6 +50,7 @@ procedure Invert_avx2(src: PByte; width, height: Integer); cdecl; external {$IFD
 procedure Invert_avx512skx(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_Invert_avx512skx'{$IFEND};
 procedure Invert_avx512knl(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_Invert_avx512knl'{$IFEND};
 
+{ 48 ms }
 procedure Invert_Delphi(bmp: TBitmap);
 var
   pColor  : PDWORD;
@@ -69,15 +70,13 @@ asm
   MOV   ECX, EDX
 
 @LOOP:
-  MOV   EDX,   c_InvertMask
-  SUB   EDX,   [EAX]
-  MOV   [EAX], EDX
-
+  NOT   [EAX]
   ADD   EAX, 4
   DEC   ECX
   JNZ   @LOOP
 end;
 
+{ 14 ms }
 procedure Invert_ASM(bmp: TBitmap);
 begin
   Invert_ASM_Proc(GetBitsPointer(bmp), bmp.width * bmp.height);
@@ -99,6 +98,7 @@ asm
   EMMS
 end;
 
+{ 7 ms }
 procedure Invert_MMX(bmp: TBitmap);
 begin
   Invert_MMX_Proc(GetBitsPointer(bmp), bmp.width * bmp.height * 4);
@@ -123,6 +123,7 @@ asm
   JNZ   @LOOP
 end;
 
+{ 7 ms }
 procedure Invert_SSE(bmp: TBitmap);
 begin
   Invert_SSE_Proc(GetBitsPointer(bmp), bmp.width * bmp.height * 4);

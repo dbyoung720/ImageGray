@@ -97,6 +97,8 @@ function GetBitsPointer(bmp: TBitmap): Pointer;
 
 function GetPixelGray(const r, g, b: Byte): TRGBQuad; inline;
 
+function CheckValue(const intValue, intRange: Integer): Byte; inline;
+
 procedure _abort; cdecl; external 'msvcrt.dll' name 'abort';
 procedure abort; cdecl; external 'msvcrt.dll' name 'abort';
 
@@ -144,6 +146,11 @@ var
 begin
   byeGray := (c_GrayR77[r] + c_GrayG151[g] + c_GrayB28[b]) shr 8;
   Result  := TRGBQuad(c_GrayValue[byeGray]);
+end;
+
+function CheckValue(const intValue, intRange: Integer): Byte; inline;
+begin
+  Result := EnsureRange(intValue + intRange, 0, 255);
 end;
 
 procedure InitGrayTable;

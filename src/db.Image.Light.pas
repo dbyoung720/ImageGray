@@ -2,7 +2,7 @@ unit db.Image.Light;
 
 interface
 
-uses Winapi.Windows, Vcl.Graphics, db.Image.Common;
+uses Winapi.Windows, Vcl.Graphics, System.Math, db.Image.Common;
 
 {$IFDEF WIN32}
 {$LINK obj\x86\light.obj}
@@ -23,7 +23,7 @@ uses Winapi.Windows, Vcl.Graphics, db.Image.Common;
 {$IFEND}
 
 type
-  TLightType = (ltScanline, ltDelphi, ltASM, ltMMX, ltSSE, ltSSE2, ltSSE4, ltAVX, ltAVX2, ltAVX512);
+  TLightType = (ltScanline, ltDelphi, ltTable, ltASM, ltMMX, ltSSE, ltSSE2, ltSSE4, ltAVX, ltAVX2, ltAVX512);
 
 procedure Light(bmp: TBitmap; const intLightValue: Integer; const lt: TLightType = ltAVX);
 
@@ -36,6 +36,7 @@ procedure light_avx2(src: PByte; width, height, keyValue: Integer); cdecl; exter
 procedure light_avx512skx(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_light_avx512skx'{$IFEND};
 procedure light_avx512knl(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_light_avx512knl'{$IFEND};
 
+{ 160 ms }
 procedure Light_ScanLine(bmp: TBitmap; const intLightValue: Integer);
 var
   I, J  : Integer;
@@ -46,15 +47,33 @@ begin
     pColor := bmp.ScanLine[I];
     for J  := 0 to bmp.width - 1 do
     begin
-      pColor^.rgbRed   := g_LightTable[pColor^.rgbRed, intLightValue];
-      pColor^.rgbGreen := g_LightTable[pColor^.rgbGreen, intLightValue];
-      pColor^.rgbBlue  := g_LightTable[pColor^.rgbBlue, intLightValue];
+      pColor^.rgbRed   := CheckValue(pColor^.rgbRed, intLightValue);
+      pColor^.rgbGreen := CheckValue(pColor^.rgbGreen, intLightValue);
+      pColor^.rgbBlue  := CheckValue(pColor^.rgbBlue, intLightValue);
       Inc(pColor);
     end;
   end;
 end;
 
+{ 160 ms }
 procedure Light_Delphi(bmp: TBitmap; const intLightValue: Integer);
+var
+  I, Count: Integer;
+  pColor  : PRGBQuad;
+begin
+  Count  := bmp.width * bmp.height;
+  pColor := GetBitsPointer(bmp);
+  for I  := 0 to Count - 1 do
+  begin
+    pColor^.rgbRed   := CheckValue(pColor^.rgbRed, intLightValue);
+    pColor^.rgbGreen := CheckValue(pColor^.rgbGreen, intLightValue);
+    pColor^.rgbBlue  := CheckValue(pColor^.rgbBlue, intLightValue);
+    Inc(pColor);
+  end;
+end;
+
+{ 88 ms }
+procedure Light_Table(bmp: TBitmap; const intLightValue: Integer);
 var
   I, Count: Integer;
   pColor  : PRGBQuad;
@@ -72,7 +91,19 @@ end;
 
 procedure Light_ASM_Proc(pSrc: PRGBQuad; const intLightValue, Count: Integer); register;
 asm
+@LOOP:                                  // 循环；EAX 中存在着 pColor 的首地址
+  MOVZX  EBX, [EAX].TRGBQuad.RGBRed     // EBX = pColor^.rgbRed
+  MOVZX  EDX, [EAX].TRGBQuad.rgbGreen   // EDX = pColor^.rgbGreen
+  MOVZX  ESI, [EAX].TRGBQuad.rgbBlue    // ESI = pColor^.rgbBlue
 
+  SHL    EBX, 9                        // EBX = pColor^.rgbRed * 512
+  MOV    EBX, [EBX + g_LightTable]     // EBX = g_LightTable + pColor^.rgbRed * 256  =  g_LightTable[pColor^.rgbRed][0]
+  MOV    EBX, [EBX + EDX]              // EBX = g_LightTable + pColor^.rgbRed * 256  + intLightValue = g_LightTable[pColor^.rgbRed][intLightValue]
+
+  MOV    [EAX],  EBX                    // [EAX] = TRGBQuad(c_GrayValue[byeGray])
+  ADD    EAX, 4                         // EAX   = 指向下一个像素
+  DEC    ECX                            // Count 减一
+  JNZ    @LOOP                          // 循环
 end;
 
 procedure Light_ASM(bmp: TBitmap; const intLightValue: Integer);
@@ -84,9 +115,11 @@ procedure Light(bmp: TBitmap; const intLightValue: Integer; const lt: TLightType
 begin
   case lt of
     ltScanline:
-      Light_ScanLine(bmp, intLightValue);                                         // 105 ms
+      Light_ScanLine(bmp, intLightValue);                                         // 160 ms
     ltDelphi:                                                                     //
-      Light_Delphi(bmp, intLightValue);                                           // 100 ms
+      Light_Delphi(bmp, intLightValue);                                           // 88 ms
+    ltTable:                                                                      //
+      Light_Table(bmp, intLightValue);                                            // 88 ms
     ltASM:                                                                        //
       Light_ASM(bmp, intLightValue);                                              //
     ltMMX:                                                                        //

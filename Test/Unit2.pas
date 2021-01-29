@@ -74,7 +74,7 @@ begin
   with TStopwatch.StartNew do
   begin
     FsrcBmp.Canvas.Draw(0, 0, FbakBmp);
-    Light(FsrcBmp, trckbrLight.Position, ltDelphi);
+    Light(FsrcBmp, trckbrLight.Position, ltASM);
     Fstp.Text := Format('调节亮度用时：%d 毫秒', [ElapsedMilliseconds]);
   end;
 
