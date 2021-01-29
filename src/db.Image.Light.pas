@@ -96,9 +96,9 @@ asm
   MOVZX  EDX, [EAX].TRGBQuad.rgbGreen   // EDX = pColor^.rgbGreen
   MOVZX  ESI, [EAX].TRGBQuad.rgbBlue    // ESI = pColor^.rgbBlue
 
-  SHL    EBX, 9                        // EBX = pColor^.rgbRed * 512
-  MOV    EBX, [EBX + g_LightTable]     // EBX = g_LightTable + pColor^.rgbRed * 256  =  g_LightTable[pColor^.rgbRed][0]
-  MOV    EBX, [EBX + EDX]              // EBX = g_LightTable + pColor^.rgbRed * 256  + intLightValue = g_LightTable[pColor^.rgbRed][intLightValue]
+  //SHL    EBX, 9                        // EBX = pColor^.rgbRed * 512
+  //MOV    EBX, [EBX + g_LightTable]     // EBX = g_LightTable + pColor^.rgbRed * 256  =  g_LightTable[pColor^.rgbRed][0]
+  //MOV    EBX, [EBX + EDX]              // EBX = g_LightTable + pColor^.rgbRed * 256  + intLightValue = g_LightTable[pColor^.rgbRed][intLightValue]
 
   MOV    [EAX],  EBX                    // [EAX] = TRGBQuad(c_GrayValue[byeGray])
   ADD    EAX, 4                         // EAX   = 指向下一个像素
