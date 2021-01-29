@@ -19,7 +19,7 @@ unit db.Image.Gray;
   查表优化：
   R、G、B，都在 0---255 之间，可以将 R(0---255)*77、G(0---255)*151、B(0---255)*28 预先计算好，存放在表中，优化掉乘法
 
-寄存器宽度：
+  寄存器宽度：
   CPU  :
   EAX/EBX/ECX/EDX/EDI/ESI           32BITS (x86)
   RAX/RBX/RCX/RDX/RDI/RSI           64BITS (x64, EAX 寄存器是 RAX 寄存器的低 32 位)
@@ -460,7 +460,7 @@ end;
 { 36 ms }
 procedure Gray_MMX(bmp: TBitmap);
 begin
-  Gray_MMX_Proc_P2(GetBitsPointer(bmp), bmp.Width * bmp.Height * 4);
+  Gray_MMX_Proc_P3(GetBitsPointer(bmp), bmp.Width * bmp.Height * 4);
 end;
 
 {
@@ -485,9 +485,9 @@ asm
 
 @LOOP:
   MOVUPS  XMM0, [EAX]                     // XMM0 = |A3R3G3B3|A2R2G2B2|A1R1G1B1|A0R0G0B0|
-  MOVAPS  XMM4, XMM0                      // XMM4 = XMM0
-  MOVAPS  XMM5, XMM0                      // XMM5 = XMM0
-  MOVAPS  XMM6, XMM0                      // XMM6 = XMM0
+  MOVAPS  XMM4, XMM0                      // XMM4 = |A3R3G3B3|A2R2G2B2|A1R1G1B1|A0R0G0B0|
+  MOVAPS  XMM5, XMM0                      // XMM5 = |A3R3G3B3|A2R2G2B2|A1R1G1B1|A0R0G0B0|
+  MOVAPS  XMM6, XMM0                      // XMM6 = |A3R3G3B3|A2R2G2B2|A1R1G1B1|A0R0G0B0|
 
   // 获取 4 个像素的 B3, B2, B1, B0
   ANDPS   XMM4, XMM1                      // XMM4 = |000000B3|000000B2|000000B1|000000B0|
