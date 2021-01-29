@@ -19,21 +19,15 @@ unit db.Image.Gray;
   查表优化：
   R、G、B，都在 0---255 之间，可以将 R(0---255)*77、G(0---255)*151、B(0---255)*28 预先计算好，存放在表中，优化掉乘法
 
+寄存器宽度：
   CPU  :
-  EAX/EBX/ECX/EDX/EDI/ESI 32BITS  (x86)
-  RAX/RBX/RCX/RDX/RDI/RSI 64BITS  (x64)
-
-  MMX  :
-  MM0---MM7               64BITS
-
-  SSE2 :
-  XMM0---XMM7            128BITS
-
-  SSE4 :
-  XMM0---XMM15           128BITS
-
-  AVX  :
-  YMM0---YMM15           256BITS (XMM 寄存器是 YMM 寄存器的低 128 位)
+  EAX/EBX/ECX/EDX/EDI/ESI           32BITS (x86)
+  RAX/RBX/RCX/RDX/RDI/RSI           64BITS (x64, EAX 寄存器是 RAX 寄存器的低 32 位)
+  MMX    :   MM0 --- MM7            64BITS
+  SSE2   :  XMM0--- XMM7           128BITS
+  SSE4   :  XMM0---XMM15           128BITS (SSE4 以上指令，Delphi 编译器不支持)
+  AVX    :  YMM0---YMM15           256BITS (XMM 寄存器是 YMM 寄存器的低 128 位)
+  AVX512 :  ZMM0---ZMM31           512BITS (YMM 寄存器是 ZMM 寄存器的低 256 位)
 }
 
 {$IFDEF WIN32}
