@@ -79,7 +79,7 @@ begin
     GetBitmapBits(bmp.Handle, Count * 4, pColor);
     for I := 0 to Count - 1 do
     begin
-      byeGray := Round(0.3 * pColor^.rgbRed + 0.59 * pColor^.rgbGreen + 0.11 * pColor^.rgbBlue);
+      byeGray := Round(0.299 * pColor^.rgbRed + 0.587 * pColor^.rgbGreen + 0.114 * pColor^.rgbBlue);
       pColor^ := TRGBQuad(RGB(byeGray, byeGray, byeGray));
       Inc(pColor);
     end;
