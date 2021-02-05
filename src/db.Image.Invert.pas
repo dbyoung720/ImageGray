@@ -14,41 +14,16 @@ unit db.Image.Invert;
   ARGB = 16777215 - ARGB
 }
 
-{$IFDEF WIN32}
-{$LINK obj\x86\Invert.obj}
-{$LINK obj\x86\Invert_sse2.obj}
-{$LINK obj\x86\Invert_sse4.obj}
-{$LINK obj\x86\Invert_avx.obj}
-{$LINK obj\x86\Invert_avx2.obj}
-{$LINK obj\x86\Invert_avx512knl.obj}
-{$LINK obj\x86\Invert_avx512skx.obj}
-{$ELSE}
-{$LINK obj\x64\Invert.obj}
-{$LINK obj\x64\Invert_sse2.obj}
-{$LINK obj\x64\Invert_sse4.obj}
-{$LINK obj\x64\Invert_avx.obj}
-{$LINK obj\x64\Invert_avx2.obj}
-{$LINK obj\x64\Invert_avx512knl.obj}
-{$LINK obj\x64\Invert_avx512skx.obj}
-{$IFEND}
-
 interface
 
 uses Winapi.Windows, System.Classes, System.SysUtils, System.StrUtils, {$IF CompilerVersion >= 24.0} System.Threading, {$IFEND} System.Diagnostics, System.SyncObjs, Vcl.Graphics, Winapi.GDIPOBJ, Winapi.GDIPAPI, db.Image.Common;
 
 type
-  TInvertType = (itDelphi, itASM, itMMX, itSSE, itSSE2, itSSE4, itAVX, itAVX2, itAVX512);
+  TInvertType = (itDelphi, itASM, itMMX, itSSE, itAVX, itAVX2, itAVX512);
 
-procedure Invert(bmp: TBitmap; const gt: TInvertType = itSSE4);
+procedure Invert(bmp: TBitmap; const gt: TInvertType = itAVX);
 
 implementation
-
-procedure Invert_sse2(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_Invert_sse2'{$IFEND};
-procedure Invert_sse4(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_Invert_sse4'{$IFEND};
-procedure Invert_avx(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_Invert_avx'{$IFEND};
-procedure Invert_avx2(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_Invert_avx2'{$IFEND};
-procedure Invert_avx512skx(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_Invert_avx512skx'{$IFEND};
-procedure Invert_avx512knl(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_Invert_avx512knl'{$IFEND};
 
 { 48 ms }
 procedure Invert_Delphi(bmp: TBitmap);
@@ -127,27 +102,53 @@ begin
   Invert_SSE_Proc(GetBitsPointer(bmp), bmp.width * bmp.height * 4);
 end;
 
-procedure Invert(bmp: TBitmap; const gt: TInvertType = itSSE4);
+procedure Invert_AVX_proc(pColor: PByte; Count: Integer);
+asm
+  MOV ECX, EDX
+
+  {$IFDEF FPC}
+  VXORPS  XMM1, XMM1, XMM1
+  VCMPPS  YMM1, YMM1, YMM1, 0
+@LOOP:
+  VMOVUPS YMM0, [EAX]
+  VXORPS  YMM0, YMM0, YMM1
+  VMOVDQU [EAX], YMM0
+  {$ELSE}
+  DB  $C5, $F0, $57, $C9
+  DB  $C5, $F4, $C2, $C9, $00
+@LOOP:
+  DB  $C5, $FC, $10, $00
+  DB  $C5, $FC, $57, $C1
+  DB  $C5, $FE, $7F, $00
+  {$ENDIF}
+
+  ADD EAX, 32
+  SUB ECX, 32
+  JNZ @loop
+end;
+
+procedure Invert_AVX(bmp: TBitmap);
+begin
+  Invert_AVX_proc(GetBitsPointer(bmp), bmp.width * bmp.height * 4);
+end;
+
+procedure Invert(bmp: TBitmap; const gt: TInvertType = itAVX);
 begin
   case gt of
-    itDelphi:                                                       //
-      Invert_Delphi(bmp);                                           // 42 ms
-    itASM:                                                          //
-      Invert_ASM(bmp);                                              // 13 ms
-    itMMX:                                                          //
-      Invert_MMX(bmp);                                              // 9 ms
-    itSSE:                                                          //
-      Invert_SSE(bmp);                                              // 7 ms
-    itSSE2:                                                         //
-      Invert_sse2(GetBitsPointer(bmp), bmp.width, bmp.height);      // 7 ms
-    itSSE4:                                                         //
-      Invert_sse4(GetBitsPointer(bmp), bmp.width, bmp.height);      // 7 ms
-    itAVX:                                                          //
-      Invert_avx(GetBitsPointer(bmp), bmp.width, bmp.height);       // 7 ms
-    itAVX2:                                                         //
-      Invert_avx2(GetBitsPointer(bmp), bmp.width, bmp.height);      // 5 ms
-    itAVX512:                                                       //
-      Invert_avx512skx(GetBitsPointer(bmp), bmp.width, bmp.height); // 7 ms
+    itDelphi:             //
+      Invert_Delphi(bmp); // 42 ms
+    itASM:                //
+      Invert_ASM(bmp);    // 13 ms
+    itMMX:                //
+      Invert_MMX(bmp);    // 9 ms
+    itSSE:                //
+      Invert_SSE(bmp);    // 7 ms
+    itAVX:                //
+      Invert_AVX(bmp);    // 7 ms
+    itAVX2:               //
+      ;                   // 5 ms
+    itAVX512:             //
+      ;                   // 7 ms
   end;
 end;
 

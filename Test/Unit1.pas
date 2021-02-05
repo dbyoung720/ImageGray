@@ -138,7 +138,7 @@ procedure TForm1.mniColorInvertClick(Sender: TObject);
 begin
   with TStopwatch.StartNew do
   begin
-    Invert(imgShow.Picture.Bitmap, itSSE);
+    Invert(imgShow.Picture.Bitmap, itAVX);
     statTip.Panels[0].Text := Format('反色用时：%d 毫秒', [ElapsedMilliseconds]);
   end;
   imgShow.Invalidate;
