@@ -87,8 +87,8 @@ asm
   MOV   ECX, EDX
 
 @LOOP:
-  MOVQ   MM0,   c_InvertMask2
-  PSUBD  MM0,   [EAX]
+  PCMPEQD  MM0, MM0
+  PSUBD    MM0, [EAX]
   MOVQ   [EAX], MM0
 
   ADD   EAX, 8
@@ -112,11 +112,9 @@ asm
   MOV   ECX, EDX
 
 @LOOP:
-  MOVSS   XMM0, [c_InvertMask]
-  SHUFPS  XMM0, XMM0, 0
-
-  PSUBD  XMM0,  [EAX]
-  MOVUPS [EAX], XMM0
+  PCMPEQD  XMM0, XMM0
+  PSUBD    XMM0, [EAX]
+  MOVUPS  [EAX], XMM0
 
   ADD   EAX, 16
   SUB   ECX, 16
