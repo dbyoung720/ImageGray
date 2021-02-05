@@ -11,7 +11,7 @@ unit db.Image.Invert;
   R = 255 - R;
   G = 255 - G;
   B = 255 - B;
-  ARGB = 16777215 - ARGB
+  BGRA = 16777215 - BGRA
 }
 
 interface
