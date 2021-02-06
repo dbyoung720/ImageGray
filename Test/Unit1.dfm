@@ -2,8 +2,8 @@ object Form1: TForm1
   Left = 0
   Top = 0
   Caption = 'Form1'
-  ClientHeight = 771
-  ClientWidth = 1035
+  ClientHeight = 636
+  ClientWidth = 1103
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -20,14 +20,16 @@ object Form1: TForm1
   object scrlbx1: TScrollBox
     Left = 0
     Top = 0
-    Width = 1035
-    Height = 752
+    Width = 1103
+    Height = 617
     HorzScrollBar.Smooth = True
     HorzScrollBar.Tracking = True
     VertScrollBar.Smooth = True
     VertScrollBar.Tracking = True
     Align = alClient
     TabOrder = 0
+    ExplicitWidth = 1035
+    ExplicitHeight = 752
     object imgShow: TImage
       Left = 0
       Top = 0
@@ -38,8 +40,8 @@ object Form1: TForm1
   end
   object statTip: TStatusBar
     Left = 0
-    Top = 752
-    Width = 1035
+    Top = 617
+    Width = 1103
     Height = 19
     Panels = <
       item
@@ -48,6 +50,8 @@ object Form1: TForm1
       item
         Width = 50
       end>
+    ExplicitTop = 752
+    ExplicitWidth = 1035
   end
   object MainMenu1: TMainMenu
     AutoHotkeys = maManual

@@ -1,6 +1,6 @@
 unit db.Image.Common;
-
-{$LINK  obj\DAVX_x86.obj}
+
+{$LINK obj\DAVX_x86.obj}
 
 interface
 
@@ -98,7 +98,8 @@ function GetPixelGray(const r, g, b: Byte): TRGBQuad; inline;
 
 function CheckValue(const intValue, intRange: Integer): Byte; inline;
 
-procedure _invert_avx(pColor: PByte; count: Integer); cdecl; external;
+procedure Invert_AVX1_Proc(pColor: PByte; count: Integer); cdecl; external name '_invert_avx1';
+procedure Invert_AVX2_Proc(pColor: PByte; count: Integer); cdecl; external name '_invert_avx2';
 
 procedure _abort; cdecl; external 'msvcrt.dll' name 'abort';
 procedure abort; cdecl; external 'msvcrt.dll' name 'abort';
@@ -185,3 +186,4 @@ InitGrayTable;
 InitLightTable;
 
 end.
+

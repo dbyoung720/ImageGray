@@ -19,9 +19,9 @@ interface
 uses Winapi.Windows, System.Classes, System.SysUtils, System.StrUtils, {$IF CompilerVersion >= 24.0} System.Threading, {$IFEND} System.Diagnostics, System.SyncObjs, Vcl.Graphics, Winapi.GDIPOBJ, Winapi.GDIPAPI, db.Image.Common;
 
 type
-  TInvertType = (itDelphi, itASM, itMMX, itSSE, itAVX, itAVX2, itAVX512);
+  TInvertType = (itDelphi, itASM, itMMX, itSSE, itAVX1, itAVX2, itAVX_ASM);
 
-procedure Invert(bmp: TBitmap; const gt: TInvertType = itAVX);
+procedure Invert(bmp: TBitmap; const gt: TInvertType = itAVX1);
 
 implementation
 
@@ -29,18 +29,18 @@ implementation
 procedure Invert_Delphi(bmp: TBitmap);
 var
   pColor  : PDWORD;
-  I, Count: Integer;
+  I, count: Integer;
 begin
   pColor := GetBitsPointer(bmp);
-  Count  := bmp.width * bmp.height;
-  for I  := 0 to Count - 1 do
+  count  := bmp.width * bmp.height;
+  for I  := 0 to count - 1 do
   begin
     pColor^ := not pColor^;
     Inc(pColor);
   end;
 end;
 
-procedure Invert_ASM_Proc(pColor: PRGBQuad; const Count: Integer); register;
+procedure Invert_ASM_Proc(pColor: PRGBQuad; const count: Integer); register;
 asm
   MOV   ECX, EDX
 
@@ -57,7 +57,7 @@ begin
   Invert_ASM_Proc(GetBitsPointer(bmp), bmp.width * bmp.height);
 end;
 
-procedure Invert_MMX_Proc(pColor: PByte; const Count: Integer); register;
+procedure Invert_MMX_Proc(pColor: PByte; const count: Integer); register;
 asm
   MOV   ECX, EDX
 
@@ -79,7 +79,7 @@ begin
   Invert_MMX_Proc(GetBitsPointer(bmp), bmp.width * bmp.height * 4);
 end;
 
-procedure Invert_SSE_Proc(pColor: PByte; const Count: Integer); register;
+procedure Invert_SSE_Proc(pColor: PByte; const count: Integer); register;
 asm
   {$IFDEF WIN64}
   MOV   RAX, RCX
@@ -102,7 +102,17 @@ begin
   Invert_SSE_Proc(GetBitsPointer(bmp), bmp.width * bmp.height * 4);
 end;
 
-procedure Invert_AVX_proc(pColor: PByte; Count: Integer);
+procedure Invert_AVX1(bmp: TBitmap);
+begin
+  Invert_AVX1_Proc(GetBitsPointer(bmp), bmp.width * bmp.height * 4);
+end;
+
+procedure Invert_AVX2(bmp: TBitmap);
+begin
+  Invert_AVX2_Proc(GetBitsPointer(bmp), bmp.width * bmp.height * 4);
+end;
+
+procedure Invert_AVX1_ASM(pColor: PByte; count: Integer);
 asm
   MOV ECX, EDX
 
@@ -127,12 +137,7 @@ asm
   JNZ @loop
 end;
 
-procedure Invert_AVX(bmp: TBitmap);
-begin
-  Invert_AVX_proc(GetBitsPointer(bmp), bmp.width * bmp.height * 4);
-end;
-
-procedure Invert(bmp: TBitmap; const gt: TInvertType = itAVX);
+procedure Invert(bmp: TBitmap; const gt: TInvertType = itAVX1);
 begin
   case gt of
     itDelphi:             //
@@ -143,12 +148,12 @@ begin
       Invert_MMX(bmp);    // 9 ms
     itSSE:                //
       Invert_SSE(bmp);    // 7 ms
-    itAVX:                //
-      Invert_AVX(bmp);    // 7 ms
+    itAVX1:               //
+      Invert_AVX1(bmp);   // 7 ms
     itAVX2:               //
-      ;                   // 5 ms
-    itAVX512:             //
-      ;                   // 7 ms
+      Invert_AVX2(bmp);   // 7 ms
+    itAVX_ASM:
+      Invert_AVX1_ASM(GetBitsPointer(bmp), bmp.width * bmp.height * 4); // 7 ms
   end;
 end;
 
