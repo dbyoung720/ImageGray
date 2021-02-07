@@ -30,41 +30,16 @@ unit db.Image.Gray;
   AVX512 :  ZMM0---ZMM31           512BITS (YMM ¼Ä´æÆ÷ÊÇ ZMM ¼Ä´æÆ÷µÄµÍ 256 Î»)
 }
 
-{$IFDEF WIN32}
-{$LINK obj\x86\gray.obj}
-{$LINK obj\x86\gray_sse2.obj}
-{$LINK obj\x86\gray_sse4.obj}
-{$LINK obj\x86\gray_avx.obj}
-{$LINK obj\x86\gray_avx2.obj}
-{$LINK obj\x86\gray_avx512knl.obj}
-{$LINK obj\x86\gray_avx512skx.obj}
-{$ELSE}
-{$LINK obj\x64\gray.obj}
-{$LINK obj\x64\gray_sse2.obj}
-{$LINK obj\x64\gray_sse4.obj}
-{$LINK obj\x64\gray_avx.obj}
-{$LINK obj\x64\gray_avx2.obj}
-{$LINK obj\x64\gray_avx512knl.obj}
-{$LINK obj\x64\gray_avx512skx.obj}
-{$IFEND}
-
 interface
 
 uses Winapi.Windows, System.Classes, System.SysUtils, System.StrUtils, System.Threading, System.Diagnostics, System.SyncObjs, Vcl.Graphics, Winapi.GDIPOBJ, Winapi.GDIPAPI, db.Image.Common;
 
 type
-  TGrayType = (gtAPI, gtScanLine, gtDelphi, gtFourPoint, gtParallel, gtGDIPLUS, gtTable, gtASM, gtMMX, gtSSE, gtSSE2, gtSSE4, gtAVX, gtAVX2, gtAVX512, gtGPU, gtOther);
+  TGrayType = (gtAPI, gtScanLine, gtDelphi, gtFourPoint, gtParallel, gtGDIPLUS, gtTable, gtASM, gtMMX, gtSSE, gtAVX1, gtAVX2, gtGPU, gtOther);
 
-procedure Gray(bmp: TBitmap; const gt: TGrayType = gtSSE4);
+procedure Gray(bmp: TBitmap; const gt: TGrayType = gtAVX1);
 
 implementation
-
-procedure rgb2gray_sse2(src: PByte; Width, Height: Integer); cdecl; external {$IFDEF WIN32}name '_rgb2gray_sse2'{$IFEND};
-procedure rgb2gray_sse4(src: PByte; Width, Height: Integer); cdecl; external {$IFDEF WIN32}name '_rgb2gray_sse4'{$IFEND};
-procedure rgb2gray_avx(src: PByte; Width, Height: Integer); cdecl; external {$IFDEF WIN32}name '_rgb2gray_avx'{$IFEND};
-procedure rgb2gray_avx2(src: PByte; Width, Height: Integer); cdecl; external {$IFDEF WIN32}name '_rgb2gray_avx2'{$IFEND};
-procedure rgb2gray_avx512skx(src: PByte; Width, Height: Integer); cdecl; external {$IFDEF WIN32}name '_rgb2gray_avx512skx'{$IFEND};
-procedure rgb2gray_avx512knl(src: PByte; Width, Height: Integer); cdecl; external {$IFDEF WIN32}name '_rgb2gray_avx512knl'{$IFEND};
 
 { 220 ms }
 procedure Gray_API(bmp: TBitmap);
@@ -527,48 +502,26 @@ begin
   Gray_SSE_Proc_01(GetBitsPointer(bmp), bmp.Width * bmp.Height * 4);
 end;
 
-{ 30 ms }
-procedure Gray_SSE2(bmp: TBitmap);
-var
-  pSrc: PByte;
-begin
-  pSrc := GetBitsPointer(bmp);
-  rgb2gray_sse2(pSrc, bmp.Width, bmp.Height);
-end;
-
-{ 30 ms }
-procedure Gray_SSE4(bmp: TBitmap);
-var
-  pSrc: PByte;
-begin
-  pSrc := GetBitsPointer(bmp);
-  rgb2gray_sse4(pSrc, bmp.Width, bmp.Height);
-end;
-
-{ 30 ms }
+{ 7 ms }
 procedure Gray_AVX(bmp: TBitmap);
 var
-  pSrc: PByte;
+  pColor: PByte;
+  Count : Integer;
 begin
-  pSrc := GetBitsPointer(bmp);
-  rgb2gray_avx(pSrc, bmp.Width, bmp.Height);
+  pColor := GetBitsPointer(bmp);
+  Count  := bmp.Width * bmp.Height * 4;
+  Gray_AVX1_Proc(pColor, Count);
 end;
 
-{ 30 ms }
+{ 7 ms }
 procedure Gray_AVX2(bmp: TBitmap);
 var
-  pSrc: PByte;
+  pColor: PByte;
+  Count : Integer;
 begin
-  pSrc := GetBitsPointer(bmp);
-  rgb2gray_avx2(pSrc, bmp.Width, bmp.Height);
-end;
-
-procedure Gray_AVX512(bmp: TBitmap);
-var
-  pSrc: PByte;
-begin
-  pSrc := GetBitsPointer(bmp);
-  rgb2gray_avx512knl(pSrc, bmp.Width, bmp.Height);
+  pColor := GetBitsPointer(bmp);
+  Count  := bmp.Width * bmp.Height * 4;
+  Gray_AVX2_Proc(pColor, Count);
 end;
 
 procedure Gray_GPU(bmp: TBitmap);
@@ -645,7 +598,7 @@ begin
   end;
 end;
 
-procedure Gray(bmp: TBitmap; const gt: TGrayType = gtSSE4);
+procedure Gray(bmp: TBitmap; const gt: TGrayType = gtAVX1);
 begin
   case gt of
     gtAPI:
@@ -668,16 +621,10 @@ begin
       Gray_MMX(bmp);
     gtSSE:
       Gray_SSE(bmp);
-    gtSSE2:
-      Gray_SSE2(bmp);
-    gtSSE4:
-      Gray_SSE4(bmp);
-    gtAVX:
+    gtAVX1:
       Gray_AVX(bmp);
     gtAVX2:
       Gray_AVX2(bmp);
-    gtAVX512:
-      Gray_AVX512(bmp);
     gtGPU:
       Gray_GPU(bmp);
     gtOther:

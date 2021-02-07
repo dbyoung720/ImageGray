@@ -28,8 +28,6 @@ object Form1: TForm1
     VertScrollBar.Tracking = True
     Align = alClient
     TabOrder = 0
-    ExplicitWidth = 1035
-    ExplicitHeight = 752
     object imgShow: TImage
       Left = 0
       Top = 0
@@ -50,8 +48,6 @@ object Form1: TForm1
       item
         Width = 50
       end>
-    ExplicitTop = 752
-    ExplicitWidth = 1035
   end
   object MainMenu1: TMainMenu
     AutoHotkeys = maManual

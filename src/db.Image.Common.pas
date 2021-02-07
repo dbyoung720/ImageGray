@@ -98,8 +98,10 @@ function GetPixelGray(const r, g, b: Byte): TRGBQuad; inline;
 
 function CheckValue(const intValue, intRange: Integer): Byte; inline;
 
-procedure Invert_AVX1_Proc(pColor: PByte; count: Integer); cdecl; external name '_invert_avx1';
-procedure Invert_AVX2_Proc(pColor: PByte; count: Integer); cdecl; external name '_invert_avx2';
+procedure Invert_AVX1_Proc(pColor: PByte; count: Integer); cdecl; external name '_Image_Invert_AVX1';
+procedure Invert_AVX2_Proc(pColor: PByte; count: Integer); cdecl; external name '_Image_Invert_AVX2';
+procedure Gray_AVX1_Proc(pColor: PByte; count: Integer); cdecl; external name '_Image_BGRA2Gray_AVX1';
+procedure Gray_AVX2_Proc(pColor: PByte; count: Integer); cdecl; external name '_Image_BGRA2Gray_AVX2';
 
 procedure _abort; cdecl; external 'msvcrt.dll' name 'abort';
 procedure abort; cdecl; external 'msvcrt.dll' name 'abort';
@@ -181,9 +183,8 @@ begin
 end;
 
 initialization
-
-InitGrayTable;
-InitLightTable;
+  InitGrayTable;
+  InitLightTable;
 
 end.
 
