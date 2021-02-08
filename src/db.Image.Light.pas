@@ -4,37 +4,12 @@ interface
 
 uses Winapi.Windows, Vcl.Graphics, System.Math, db.Image.Common;
 
-{$IFDEF WIN32}
-{$LINK obj\x86\light.obj}
-{$LINK obj\x86\light_sse2.obj}
-{$LINK obj\x86\light_sse4.obj}
-{$LINK obj\x86\light_avx.obj}
-{$LINK obj\x86\light_avx2.obj}
-{$LINK obj\x86\light_avx512knl.obj}
-{$LINK obj\x86\light_avx512skx.obj}
-{$ELSE}
-{$LINK obj\x64\light.obj}
-{$LINK obj\x64\light_sse2.obj}
-{$LINK obj\x64\light_sse4.obj}
-{$LINK obj\x64\light_avx.obj}
-{$LINK obj\x64\light_avx2.obj}
-{$LINK obj\x64\light_avx512knl.obj}
-{$LINK obj\x64\light_avx512skx.obj}
-{$IFEND}
-
 type
-  TLightType = (ltScanline, ltDelphi, ltTable, ltASM, ltMMX, ltSSE, ltSSE2, ltSSE4, ltAVX, ltAVX2, ltAVX512);
+  TLightType = (ltScanline, ltDelphi, ltTable, ltASM, ltMMX, ltSSE, ltSSE2, ltSSE4, ltAVX1, ltAVX2, ltAVX512knl, ltAVX512skx);
 
-procedure Light(bmp: TBitmap; const intLightValue: Integer; const lt: TLightType = ltAVX);
+procedure Light(bmp: TBitmap; const intLightValue: Integer; const lt: TLightType = ltAVX1);
 
 implementation
-
-procedure light_sse2(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_light_sse2'{$IFEND};
-procedure light_sse4(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_light_sse4'{$IFEND};
-procedure light_avx(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_light_avx'{$IFEND};
-procedure light_avx2(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_light_avx2'{$IFEND};
-procedure light_avx512skx(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_light_avx512skx'{$IFEND};
-procedure light_avx512knl(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_light_avx512knl'{$IFEND};
 
 { 160 ms }
 procedure Light_ScanLine(bmp: TBitmap; const intLightValue: Integer);
@@ -96,9 +71,9 @@ asm
   MOVZX  EDX, [EAX].TRGBQuad.rgbGreen   // EDX = pColor^.rgbGreen
   MOVZX  ESI, [EAX].TRGBQuad.rgbBlue    // ESI = pColor^.rgbBlue
 
-  //SHL    EBX, 9                        // EBX = pColor^.rgbRed * 512
-  //MOV    EBX, [EBX + g_LightTable]     // EBX = g_LightTable + pColor^.rgbRed * 256  =  g_LightTable[pColor^.rgbRed][0]
-  //MOV    EBX, [EBX + EDX]              // EBX = g_LightTable + pColor^.rgbRed * 256  + intLightValue = g_LightTable[pColor^.rgbRed][intLightValue]
+  // SHL    EBX, 9                        // EBX = pColor^.rgbRed * 512
+  // MOV    EBX, [EBX + g_LightTable]     // EBX = g_LightTable + pColor^.rgbRed * 256  =  g_LightTable[pColor^.rgbRed][0]
+  // MOV    EBX, [EBX + EDX]              // EBX = g_LightTable + pColor^.rgbRed * 256  + intLightValue = g_LightTable[pColor^.rgbRed][intLightValue]
 
   MOV    [EAX],  EBX                    // [EAX] = TRGBQuad(c_GrayValue[byeGray])
   ADD    EAX, 4                         // EAX   = 指向下一个像素
@@ -111,31 +86,33 @@ begin
   Light_ASM_Proc(GetBitsPointer(bmp), intLightValue, bmp.width * bmp.height);
 end;
 
-procedure Light(bmp: TBitmap; const intLightValue: Integer; const lt: TLightType = ltAVX);
+procedure Light(bmp: TBitmap; const intLightValue: Integer; const lt: TLightType = ltAVX1);
 begin
   case lt of
     ltScanline:
-      Light_ScanLine(bmp, intLightValue);                                         // 160 ms
-    ltDelphi:                                                                     //
-      Light_Delphi(bmp, intLightValue);                                           // 88 ms
-    ltTable:                                                                      //
-      Light_Table(bmp, intLightValue);                                            // 88 ms
-    ltASM:                                                                        //
-      Light_ASM(bmp, intLightValue);                                              //
-    ltMMX:                                                                        //
-      ;                                                                           //
-    ltSSE:                                                                        //
-      ;                                                                           //
-    ltSSE2:                                                                       //
-      light_sse2(GetBitsPointer(bmp), bmp.width, bmp.height, intLightValue);      // 62 ms
-    ltSSE4:                                                                       //
-      light_sse4(GetBitsPointer(bmp), bmp.width, bmp.height, intLightValue);      // 44 ms
-    ltAVX:                                                                        //
-      light_avx(GetBitsPointer(bmp), bmp.width, bmp.height, intLightValue);       // 50 ms
-    ltAVX2:                                                                       //
-      light_avx2(GetBitsPointer(bmp), bmp.width, bmp.height, intLightValue);      //
-    ltAVX512:                                                                     //
-      light_avx512knl(GetBitsPointer(bmp), bmp.width, bmp.height, intLightValue); //
+      Light_ScanLine(bmp, intLightValue);                                             // 160 ms
+    ltDelphi:                                                                         //
+      Light_Delphi(bmp, intLightValue);                                               // 88 ms
+    ltTable:                                                                          //
+      Light_Table(bmp, intLightValue);                                                // 88 ms
+    ltASM:                                                                            //
+      Light_ASM(bmp, intLightValue);                                                  //
+    ltMMX:                                                                            //
+      ;                                                                               //
+    ltSSE:                                                                            //
+      ;                                                                               //
+    ltSSE2:                                                                           //
+      bgraLight_sse2(GetBitsPointer(bmp), bmp.width, bmp.height, intLightValue);      // 62 ms
+    ltSSE4:                                                                           //
+      bgraLight_sse4(GetBitsPointer(bmp), bmp.width, bmp.height, intLightValue);      // 44 ms
+    ltAVX1:                                                                           //
+      bgraLight_avx1(GetBitsPointer(bmp), bmp.width, bmp.height, intLightValue);      // 50 ms
+    ltAVX2:                                                                           //
+      bgraLight_avx2(GetBitsPointer(bmp), bmp.width, bmp.height, intLightValue);      //
+    ltAVX512knl:                                                                      //
+      bgraLight_avx512knl(GetBitsPointer(bmp), bmp.width, bmp.height, intLightValue); //
+    ltAVX512skx:                                                                      //
+      bgraLight_avx512skx(GetBitsPointer(bmp), bmp.width, bmp.height, intLightValue); //
   end;
 end;
 

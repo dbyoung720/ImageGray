@@ -4,41 +4,16 @@ interface
 
 uses Winapi.Windows, System.Math, Vcl.Graphics, System.Win.Crtl, db.Image.Common;
 
-{$IFDEF WIN32}
-{$LINK obj\x86\Saturation.obj}
-{$LINK obj\x86\Saturation_sse2.obj}
-{$LINK obj\x86\Saturation_sse4.obj}
-{$LINK obj\x86\Saturation_avx.obj}
-{$LINK obj\x86\Saturation_avx2.obj}
-{$LINK obj\x86\Saturation_avx512knl.obj}
-{$LINK obj\x86\Saturation_avx512skx.obj}
-{$ELSE}
-{$LINK obj\x64\Saturation.obj}
-{$LINK obj\x64\Saturation_sse2.obj}
-{$LINK obj\x64\Saturation_sse4.obj}
-{$LINK obj\x64\Saturation_avx.obj}
-{$LINK obj\x64\Saturation_avx2.obj}
-{$LINK obj\x64\Saturation_avx512knl.obj}
-{$LINK obj\x64\Saturation_avx512skx.obj}
-{$IFEND}
-
 type
-  TSaturationType = (stScanline, stDelphi, stASM, stMMX, stSSE, stSSE2, stSSE4, stAVX, stAVX2, stAVX512);
+  TSaturationType = (stScanline, stDelphi, stASM, stMMX, stSSE, stSSE2, stSSE4, stAVX1, stAVX2, stAVX512knl, stAVX512skx);
 
-procedure Saturation(bmp: TBitmap; const intSaturationValue: Integer; const st: TSaturationType = stAVX);
+procedure Saturation(bmp: TBitmap; const intSaturationValue: Integer; const st: TSaturationType = stAVX1);
 
 implementation
 
 type
   TAlpha = array [0 .. 255] of Word;
   TGrays = array [0 .. 767] of Integer;
-
-procedure Saturation_sse2(src: PByte; width, height: Integer; alpha: TAlpha; grays: TGrays); cdecl; external {$IFDEF WIN32}name '_Saturation_sse2'{$IFEND};
-procedure Saturation_sse4(src: PByte; width, height: Integer; alpha: TAlpha; grays: TGrays); cdecl; external {$IFDEF WIN32}name '_Saturation_sse4'{$IFEND};
-procedure Saturation_avx(src: PByte; width, height: Integer; alpha: TAlpha; grays: TGrays); cdecl; external {$IFDEF WIN32}name '_Saturation_avx'{$IFEND};
-procedure Saturation_avx2(src: PByte; width, height: Integer; alpha: TAlpha; grays: TGrays); cdecl; external {$IFDEF WIN32}name '_Saturation_avx2'{$IFEND};
-procedure Saturation_avx512skx(src: PByte; width, height: Integer; alpha: TAlpha; grays: TGrays); cdecl; external {$IFDEF WIN32}name '_Saturation_avx512skx'{$IFEND};
-procedure Saturation_avx512knl(src: PByte; width, height: Integer; alpha: TAlpha; grays: TGrays); cdecl; external {$IFDEF WIN32}name '_Saturation_avx512knl'{$IFEND};
 
 procedure GetGrayAlpha(const intSaturationValue: Integer; var alpha: TAlpha; var grays: TGrays);
 var
@@ -104,7 +79,7 @@ begin
   end;
 end;
 
-procedure Saturation(bmp: TBitmap; const intSaturationValue: Integer; const st: TSaturationType = stAVX);
+procedure Saturation(bmp: TBitmap; const intSaturationValue: Integer; const st: TSaturationType = stAVX1);
 var
   alpha: TAlpha;
   grays: TGrays;
@@ -123,17 +98,18 @@ begin
     stSSE:
       ;
     stSSE2:
-      Saturation_sse2(GetBitsPointer(bmp), bmp.width, bmp.height, alpha, grays);
+      bgraSaturation_sse2(GetBitsPointer(bmp), bmp.width, bmp.height, intSaturationValue);
     stSSE4:
-      Saturation_sse4(GetBitsPointer(bmp), bmp.width, bmp.height, alpha, grays);
-    stAVX:
-      Saturation_avx(GetBitsPointer(bmp), bmp.width, bmp.height, alpha, grays);
+      bgraSaturation_sse4(GetBitsPointer(bmp), bmp.width, bmp.height, intSaturationValue);
+    stAVX1:
+      bgraSaturation_avx1(GetBitsPointer(bmp), bmp.width, bmp.height, intSaturationValue);
     stAVX2:
-      Saturation_avx2(GetBitsPointer(bmp), bmp.width, bmp.height, alpha, grays);
-    stAVX512:
-      Saturation_avx512knl(GetBitsPointer(bmp), bmp.width, bmp.height, alpha, grays);
+      bgraSaturation_avx2(GetBitsPointer(bmp), bmp.width, bmp.height, intSaturationValue);
+    stAVX512knl:
+      bgraSaturation_avx512knl(GetBitsPointer(bmp), bmp.width, bmp.height, intSaturationValue);
+    stAVX512skx:
+      bgraSaturation_avx512skx(GetBitsPointer(bmp), bmp.width, bmp.height, intSaturationValue);
   end;
 end;
 
 end.
-

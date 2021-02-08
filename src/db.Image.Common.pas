@@ -1,6 +1,22 @@
 unit db.Image.Common;
 
-{$LINK obj\DAVX_x86.obj}
+{$IFDEF WIN32}
+{$LINK obj\DAVX_X86.obj}
+{$LINK obj\DAVX_X86_sse2.obj}
+{$LINK obj\DAVX_X86_sse4.obj}
+{$LINK obj\DAVX_X86_avx.obj}
+{$LINK obj\DAVX_X86_avx2.obj}
+{$LINK obj\DAVX_X86_avx512knl.obj}
+{$LINK obj\DAVX_X86_avx512skx.obj}
+{$ELSE}
+{$LINK obj\DAVX_X64.obj}
+{$LINK obj\DAVX_X64_sse2.obj}
+{$LINK obj\DAVX_X64_sse4.obj}
+{$LINK obj\DAVX_X64_avx.obj}
+{$LINK obj\DAVX_X64_avx2.obj}
+{$LINK obj\DAVX_X64_avx512knl.obj}
+{$LINK obj\DAVX_X64_avx512skx.obj}
+{$ENDIF}
 
 interface
 
@@ -93,15 +109,43 @@ const
     );
 
 function GetBitsPointer(bmp: TBitmap): Pointer;
-
 function GetPixelGray(const r, g, b: Byte): TRGBQuad; inline;
-
 function CheckValue(const intValue, intRange: Integer): Byte; inline;
 
-procedure Invert_AVX1_Proc(pColor: PByte; count: Integer); cdecl; external name '_Image_Invert_AVX1';
-procedure Invert_AVX2_Proc(pColor: PByte; count: Integer); cdecl; external name '_Image_Invert_AVX2';
-procedure Gray_AVX1_Proc(pColor: PByte; count: Integer); cdecl; external name '_Image_BGRA2Gray_AVX1';
-procedure Gray_AVX2_Proc(pColor: PByte; count: Integer); cdecl; external name '_Image_BGRA2Gray_AVX2';
+procedure bgraGray_sse2(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraGray_sse2'{$IFEND};
+procedure bgraGray_sse4(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraGray_sse4'{$IFEND};
+procedure bgraGray_avx1(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraGray_avx'{$IFEND};
+procedure bgraGray_avx2(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraGray_avx2'{$IFEND};
+procedure bgraGray_avx512skx(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraGray_avx512skx'{$IFEND};
+procedure bgraGray_avx512knl(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraGray_avx512knl'{$IFEND};
+
+procedure bgraInvert_sse2(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraInvert_sse2'{$IFEND};
+procedure bgraInvert_sse4(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraInvert_sse4'{$IFEND};
+procedure bgraInvert_avx1(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraInvert_avx'{$IFEND};
+procedure bgraInvert_avx2(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraInvert_avx2'{$IFEND};
+procedure bgraInvert_avx512skx(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraInvert_avx512skx'{$IFEND};
+procedure bgraInvert_avx512knl(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraInvert_avx512knl'{$IFEND};
+
+procedure bgraLight_sse2(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraLight_sse2'{$IFEND};
+procedure bgraLight_sse4(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraLight_sse4'{$IFEND};
+procedure bgraLight_avx1(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraLight_avx'{$IFEND};
+procedure bgraLight_avx2(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraLight_avx2'{$IFEND};
+procedure bgraLight_avx512skx(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraLight_avx512skx'{$IFEND};
+procedure bgraLight_avx512knl(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraLight_avx512knl'{$IFEND};
+
+procedure bgraContrast_sse2(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraContrast_sse2'{$IFEND};
+procedure bgraContrast_sse4(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraContrast_sse4'{$IFEND};
+procedure bgraContrast_avx1(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraContrast_avx'{$IFEND};
+procedure bgraContrast_avx2(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraContrast_avx2'{$IFEND};
+procedure bgraContrast_avx512skx(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraContrast_avx512skx'{$IFEND};
+procedure bgraContrast_avx512knl(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraContrast_avx512knl'{$IFEND};
+
+procedure bgraSaturation_sse2(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraSaturation_sse2'{$IFEND};
+procedure bgraSaturation_sse4(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraSaturation_sse4'{$IFEND};
+procedure bgraSaturation_avx1(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraSaturation_avx'{$IFEND};
+procedure bgraSaturation_avx2(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraSaturation_avx2'{$IFEND};
+procedure bgraSaturation_avx512skx(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraSaturation_avx512skx'{$IFEND};
+procedure bgraSaturation_avx512knl(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraSaturation_avx512knl'{$IFEND};
 
 procedure _abort; cdecl; external 'msvcrt.dll' name 'abort';
 procedure abort; cdecl; external 'msvcrt.dll' name 'abort';
@@ -127,6 +171,10 @@ implementation
 type
   TBMPAccess         = class(TBitmap);
   TBitmapImageAccess = class(TBitmapImage);
+
+procedure __chkstk;
+asm
+end;
 
 function GetBitsPointer(bmp: TBitmap): Pointer;
 {$IF CompilerVersion < 24.0}

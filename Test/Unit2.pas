@@ -74,7 +74,7 @@ begin
   with TStopwatch.StartNew do
   begin
     FsrcBmp.Canvas.Draw(0, 0, FbakBmp);
-    Light(FsrcBmp, trckbrLight.Position, ltASM);
+    Light(FsrcBmp, trckbrLight.Position, ltAVX1);
     Fstp.Text := Format('调节亮度用时：%d 毫秒', [ElapsedMilliseconds]);
   end;
 
@@ -88,7 +88,7 @@ begin
   with TStopwatch.StartNew do
   begin
     FsrcBmp.Canvas.Draw(0, 0, FbakBmp);
-    Contrast(FsrcBmp, trckbrContrast.Position + 128, ctSSE4);
+    Contrast(FsrcBmp, trckbrContrast.Position + 128, ctAVX1);
     Fstp.Text := Format('调节对比度用时：%d 毫秒', [ElapsedMilliseconds]);
   end;
 
@@ -102,7 +102,7 @@ begin
   with TStopwatch.StartNew do
   begin
     FsrcBmp.Canvas.Draw(0, 0, FbakBmp);
-    Saturation(FsrcBmp, trckbrSaturation.Position + 255, stAVX2);
+    Saturation(FsrcBmp, trckbrSaturation.Position + 255, stAVX1);
     Fstp.Text := Format('调节饱和度用时：%d 毫秒', [ElapsedMilliseconds]);
   end;
 

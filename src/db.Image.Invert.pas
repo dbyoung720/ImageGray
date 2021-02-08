@@ -19,7 +19,7 @@ interface
 uses Winapi.Windows, System.Classes, System.SysUtils, System.StrUtils, {$IF CompilerVersion >= 24.0} System.Threading, {$IFEND} System.Diagnostics, System.SyncObjs, Vcl.Graphics, Winapi.GDIPOBJ, Winapi.GDIPAPI, db.Image.Common;
 
 type
-  TInvertType = (itDelphi, itASM, itMMX, itSSE, itAVX1, itAVX2, itAVX_ASM);
+  TInvertType = (itDelphi, itASM, itMMX, itSSE, itSSE2, itSSE4, itAVX1, itAVX1_ASM, itAVX2, itAVX512knl, itAVX512skx);
 
 procedure Invert(bmp: TBitmap; const gt: TInvertType = itAVX1);
 
@@ -103,16 +103,14 @@ begin
 end;
 
 procedure Invert_AVX1(bmp: TBitmap);
+var
+  pColor: PByte;
 begin
-  Invert_AVX1_Proc(GetBitsPointer(bmp), bmp.width * bmp.height * 4);
+  pColor := GetBitsPointer(bmp);
+  bgraInvert_avx1(pColor, bmp.width, bmp.height);
 end;
 
-procedure Invert_AVX2(bmp: TBitmap);
-begin
-  Invert_AVX2_Proc(GetBitsPointer(bmp), bmp.width * bmp.height * 4);
-end;
-
-procedure Invert_AVX1_ASM(pColor: PByte; count: Integer);
+procedure Invert_AVX1_ASM_Proc(pColor: PByte; count: Integer);
 asm
   MOV ECX, EDX
 
@@ -137,23 +135,79 @@ asm
   JNZ @loop
 end;
 
+procedure Invert_AVX1_ASM(bmp: TBitmap);
+var
+  pColor: PByte;
+begin
+  pColor := GetBitsPointer(bmp);
+  Invert_AVX1_ASM_Proc(pColor, bmp.width * bmp.height * 4);
+end;
+
+procedure Invert_AVX2(bmp: TBitmap);
+var
+  pColor: PByte;
+begin
+  pColor := GetBitsPointer(bmp);
+  bgraInvert_avx2(pColor, bmp.width, bmp.height);
+end;
+
+procedure Invert_SSE2(bmp: TBitmap);
+var
+  pColor: PByte;
+begin
+  pColor := GetBitsPointer(bmp);
+  bgraInvert_sse2(pColor, bmp.width, bmp.height);
+end;
+
+procedure Invert_SSE4(bmp: TBitmap);
+var
+  pColor: PByte;
+begin
+  pColor := GetBitsPointer(bmp);
+  bgraInvert_sse4(pColor, bmp.width, bmp.height);
+end;
+
+procedure Invert_AVX512knl(bmp: TBitmap);
+var
+  pColor: PByte;
+begin
+  pColor := GetBitsPointer(bmp);
+  bgraInvert_avx512knl(pColor, bmp.width, bmp.height);
+end;
+
+procedure Invert_AVX512skx(bmp: TBitmap);
+var
+  pColor: PByte;
+begin
+  pColor := GetBitsPointer(bmp);
+  bgraInvert_avx512skx(pColor, bmp.width, bmp.height);
+end;
+
 procedure Invert(bmp: TBitmap; const gt: TInvertType = itAVX1);
 begin
   case gt of
-    itDelphi:             //
-      Invert_Delphi(bmp); // 42 ms
-    itASM:                //
-      Invert_ASM(bmp);    // 13 ms
-    itMMX:                //
-      Invert_MMX(bmp);    // 9 ms
-    itSSE:                //
-      Invert_SSE(bmp);    // 7 ms
-    itAVX1:               //
-      Invert_AVX1(bmp);   // 7 ms
-    itAVX2:               //
-      Invert_AVX2(bmp);   // 7 ms
-    itAVX_ASM:
-      Invert_AVX1_ASM(GetBitsPointer(bmp), bmp.width * bmp.height * 4); // 7 ms
+    itDelphi:                //
+      Invert_Delphi(bmp);    // 42 ms
+    itASM:                   //
+      Invert_ASM(bmp);       // 13 ms
+    itMMX:                   //
+      Invert_MMX(bmp);       // 9 ms
+    itSSE:                   //
+      Invert_SSE(bmp);       // 7 ms
+    itSSE2:                  //
+      Invert_SSE2(bmp);      // 7 ms
+    itSSE4:                  //
+      Invert_SSE4(bmp);      // 7 ms
+    itAVX1:                  //
+      Invert_AVX1(bmp);      // 7 ms
+    itAVX2:                  //
+      Invert_AVX2(bmp);      // 7 ms
+    itAVX1_ASM:              //
+      Invert_AVX1_ASM(bmp);  // 7 ms
+    itAVX512knl:             //
+      Invert_AVX512knl(bmp); // 7 ms
+    itAVX512skx:             //
+      Invert_AVX512skx(bmp); // 7 ms
   end;
 end;
 

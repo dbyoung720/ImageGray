@@ -35,7 +35,7 @@ interface
 uses Winapi.Windows, System.Classes, System.SysUtils, System.StrUtils, System.Threading, System.Diagnostics, System.SyncObjs, Vcl.Graphics, Winapi.GDIPOBJ, Winapi.GDIPAPI, db.Image.Common;
 
 type
-  TGrayType = (gtAPI, gtScanLine, gtDelphi, gtFourPoint, gtParallel, gtGDIPLUS, gtTable, gtASM, gtMMX, gtSSE, gtAVX1, gtAVX2, gtGPU, gtOther);
+  TGrayType = (gtAPI, gtScanLine, gtDelphi, gtFourPoint, gtParallel, gtGDIPLUS, gtTable, gtASM, gtMMX, gtSSE, gtSSE2, gtSSE4, gtAVX1, gtAVX2, gtAVX512knl, gtAVX512skx, gtGPU, gtOther);
 
 procedure Gray(bmp: TBitmap; const gt: TGrayType = gtAVX1);
 
@@ -502,26 +502,58 @@ begin
   Gray_SSE_Proc_01(GetBitsPointer(bmp), bmp.Width * bmp.Height * 4);
 end;
 
-{ 7 ms }
+{ 31 ms }
+procedure Gray_SSE2(bmp: TBitmap);
+var
+  pColor: PByte;
+begin
+  pColor := GetBitsPointer(bmp);
+  bgraGray_sse2(pColor, bmp.Width, bmp.Height);
+end;
+
+{ 27 ms }
+procedure Gray_SSE4(bmp: TBitmap);
+var
+  pColor: PByte;
+begin
+  pColor := GetBitsPointer(bmp);
+  bgraGray_sse4(pColor, bmp.Width, bmp.Height);
+end;
+
+{ 27 ms }
 procedure Gray_AVX(bmp: TBitmap);
 var
   pColor: PByte;
-  Count : Integer;
 begin
   pColor := GetBitsPointer(bmp);
-  Count  := bmp.Width * bmp.Height * 4;
-  Gray_AVX1_Proc(pColor, Count);
+  bgraGray_avx1(pColor, bmp.Width, bmp.Height);
 end;
 
 { 7 ms }
 procedure Gray_AVX2(bmp: TBitmap);
 var
   pColor: PByte;
-  Count : Integer;
 begin
   pColor := GetBitsPointer(bmp);
-  Count  := bmp.Width * bmp.Height * 4;
-  Gray_AVX2_Proc(pColor, Count);
+  bgraGray_avx2(pColor, bmp.Width, bmp.Height);
+end;
+
+{ 7 ms }
+procedure Gray_AVX512knl(bmp: TBitmap);
+var
+  pColor: PByte;
+begin
+  pColor := GetBitsPointer(bmp);
+  bgraGray_avx512knl(pColor, bmp.Width, bmp.Height);
+end;
+
+{ 7 ms }
+procedure Gray_AVX512skx(bmp: TBitmap);
+var
+  pColor: PByte;
+begin
+  pColor := GetBitsPointer(bmp);
+  bgraGray_avx512skx(pColor, bmp.Width, bmp.Height);
 end;
 
 procedure Gray_GPU(bmp: TBitmap);
@@ -621,10 +653,18 @@ begin
       Gray_MMX(bmp);
     gtSSE:
       Gray_SSE(bmp);
+    gtSSE2:
+      Gray_SSE2(bmp);
+    gtSSE4:
+      Gray_SSE4(bmp);
     gtAVX1:
       Gray_AVX(bmp);
     gtAVX2:
       Gray_AVX2(bmp);
+    gtAVX512knl:
+      Gray_AVX512knl(bmp);
+    gtAVX512skx:
+      Gray_AVX512skx(bmp);
     gtGPU:
       Gray_GPU(bmp);
     gtOther:

@@ -4,37 +4,12 @@ interface
 
 uses Winapi.Windows, Vcl.Graphics, System.Math, db.Image.Common;
 
-{$IFDEF WIN32}
-{$LINK obj\x86\Contrast.obj}
-{$LINK obj\x86\Contrast_sse2.obj}
-{$LINK obj\x86\Contrast_sse4.obj}
-{$LINK obj\x86\Contrast_avx.obj}
-{$LINK obj\x86\Contrast_avx2.obj}
-{$LINK obj\x86\Contrast_avx512knl.obj}
-{$LINK obj\x86\Contrast_avx512skx.obj}
-{$ELSE}
-{$LINK obj\x64\Contrast.obj}
-{$LINK obj\x64\Contrast_sse2.obj}
-{$LINK obj\x64\Contrast_sse4.obj}
-{$LINK obj\x64\Contrast_avx.obj}
-{$LINK obj\x64\Contrast_avx2.obj}
-{$LINK obj\x64\Contrast_avx512knl.obj}
-{$LINK obj\x64\Contrast_avx512skx.obj}
-{$IFEND}
-
 type
-  TContrastType = (ctScanline, ctDelphi, ctASM, ctMMX, ctSSE, ctSSE2, ctSSE4, ctAVX, ctAVX2, ctAVX512);
+  TContrastType = (ctScanline, ctDelphi, ctASM, ctMMX, ctSSE, ctSSE2, ctSSE4, ctAVX1, ctAVX2, ctAVX512knl, ctAVX512skx);
 
-procedure Contrast(bmp: TBitmap; const intContrastValue: Integer; const ct: TContrastType = ctAVX);
+procedure Contrast(bmp: TBitmap; const intContrastValue: Integer; const ct: TContrastType = ctAVX1);
 
 implementation
-
-procedure Contrast_sse2(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_Contrast_sse2'{$IFEND};
-procedure Contrast_sse4(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_Contrast_sse4'{$IFEND};
-procedure Contrast_avx(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_Contrast_avx'{$IFEND};
-procedure Contrast_avx2(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_Contrast_avx2'{$IFEND};
-procedure Contrast_avx512skx(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_Contrast_avx512skx'{$IFEND};
-procedure Contrast_avx512knl(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_Contrast_avx512knl'{$IFEND};
 
 procedure Contrast_ScanLine(bmp: TBitmap; const intContrastValue: Integer);
 var
@@ -71,29 +46,35 @@ begin
 
 end;
 
-procedure Contrast(bmp: TBitmap; const intContrastValue: Integer; const ct: TContrastType = ctAVX);
+procedure Contrast(bmp: TBitmap; const intContrastValue: Integer; const ct: TContrastType = ctAVX1);
+var
+  pColor: PByte;
 begin
+  pColor := GetBitsPointer(bmp);
+
   case ct of
     ctScanline:
-      Contrast_ScanLine(bmp, intContrastValue);                                         // 105 ms
-    ctDelphi:                                                                           //
-      Contrast_Delphi(bmp, intContrastValue);                                           // 100 ms
-    ctASM:                                                                              //
-      Contrast_ASM(bmp, intContrastValue);                                              //
-    ctMMX:                                                                              //
-      ;                                                                                 //
-    ctSSE:                                                                              //
-      ;                                                                                 //
-    ctSSE2:                                                                             //
-      Contrast_sse2(GetBitsPointer(bmp), bmp.width, bmp.height, intContrastValue);      // 62 ms
-    ctSSE4:                                                                             //
-      Contrast_sse4(GetBitsPointer(bmp), bmp.width, bmp.height, intContrastValue);      // 44 ms
-    ctAVX:                                                                              //
-      Contrast_avx(GetBitsPointer(bmp), bmp.width, bmp.height, intContrastValue);       // 50 ms
-    ctAVX2:                                                                             //
-      Contrast_avx2(GetBitsPointer(bmp), bmp.width, bmp.height, intContrastValue);      //
-    ctAVX512:                                                                           //
-      Contrast_avx512knl(GetBitsPointer(bmp), bmp.width, bmp.height, intContrastValue); //
+      Contrast_ScanLine(bmp, intContrastValue);                                // 105 ms
+    ctDelphi:                                                                  //
+      Contrast_Delphi(bmp, intContrastValue);                                  // 100 ms
+    ctASM:                                                                     //
+      Contrast_ASM(bmp, intContrastValue);                                     //
+    ctMMX:                                                                     //
+      ;                                                                        //
+    ctSSE:                                                                     //
+      ;                                                                        //
+    ctSSE2:                                                                    //
+      bgraContrast_sse2(pColor, bmp.width, bmp.height, intContrastValue);      // 62 ms
+    ctSSE4:                                                                    //
+      bgraContrast_sse4(pColor, bmp.width, bmp.height, intContrastValue);      // 44 ms
+    ctAVX1:                                                                    //
+      bgraContrast_avx1(pColor, bmp.width, bmp.height, intContrastValue);      // 50 ms
+    ctAVX2:                                                                    //
+      bgraContrast_avx2(pColor, bmp.width, bmp.height, intContrastValue);      //
+    ctAVX512knl:                                                               //
+      bgraContrast_avx512knl(pColor, bmp.width, bmp.height, intContrastValue); //
+    ctAVX512skx:                                                               //
+      bgraContrast_avx512knl(pColor, bmp.width, bmp.height, intContrastValue); //
   end;
 end;
 
