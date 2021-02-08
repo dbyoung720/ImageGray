@@ -31,24 +31,29 @@ var
   bmp: TBitmap;
 begin
   Result := True;
-  jpg    := TGPImage.Create(strFileName);
+
+  jpg := TGPImage.Create(strFileName);
   try
     try
-      bmp             := TBitmap.Create;
-      bmp.PixelFormat := pf32bit;
-      bmp.SetSize(jpg.GetWidth, jpg.GetHeight);
-      gp := TGPGraphics.Create(bmp.Canvas.Handle);
+      bmp := TBitmap.Create;
       try
-        gp.DrawImage(jpg, 0, 0, bmp.Width, bmp.Height);
-        img.Picture.Bitmap.Assign(bmp);
+        bmp.PixelFormat := pf32bit;
+        bmp.SetSize(jpg.GetWidth, jpg.GetHeight);
+        gp := TGPGraphics.Create(bmp.Canvas.Handle);
+        try
+          gp.DrawImage(jpg, 0, 0, bmp.Width, bmp.Height);
+          img.Picture.Bitmap.Assign(bmp);
+        finally
+          gp.Free;
+        end;
       finally
-        gp.Free;
+        bmp.Free;
       end;
-    finally
-      jpg.Free;
+    except
+      Result := False;
     end;
-  except
-    Result := False;
+  finally
+    jpg.Free;
   end;
 end;
 

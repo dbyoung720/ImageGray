@@ -1,28 +1,14 @@
 unit db.Image.Common;
 
-{$IFDEF WIN32}
-{$LINK obj\DAVX_X86.obj}
-{$LINK obj\DAVX_X86_sse2.obj}
-{$LINK obj\DAVX_X86_sse4.obj}
-{$LINK obj\DAVX_X86_avx.obj}
-{$LINK obj\DAVX_X86_avx2.obj}
-{$LINK obj\DAVX_X86_avx512knl.obj}
-{$LINK obj\DAVX_X86_avx512skx.obj}
-{$ELSE}
-{$LINK obj\DAVX_X64.obj}
-{$LINK obj\DAVX_X64_sse2.obj}
-{$LINK obj\DAVX_X64_sse4.obj}
-{$LINK obj\DAVX_X64_avx.obj}
-{$LINK obj\DAVX_X64_avx2.obj}
-{$LINK obj\DAVX_X64_avx512knl.obj}
-{$LINK obj\DAVX_X64_avx512skx.obj}
-{$ENDIF}
-
 interface
 
-uses Winapi.Windows, Winapi.GDIPAPI, System.Math, Vcl.Graphics;
+uses Winapi.Windows, Winapi.GDIPAPI, System.Classes, System.SysUtils, System.StrUtils, System.UITypes, System.Math, Vcl.Forms, Vcl.StdCtrls, Vcl.Graphics, Vcl.ComCtrls;
 
 const
+  c_intMinMaxValue: array [0 .. 2, 0 .. 1] of Integer = ((-255, 255), (-128, 128), (-255, 255));
+  c_strShowTips: array [0 .. 2, 0 .. 1] of String     = (('调节亮度：', '亮度：'), ('调节对比度：', '对比度：'), ('调节饱和度：', '饱和度：'));
+  c_strShowTime: array [0 .. 2] of String             = ('调节亮度用时：%d 毫秒', '调节对比度用时：%d 毫秒', '调节饱和度用时：%d 毫秒');
+
   c_GrayR77: array [0 .. 255] of DWORD = (                                                                          //
     0, 77, 154, 231, 308, 385, 462, 539, 616, 693, 770, 847, 924, 1001, 1078, 1155,                                 //
     1232, 1309, 1386, 1463, 1540, 1617, 1694, 1771, 1848, 1925, 2002, 2079, 2156, 2233, 2310, 2387,                 //
@@ -108,52 +94,54 @@ const
     (0, 0, 0, 0, 1)                   //
     );
 
-function GetBitsPointer(bmp: TBitmap): Pointer;
-function GetPixelGray(const r, g, b: Byte): TRGBQuad; inline;
-function CheckValue(const intValue, intRange: Integer): Byte; inline;
-
-procedure bgraGray_sse2(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraGray_sse2'{$IFEND};
-procedure bgraGray_sse4(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraGray_sse4'{$IFEND};
-procedure bgraGray_avx1(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraGray_avx'{$IFEND};
-procedure bgraGray_avx2(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraGray_avx2'{$IFEND};
-procedure bgraGray_avx512skx(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraGray_avx512skx'{$IFEND};
-procedure bgraGray_avx512knl(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraGray_avx512knl'{$IFEND};
-
-procedure bgraInvert_sse2(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraInvert_sse2'{$IFEND};
-procedure bgraInvert_sse4(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraInvert_sse4'{$IFEND};
-procedure bgraInvert_avx1(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraInvert_avx'{$IFEND};
-procedure bgraInvert_avx2(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraInvert_avx2'{$IFEND};
-procedure bgraInvert_avx512skx(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraInvert_avx512skx'{$IFEND};
-procedure bgraInvert_avx512knl(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraInvert_avx512knl'{$IFEND};
-
-procedure bgraLight_sse2(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraLight_sse2'{$IFEND};
-procedure bgraLight_sse4(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraLight_sse4'{$IFEND};
-procedure bgraLight_avx1(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraLight_avx'{$IFEND};
-procedure bgraLight_avx2(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraLight_avx2'{$IFEND};
-procedure bgraLight_avx512skx(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraLight_avx512skx'{$IFEND};
-procedure bgraLight_avx512knl(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraLight_avx512knl'{$IFEND};
-
-procedure bgraContrast_sse2(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraContrast_sse2'{$IFEND};
-procedure bgraContrast_sse4(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraContrast_sse4'{$IFEND};
-procedure bgraContrast_avx1(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraContrast_avx'{$IFEND};
-procedure bgraContrast_avx2(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraContrast_avx2'{$IFEND};
-procedure bgraContrast_avx512skx(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraContrast_avx512skx'{$IFEND};
-procedure bgraContrast_avx512knl(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraContrast_avx512knl'{$IFEND};
-
-procedure bgraSaturation_sse2(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraSaturation_sse2'{$IFEND};
-procedure bgraSaturation_sse4(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraSaturation_sse4'{$IFEND};
-procedure bgraSaturation_avx1(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraSaturation_avx'{$IFEND};
-procedure bgraSaturation_avx2(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraSaturation_avx2'{$IFEND};
-procedure bgraSaturation_avx512skx(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraSaturation_avx512skx'{$IFEND};
-procedure bgraSaturation_avx512knl(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraSaturation_avx512knl'{$IFEND};
-
-procedure _abort; cdecl; external 'msvcrt.dll' name 'abort';
-procedure abort; cdecl; external 'msvcrt.dll' name 'abort';
-
 type
   TTwoLight255 = array [0 .. 255, -255 .. 255] of Byte;
   TGrayTable   = array [0 .. 1785] of Integer;
   TLightTable  = TTwoLight255;
+  TColorChange = (ccLight, ccContrast, ccSaturation);
+
+function GetBitsPointer(bmp: TBitmap): Pointer;
+function GetPixelGray(const r, g, b: Byte): TRGBQuad; inline;
+function CheckValue(const intValue, intRange: Integer): Byte; inline;
+procedure ShowColorChange(frmMain: TForm; OnChangeLight, OnLightResetClick, OnLightCancelClick, OnLightOKClick: TNotifyEvent; var lblValueShow: TLabel; const intMinValue, intMaxValue: Integer; const strCaption, strTip: string);
+
+procedure bgraGray_sse2(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraGray_sse2' {$ELSE} name 'bgraGray_sse2' {$IFEND};
+procedure bgraGray_sse4(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraGray_sse4' {$ELSE} name 'bgraGray_sse4' {$IFEND};
+procedure bgraGray_avx1(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraGray_avx' {$ELSE} name 'bgraGray_avx' {$IFEND};
+procedure bgraGray_avx2(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraGray_avx2' {$ELSE} name 'bgraGray_avx2' {$IFEND};
+procedure bgraGray_avx512skx(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraGray_avx512skx' {$ELSE} name 'bgraGray_avx512skx' {$IFEND};
+procedure bgraGray_avx512knl(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraGray_avx512knl' {$ELSE} name 'bgraGray_avx512knl' {$IFEND};
+
+procedure bgraInvert_sse2(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraInvert_sse2' {$ELSE} name 'bgraInvert_sse2' {$IFEND};
+procedure bgraInvert_sse4(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraInvert_sse4' {$ELSE} name 'bgraInvert_sse4' {$IFEND};
+procedure bgraInvert_avx1(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraInvert_avx' {$ELSE} name 'bgraInvert_avx' {$IFEND};
+procedure bgraInvert_avx2(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraInvert_avx2' {$ELSE} name 'bgraInvert_avx2' {$IFEND};
+procedure bgraInvert_avx512skx(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraInvert_avx512skx' {$ELSE} name 'bgraInvert_avx512skx' {$IFEND};
+procedure bgraInvert_avx512knl(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraInvert_avx512knl' {$ELSE} name 'bgraInvert_avx512knl' {$IFEND};
+
+procedure bgraLight_sse2(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraLight_sse2' {$ELSE} name 'bgraLight_sse2' {$IFEND};
+procedure bgraLight_sse4(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraLight_sse4' {$ELSE} name 'bgraLight_sse4' {$IFEND};
+procedure bgraLight_avx1(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraLight_avx' {$ELSE} name 'bgraLight_avx' {$IFEND};
+procedure bgraLight_avx2(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraLight_avx2' {$ELSE} name 'bgraLight_avx2' {$IFEND};
+procedure bgraLight_avx512skx(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraLight_avx512skx' {$ELSE} name 'bgraLight_avx512skx' {$IFEND};
+procedure bgraLight_avx512knl(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraLight_avx512knl' {$ELSE} name 'bgraLight_avx512knl' {$IFEND};
+
+procedure bgraContrast_sse2(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraContrast_sse2' {$ELSE} name 'bgraContrast_sse2' {$IFEND};
+procedure bgraContrast_sse4(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraContrast_sse4' {$ELSE} name 'bgraContrast_sse4' {$IFEND};
+procedure bgraContrast_avx1(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraContrast_avx' {$ELSE} name 'bgraContrast_avx' {$IFEND};
+procedure bgraContrast_avx2(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraContrast_avx2' {$ELSE} name 'bgraContrast_avx2' {$IFEND};
+procedure bgraContrast_avx512skx(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraContrast_avx512skx' {$ELSE} name 'bgraContrast_avx512skx' {$IFEND};
+procedure bgraContrast_avx512knl(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraContrast_avx512knl' {$ELSE} name 'bgraContrast_avx512knl' {$IFEND};
+
+procedure bgraSaturation_sse2(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraSaturation_sse2' {$ELSE} name 'bgraSaturation_sse2' {$IFEND};
+procedure bgraSaturation_sse4(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraSaturation_sse4' {$ELSE} name 'bgraSaturation_sse4' {$IFEND};
+procedure bgraSaturation_avx1(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraSaturation_avx' {$ELSE} name 'bgraSaturation_avx' {$IFEND};
+procedure bgraSaturation_avx2(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraSaturation_avx2' {$ELSE} name 'bgraSaturation_avx2' {$IFEND};
+procedure bgraSaturation_avx512skx(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraSaturation_avx512skx' {$ELSE} name 'bgraSaturation_avx512skx' {$IFEND};
+procedure bgraSaturation_avx512knl(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraSaturation_avx512knl' {$ELSE} name 'bgraSaturation_avx512knl' {$IFEND};
+
+procedure _abort; cdecl; external 'msvcrt.dll' name 'abort';
+procedure abort; cdecl; external 'msvcrt.dll' name 'abort';
 
 var
   g_GrayTable : TGrayTable;
@@ -166,6 +154,24 @@ var
 {$IFEND}
 
 implementation
+
+{$IFDEF WIN32}
+{$LINK obj\DAVX_X86.obj}
+{$LINK obj\DAVX_X86_sse2.obj}
+{$LINK obj\DAVX_X86_sse4.obj}
+{$LINK obj\DAVX_X86_avx.obj}
+{$LINK obj\DAVX_X86_avx2.obj}
+{$LINK obj\DAVX_X86_avx512knl.obj}
+{$LINK obj\DAVX_X86_avx512skx.obj}
+{$ELSE}
+{$LINK obj\DAVX_X64.obj}
+{$LINK obj\DAVX_X64_sse2.obj}
+{$LINK obj\DAVX_X64_sse4.obj}
+{$LINK obj\DAVX_X64_avx.obj}
+{$LINK obj\DAVX_X64_avx2.obj}
+{$LINK obj\DAVX_X64_avx512knl.obj}
+{$LINK obj\DAVX_X64_avx512skx.obj}
+{$ENDIF}
 
 { 存取类的保护成员变量 }
 type
@@ -228,6 +234,86 @@ begin
       g_LightTable[I, J] := EnsureRange(I + J, 0, 255);
     end;
   end;
+end;
+
+procedure ShowColorChange(frmMain: TForm; OnChangeLight, OnLightResetClick, OnLightCancelClick, OnLightOKClick: TNotifyEvent; var lblValueShow: TLabel; const intMinValue, intMaxValue: Integer; const strCaption, strTip: string);
+var
+  frmLight                  : TForm;
+  trckbrLight               : TTrackBar;
+  lblTip, lblValue          : TLabel;
+  btnReset, btnCancel, btnOK: TButton;
+begin
+  frmLight             := TForm.Create(nil);
+  frmLight.BorderStyle := bsSingle;
+  frmLight.Position    := poDesigned;
+  frmLight.BorderIcons := frmLight.BorderIcons - [biMaximize, biMinimize];
+  frmLight.width       := 600;
+  frmLight.height      := 140;
+  frmLight.Caption     := strCaption;
+  frmLight.Left        := frmMain.Left + frmMain.width - frmLight.width - 10;
+  frmLight.Top         := frmMain.Top + 55;
+  frmLight.OnClose     := frmMain.OnClose;
+
+  trckbrLight             := TTrackBar.Create(frmLight);
+  trckbrLight.Parent      := frmLight;
+  trckbrLight.width       := 440;
+  trckbrLight.Left        := 70;
+  trckbrLight.Top         := 20;
+  trckbrLight.Min         := intMinValue;
+  trckbrLight.Max         := intMaxValue;
+  trckbrLight.LineSize    := 10;
+  trckbrLight.PageSize    := 10;
+  trckbrLight.Frequency   := 10;
+  trckbrLight.ThumbLength := 20;
+  trckbrLight.OnChange    := OnChangeLight;
+
+  lblTip            := TLabel.Create(frmLight);
+  lblTip.Parent     := frmLight;
+  lblTip.Left       := 8;
+  lblTip.Top        := 16;
+  lblTip.Caption    := strTip;
+  lblTip.Font.Color := clRed;
+  lblTip.Font.size  := 14;
+  lblTip.Font.Style := lblTip.Font.Style + [fsBold];
+
+  lblValue            := TLabel.Create(frmLight);
+  lblValue.Parent     := frmLight;
+  lblValue.Left       := trckbrLight.Left + trckbrLight.width + 20;
+  lblValue.Top        := 16;
+  lblValue.Caption    := '0';
+  lblValue.Font.Color := clRed;
+  lblValue.Font.size  := 14;
+  lblValue.Font.Style := lblValue.Font.Style + [fsBold];
+
+  btnReset         := TButton.Create(frmLight);
+  btnReset.Parent  := frmLight;
+  btnReset.Left    := trckbrLight.Left + 5;
+  btnReset.Top     := trckbrLight.Top + 40;
+  btnReset.width   := 90;
+  btnReset.height  := 30;
+  btnReset.Caption := '复位';
+  btnReset.OnClick := OnLightResetClick;
+
+  btnCancel         := TButton.Create(frmLight);
+  btnCancel.Parent  := frmLight;
+  btnCancel.Left    := btnReset.Left + 170;
+  btnCancel.Top     := trckbrLight.Top + 40;
+  btnCancel.width   := 90;
+  btnCancel.height  := 30;
+  btnCancel.Caption := '取消';
+  btnCancel.OnClick := OnLightCancelClick;
+
+  btnOK         := TButton.Create(frmLight);
+  btnOK.Parent  := frmLight;
+  btnOK.Left    := btnCancel.Left + 170;
+  btnOK.Top     := trckbrLight.Top + 40;
+  btnOK.width   := 90;
+  btnOK.height  := 30;
+  btnOK.Caption := '确定';
+  btnOK.OnClick := OnLightOKClick;
+
+  lblValueShow := lblValue;
+  frmLight.Show;
 end;
 
 initialization

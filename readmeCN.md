@@ -10,5 +10,5 @@
 ### Delphi 下实现的函数：
 ```
 type
-  TGrayType = (gtAPI, gtScanLine, gtDelphi, gtFourPoint, gtParallel, gtGDIPLUS, gtTable, gtASM, gtMMX, gtSSE, gtSSE2, gtSSE4, gtAVX, gtAVX2, gtAVX512, gtGPU, gtOther);
+  TGrayType = (gtAPI, gtScanLine, gtDelphi, gtFourPoint, gtParallel, gtGDIPLUS, gtTable, gtASM, gtMMX, gtSSE, gtSSE2, gtSSE4, gtAVX1, gtAVX2, gtAVX512knl, gtAVX512skx, gtGPU, gtOther);
 ```
