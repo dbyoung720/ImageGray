@@ -119,10 +119,10 @@ asm
 
   // ×éºÏ R G B
 @BValue:
-  SHL EBX, 16
-  SHL EDX, 8
-  OR EBX, EDX
-  OR EBX, ESI
+  SHL EBX, 16   // EBX = 00RR0000
+  SHL EDX, 8    // EDX = 0000GG00
+  OR EBX, EDX   // EBX = 00RRGG00
+  OR EBX, ESI   // EBX = 00RRGGBB
   MOV [EAX], EBX
 
   ADD    EAX, 4
