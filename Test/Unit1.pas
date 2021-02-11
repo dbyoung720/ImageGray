@@ -44,7 +44,6 @@ type
     FbmpBackup       : TBitmap;
     FTrackColorChange: TTrackBar;
     FlblLightValue   : TLabel;
-    FccChange        : TColorChange;
     procedure BackupBmp;
     procedure LoadImageProc(const strFileName: String; img: TImage);
     procedure OnColorChange(Sender: TObject);
@@ -181,9 +180,11 @@ end;
 
 procedure TForm1.OnColorChange(Sender: TObject);
 var
-  bmp: TBitmap;
+  bmp     : TBitmap;
+  ccChange: TColorChange;
 begin
   FTrackColorChange      := TTrackBar(Sender);
+  ccChange               := TColorChange(FTrackColorChange.Tag);
   FlblLightValue.Caption := InttoStr(FTrackColorChange.Position);
 
   bmp := TBitmap.Create;
@@ -195,15 +196,15 @@ begin
 
     with TStopwatch.StartNew do
     begin
-      if FccChange = ccLight then
+      if ccChange = ccLight then
         Light(bmp, FTrackColorChange.Position, ltASM)
-      else if FccChange = ccContrast then
+      else if ccChange = ccContrast then
         Contrast(bmp, FTrackColorChange.Position + 128, ctAVX2)
-      else if FccChange = ccSaturation then
+      else if ccChange = ccSaturation then
         Saturation(bmp, FTrackColorChange.Position + 255, stDelphi);
 
       imgShow.Picture.Bitmap.Canvas.Draw(0, 0, bmp);
-      statTip.Panels[0].Text := Format(c_strShowTime[Integer(FccChange)], [ElapsedMilliseconds]);
+      statTip.Panels[0].Text := Format(c_strShowTime[Integer(ccChange)], [ElapsedMilliseconds]);
     end;
   finally
     bmp.free;
@@ -236,9 +237,8 @@ procedure TForm1.mniColorLightClick(Sender: TObject);
 var
   intTag: Integer;
 begin
-  intTag    := TMenuItem(Sender).Tag;
-  FccChange := TColorChange(intTag);
-  ShowColorChange(Form1, OnColorChange, OnResetClick, OnCancelClick, OnOKClick, FlblLightValue, c_intMinMaxValue[intTag, 0], c_intMinMaxValue[intTag, 1], c_strShowTips[intTag, 0], c_strShowTips[intTag, 1]);
+  intTag := TMenuItem(Sender).Tag;
+  ShowColorChange(Form1, TColorChange(intTag), OnColorChange, OnResetClick, OnCancelClick, OnOKClick, FlblLightValue, c_intMinMaxValue[intTag, 0], c_intMinMaxValue[intTag, 1], c_strShowTips[intTag, 0], c_strShowTips[intTag, 1]);
 end;
 
 end.

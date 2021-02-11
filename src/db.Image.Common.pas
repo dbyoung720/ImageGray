@@ -103,7 +103,7 @@ type
 function GetBitsPointer(bmp: TBitmap): Pointer;
 function GetPixelGray(const r, g, b: Byte): TRGBQuad; inline;
 function CheckValue(const intValue, intRange: Integer): Byte; inline;
-procedure ShowColorChange(frmMain: TForm; OnChangeLight, OnLightResetClick, OnLightCancelClick, OnLightOKClick: TNotifyEvent; var lblValueShow: TLabel; const intMinValue, intMaxValue: Integer; const strCaption, strTip: string);
+procedure ShowColorChange(frmMain: TForm; cc: TColorChange; OnChangeLight, OnLightResetClick, OnLightCancelClick, OnLightOKClick: TNotifyEvent; var lblValueShow: TLabel; const intMinValue, intMaxValue: Integer; const strCaption, strTip: string);
 
 procedure bgraGray_sse2(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraGray_sse2' {$ELSE} name 'bgraGray_sse2' {$IFEND};
 procedure bgraGray_sse4(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraGray_sse4' {$ELSE} name 'bgraGray_sse4' {$IFEND};
@@ -236,7 +236,7 @@ begin
   end;
 end;
 
-procedure ShowColorChange(frmMain: TForm; OnChangeLight, OnLightResetClick, OnLightCancelClick, OnLightOKClick: TNotifyEvent; var lblValueShow: TLabel; const intMinValue, intMaxValue: Integer; const strCaption, strTip: string);
+procedure ShowColorChange(frmMain: TForm; cc: TColorChange; OnChangeLight, OnLightResetClick, OnLightCancelClick, OnLightOKClick: TNotifyEvent; var lblValueShow: TLabel; const intMinValue, intMaxValue: Integer; const strCaption, strTip: string);
 var
   frmLight                  : TForm;
   trckbrLight               : TTrackBar;
@@ -265,6 +265,7 @@ begin
   trckbrLight.PageSize    := 10;
   trckbrLight.Frequency   := 10;
   trckbrLight.ThumbLength := 20;
+  trckbrLight.Tag         := Integer(cc);
   trckbrLight.OnChange    := OnChangeLight;
 
   lblTip            := TLabel.Create(frmLight);
