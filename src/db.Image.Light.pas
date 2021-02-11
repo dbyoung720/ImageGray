@@ -1,5 +1,5 @@
 unit db.Image.Light;
-
+
 interface
 
 uses Winapi.Windows, Vcl.Graphics, System.Math, db.Image.Common;
@@ -11,7 +11,6 @@ procedure Light(bmp: TBitmap; const intLightValue: Integer; const lt: TLightType
 
 implementation
 
-{ 160 ms }
 procedure Light_ScanLine(bmp: TBitmap; const intLightValue: Integer);
 var
   I, J  : Integer;
@@ -30,7 +29,7 @@ begin
   end;
 end;
 
-{ 160 ms }
+{ 120ms ---- 170ms }
 procedure Light_Delphi(bmp: TBitmap; const intLightValue: Integer);
 var
   I, Count: Integer;
@@ -47,7 +46,7 @@ begin
   end;
 end;
 
-{ 88 ms }
+{ 87ms }
 procedure Light_Table(bmp: TBitmap; const intLightValue: Integer);
 var
   I, Count: Integer;
@@ -64,56 +63,114 @@ begin
   end;
 end;
 
-procedure Light_ASM_Proc(pSrc: PRGBQuad; const intLightValue, Count: Integer); register;
+{ 60ms ---- 90ms }
+procedure Light_ASM_Proc(pColor: PRGBQuad; const intLightValue: Integer; const Count: Integer); register;
 asm
-@LOOP:                                  // 循环；EAX 中存在着 pColor 的首地址
+  PUSH   EDI
+  MOV    EDI, EDX
+
+@LOOP:
   MOVZX  EBX, [EAX].TRGBQuad.RGBRed     // EBX = pColor^.rgbRed
   MOVZX  EDX, [EAX].TRGBQuad.rgbGreen   // EDX = pColor^.rgbGreen
   MOVZX  ESI, [EAX].TRGBQuad.rgbBlue    // ESI = pColor^.rgbBlue
 
-  // SHL    EBX, 9                        // EBX = pColor^.rgbRed * 512
-  // MOV    EBX, [EBX + g_LightTable]     // EBX = g_LightTable + pColor^.rgbRed * 256  =  g_LightTable[pColor^.rgbRed][0]
-  // MOV    EBX, [EBX + EDX]              // EBX = g_LightTable + pColor^.rgbRed * 256  + intLightValue = g_LightTable[pColor^.rgbRed][intLightValue]
+  // R G B 增加 intLightValue
+  ADD    ESI, EDI
+  ADD    EDX, EDI
+  ADD    EBX, EDI
 
-  MOV    [EAX],  EBX                    // [EAX] = TRGBQuad(c_GrayValue[byeGray])
-  ADD    EAX, 4                         // EAX   = 指向下一个像素
-  DEC    ECX                            // Count 减一
-  JNZ    @LOOP                          // 循环
+  // 判断 R 是否在 0---255 之间
+  CMP    EBX, 0
+  JL     @RRL
+  CMP    EBX, 255
+  JG     @RRG
+  JMP    @RValue
+@RRL:
+  MOV    EBX, 0
+  JMP    @RValue
+@RRG:
+  MOV    EBX, 255
+
+  // 判断 G 是否在 0---255 之间
+@RValue:
+  CMP    EDX, 0
+  JL     @GGL
+  CMP    EDX, 255
+  JG     @GGG
+  JMP    @GValue
+@GGL:
+  MOV    EDX, 0
+  JMP    @GValue
+@GGG:
+  MOV    EDX, 255
+
+  // 判断 B 是否在 0---255 之间
+@GValue:
+  CMP    ESI, 0
+  JL     @BBL
+  CMP    ESI, 255
+  JG     @BBG
+  JMP    @BValue
+@BBL:
+  MOV    ESI, 0
+  JMP    @BValue
+@BBG:
+  MOV    ESI, 255
+
+  // 组合 R G B
+@BValue:
+  SHL EBX, 16
+  SHL EDX, 8
+  OR EBX, EDX
+  OR EBX, ESI
+  MOV [EAX], EBX
+
+  ADD    EAX, 4
+  DEC    ECX
+  JNZ    @LOOP
+
+  POP    EDI
 end;
 
 procedure Light_ASM(bmp: TBitmap; const intLightValue: Integer);
+var
+  pColor: PRGBQuad;
+  Count : Integer;
 begin
-  Light_ASM_Proc(GetBitsPointer(bmp), intLightValue, bmp.width * bmp.height);
+  pColor := GetBitsPointer(bmp);
+  Count  := bmp.width * bmp.height;
+  Light_ASM_Proc(pColor, intLightValue, Count);
 end;
 
 procedure Light(bmp: TBitmap; const intLightValue: Integer; const lt: TLightType = ltAVX1);
 begin
   case lt of
     ltScanline:
-      Light_ScanLine(bmp, intLightValue);                                             // 160 ms
-    ltDelphi:                                                                         //
-      Light_Delphi(bmp, intLightValue);                                               // 88 ms
-    ltTable:                                                                          //
-      Light_Table(bmp, intLightValue);                                                // 88 ms
-    ltASM:                                                                            //
-      Light_ASM(bmp, intLightValue);                                                  //
-    ltMMX:                                                                            //
-      ;                                                                               //
-    ltSSE:                                                                            //
-      ;                                                                               //
-    ltSSE2:                                                                           //
-      bgraLight_sse2(GetBitsPointer(bmp), bmp.width, bmp.height, intLightValue);      // 62 ms
-    ltSSE4:                                                                           //
-      bgraLight_sse4(GetBitsPointer(bmp), bmp.width, bmp.height, intLightValue);      // 44 ms
-    ltAVX1:                                                                           //
-      bgraLight_avx1(GetBitsPointer(bmp), bmp.width, bmp.height, intLightValue);      // 50 ms
-    ltAVX2:                                                                           //
-      bgraLight_avx2(GetBitsPointer(bmp), bmp.width, bmp.height, intLightValue);      //
-    ltAVX512knl:                                                                      //
-      bgraLight_avx512knl(GetBitsPointer(bmp), bmp.width, bmp.height, intLightValue); //
-    ltAVX512skx:                                                                      //
-      bgraLight_avx512skx(GetBitsPointer(bmp), bmp.width, bmp.height, intLightValue); //
+      Light_ScanLine(bmp, intLightValue);
+    ltDelphi:
+      Light_Delphi(bmp, intLightValue);
+    ltTable:
+      Light_Table(bmp, intLightValue);
+    ltASM:
+      Light_ASM(bmp, intLightValue);
+    ltMMX:
+      ;
+    ltSSE:
+      ;
+    ltSSE2:
+      bgraLight_sse2(GetBitsPointer(bmp), bmp.width, bmp.height, intLightValue);
+    ltSSE4:
+      bgraLight_sse4(GetBitsPointer(bmp), bmp.width, bmp.height, intLightValue);
+    ltAVX1:
+      bgraLight_avx1(GetBitsPointer(bmp), bmp.width, bmp.height, intLightValue);
+    ltAVX2:
+      bgraLight_avx2(GetBitsPointer(bmp), bmp.width, bmp.height, intLightValue);
+    ltAVX512knl:
+      bgraLight_avx512knl(GetBitsPointer(bmp), bmp.width, bmp.height, intLightValue);
+    ltAVX512skx:
+      bgraLight_avx512skx(GetBitsPointer(bmp), bmp.width, bmp.height, intLightValue);
   end;
 end;
 
 end.
+

@@ -483,13 +483,12 @@ asm
 
   // 返回结果
   MOVAPS  XMM5, XMM4                      // XMM5  = |000000Y3|000000Y2|000000Y1|000000Y0|
+  MOVAPS  XMM6, XMM4                      // XMM6  = |000000Y3|000000Y2|000000Y1|000000Y0|
   PSLLD   XMM5, 8                         // XMM5  = |0000Y300|0000Y200|0000Y100|0000Y000|
+  PSLLD   XMM6, 16                        // XMM6  = |00Y30000|00Y20000|00Y10000|00Y00000|
   ORPS    XMM4, XMM5                      // XMM4  = |0000Y3Y3|0000Y2Y2|0000Y1Y1|0000Y0Y0|
-  PSLLD   XMM5, 8                         // XMM5  = |00Y30000|00Y20000|00Y10000|00Y00000|
-  ORPS    XMM4, XMM5                      // XMM4  = |00Y3Y3Y3|00Y2Y2Y2|00Y1Y1Y1|00Y0Y0Y0|
-  ANDPS   XMM0, XMM3                      // XMM0  = |FF000000|FF000000|FF000000|FF000000|
-  ORPS    XMM0, XMM4                      // XMM0  = |FFY3Y3Y3|FFY2Y2Y2|FFY1Y1Y1|FFY0Y0Y0|
-  MOVUPS  [EAX], XMM0                     // [EAX] = XMM0
+  ORPS    XMM4, XMM6                      // XMM4  = |00Y3Y3Y3|00Y2Y2Y2|00Y1Y1Y1|00Y0Y0Y0|
+  MOVAPS  [EAX], XMM4                     // [EAX] = XMM4
 
   ADD     EAX, 16                         // pColor 地址加 16，EAX 指向下4个像素的地址
   SUB     ECX, 16                         // Count 减 16

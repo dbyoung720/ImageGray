@@ -62,7 +62,7 @@ implementation
 
 {$R *.dfm}
 
-uses db.Image.Load, db.Image.Gray, db.Image.Light, db.Image.Contrast, db.Image.Invert, db.Image.Saturation;
+uses db.Image.Load, db.Image.Gray, db.Image.Invert, db.Image.Light, db.Image.Contrast, db.Image.Saturation;
 
 procedure TForm1.LoadImageProc(const strFileName: String; img: TImage);
 begin
@@ -162,7 +162,7 @@ procedure TForm1.mniColorGrayClick(Sender: TObject);
 begin
   with TStopwatch.StartNew do
   begin
-    Gray(imgShow.Picture.Bitmap, gtAVX2);
+    Gray(imgShow.Picture.Bitmap, gtSSE);
     statTip.Panels[0].Text := Format('灰值化用时：%d 毫秒', [ElapsedMilliseconds]);
   end;
 
@@ -173,7 +173,7 @@ procedure TForm1.mniColorInvertClick(Sender: TObject);
 begin
   with TStopwatch.StartNew do
   begin
-    Invert(imgShow.Picture.Bitmap, itAVX2);
+    Invert(imgShow.Picture.Bitmap, itSSE);
     statTip.Panels[0].Text := Format('反色用时：%d 毫秒', [ElapsedMilliseconds]);
   end;
   imgShow.Invalidate;
@@ -196,7 +196,7 @@ begin
     with TStopwatch.StartNew do
     begin
       if FccChange = ccLight then
-        Light(bmp, FTrackColorChange.Position, ltAVX2)
+        Light(bmp, FTrackColorChange.Position, ltASM)
       else if FccChange = ccContrast then
         Contrast(bmp, FTrackColorChange.Position + 128, ctAVX2)
       else if FccChange = ccSaturation then
