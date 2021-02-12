@@ -11,10 +11,6 @@ procedure Saturation(bmp: TBitmap; const intSaturationValue: Integer; const st: 
 
 implementation
 
-type
-  TAlpha = array [0 .. 255] of Word;
-  TGrays = array [0 .. 767] of Integer;
-
 procedure GetGrayAlpha(const intSaturationValue: Integer; var alpha: TAlpha; var grays: TGrays);
 var
   X   : Integer;
@@ -102,17 +98,17 @@ begin
     stSSE:
       ;
     stSSE2:
-      bgraSaturation_sse2(pColor, pSatur, bmp.width, bmp.height, intSaturationValue);
+      bgraSaturation_sse2(pColor, pSatur, bmp.width, bmp.height, intSaturationValue, alpha, grays);
     stSSE4:
-      bgraSaturation_sse4(pColor, pSatur, bmp.width, bmp.height, intSaturationValue);
+      bgraSaturation_sse4(pColor, pSatur, bmp.width, bmp.height, intSaturationValue, alpha, grays);
     stAVX1:
-      bgraSaturation_avx1(pColor, pSatur, bmp.width, bmp.height, intSaturationValue);
+      bgraSaturation_avx1(pColor, pSatur, bmp.width, bmp.height, intSaturationValue, alpha, grays);
     stAVX2:
-      bgraSaturation_avx2(pColor, pSatur, bmp.width, bmp.height, intSaturationValue);
+      bgraSaturation_avx2(pColor, pSatur, bmp.width, bmp.height, intSaturationValue, alpha, grays);
     stAVX512knl:
-      bgraSaturation_avx512knl(pColor, pSatur, bmp.width, bmp.height, intSaturationValue);
+      bgraSaturation_avx512knl(pColor, pSatur, bmp.width, bmp.height, intSaturationValue, alpha, grays);
     stAVX512skx:
-      bgraSaturation_avx512skx(pColor, pSatur, bmp.width, bmp.height, intSaturationValue);
+      bgraSaturation_avx512skx(pColor, pSatur, bmp.width, bmp.height, intSaturationValue, alpha, grays);
   end;
 end;
 
