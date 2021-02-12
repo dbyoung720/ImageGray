@@ -149,6 +149,7 @@ var
 begin
   pColor := GetBitsPointer(bmp);
   pLight := GetBitsPointer(bmp);
+
   case lt of
     ltScanline:
       Light_ScanLine(bmp, intLightValue);

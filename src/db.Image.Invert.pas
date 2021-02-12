@@ -102,14 +102,6 @@ begin
   Invert_SSE_Proc(GetBitsPointer(bmp), bmp.width * bmp.height * 4);
 end;
 
-procedure Invert_AVX1(bmp: TBitmap);
-var
-  pColor: PByte;
-begin
-  pColor := GetBitsPointer(bmp);
-  bgraInvert_avx1(pColor, bmp.width, bmp.height);
-end;
-
 procedure Invert_AVX1_ASM_Proc(pColor: PByte; count: Integer);
 asm
   MOV ECX, EDX
@@ -143,71 +135,35 @@ begin
   Invert_AVX1_ASM_Proc(pColor, bmp.width * bmp.height * 4);
 end;
 
-procedure Invert_AVX2(bmp: TBitmap);
-var
-  pColor: PByte;
-begin
-  pColor := GetBitsPointer(bmp);
-  bgraInvert_avx2(pColor, bmp.width, bmp.height);
-end;
-
-procedure Invert_SSE2(bmp: TBitmap);
-var
-  pColor: PByte;
-begin
-  pColor := GetBitsPointer(bmp);
-  bgraInvert_sse2(pColor, bmp.width, bmp.height);
-end;
-
-procedure Invert_SSE4(bmp: TBitmap);
-var
-  pColor: PByte;
-begin
-  pColor := GetBitsPointer(bmp);
-  bgraInvert_sse4(pColor, bmp.width, bmp.height);
-end;
-
-procedure Invert_AVX512knl(bmp: TBitmap);
-var
-  pColor: PByte;
-begin
-  pColor := GetBitsPointer(bmp);
-  bgraInvert_avx512knl(pColor, bmp.width, bmp.height);
-end;
-
-procedure Invert_AVX512skx(bmp: TBitmap);
-var
-  pColor: PByte;
-begin
-  pColor := GetBitsPointer(bmp);
-  bgraInvert_avx512skx(pColor, bmp.width, bmp.height);
-end;
-
 procedure Invert(bmp: TBitmap; const gt: TInvertType = itAVX1);
+var
+  pColor: PByte;
 begin
+  pColor := GetBitsPointer(bmp);
+
   case gt of
-    itDelphi:                //
-      Invert_Delphi(bmp);    // 42 ms
-    itASM:                   //
-      Invert_ASM(bmp);       // 13 ms
-    itMMX:                   //
-      Invert_MMX(bmp);       // 9 ms
-    itSSE:                   //
-      Invert_SSE(bmp);       // 7 ms
-    itSSE2:                  //
-      Invert_SSE2(bmp);      // 7 ms
-    itSSE4:                  //
-      Invert_SSE4(bmp);      // 7 ms
-    itAVX1:                  //
-      Invert_AVX1(bmp);      // 7 ms
-    itAVX2:                  //
-      Invert_AVX2(bmp);      // 7 ms
-    itAVX1_ASM:              //
-      Invert_AVX1_ASM(bmp);  // 7 ms
-    itAVX512knl:             //
-      Invert_AVX512knl(bmp); // 7 ms
-    itAVX512skx:             //
-      Invert_AVX512skx(bmp); // 7 ms
+    itDelphi:                                                   //
+      Invert_Delphi(bmp);                                       // 42 ms
+    itASM:                                                      //
+      Invert_ASM(bmp);                                          // 13 ms
+    itMMX:                                                      //
+      Invert_MMX(bmp);                                          // 9 ms
+    itSSE:                                                      //
+      Invert_SSE(bmp);                                          // 7 ms
+    itSSE2:                                                     //
+      bgraInvert_sse2(pColor, bmp.width, bmp.height);           //
+    itSSE4:                                                     //
+      bgraInvert_sse4(pColor, bmp.width, bmp.height);           //
+    itAVX1:                                                     //
+      bgraInvert_avx1(pColor, bmp.width, bmp.height);           //
+    itAVX1_ASM:                                                 //
+      Invert_AVX1_ASM_Proc(pColor, bmp.width * bmp.height * 4); //
+    itAVX2:                                                     //
+      bgraInvert_avx2(pColor, bmp.width, bmp.height);           //
+    itAVX512knl:                                                //
+      bgraInvert_avx512knl(pColor, bmp.width, bmp.height);      //
+    itAVX512skx:                                                //
+      bgraInvert_avx512skx(pColor, bmp.width, bmp.height);      //
   end;
 end;
 

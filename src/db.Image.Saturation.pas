@@ -1,5 +1,5 @@
 unit db.Image.Saturation;
-
+
 interface
 
 uses Winapi.Windows, System.Math, Vcl.Graphics, System.Win.Crtl, db.Image.Common;
@@ -81,9 +81,13 @@ end;
 
 procedure Saturation(bmp: TBitmap; const intSaturationValue: Integer; const st: TSaturationType = stAVX1);
 var
-  alpha: TAlpha;
-  grays: TGrays;
+  alpha : TAlpha;
+  grays : TGrays;
+  pColor: PByte;
+  pSatur: PDWORD;
 begin
+  pColor := GetBitsPointer(bmp);
+  pSatur := GetBitsPointer(bmp);
   GetGrayAlpha(intSaturationValue, alpha, grays);
 
   case st of
@@ -98,18 +102,19 @@ begin
     stSSE:
       ;
     stSSE2:
-      bgraSaturation_sse2(GetBitsPointer(bmp), bmp.width, bmp.height, intSaturationValue);
+      bgraSaturation_sse2(pColor, pSatur, bmp.width, bmp.height, intSaturationValue);
     stSSE4:
-      bgraSaturation_sse4(GetBitsPointer(bmp), bmp.width, bmp.height, intSaturationValue);
+      bgraSaturation_sse4(pColor, pSatur, bmp.width, bmp.height, intSaturationValue);
     stAVX1:
-      bgraSaturation_avx1(GetBitsPointer(bmp), bmp.width, bmp.height, intSaturationValue);
+      bgraSaturation_avx1(pColor, pSatur, bmp.width, bmp.height, intSaturationValue);
     stAVX2:
-      bgraSaturation_avx2(GetBitsPointer(bmp), bmp.width, bmp.height, intSaturationValue);
+      bgraSaturation_avx2(pColor, pSatur, bmp.width, bmp.height, intSaturationValue);
     stAVX512knl:
-      bgraSaturation_avx512knl(GetBitsPointer(bmp), bmp.width, bmp.height, intSaturationValue);
+      bgraSaturation_avx512knl(pColor, pSatur, bmp.width, bmp.height, intSaturationValue);
     stAVX512skx:
-      bgraSaturation_avx512skx(GetBitsPointer(bmp), bmp.width, bmp.height, intSaturationValue);
+      bgraSaturation_avx512skx(pColor, pSatur, bmp.width, bmp.height, intSaturationValue);
   end;
 end;
 
 end.
+

@@ -133,12 +133,12 @@ procedure bgraContrast_avx2(src: PByte; dst:PDWORD; width, height, keyValue: Int
 procedure bgraContrast_avx512skx(src: PByte; dst:PDWORD; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraContrast_avx512skx' {$ELSE} name 'bgraContrast_avx512skx' {$IFEND};
 procedure bgraContrast_avx512knl(src: PByte; dst:PDWORD; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraContrast_avx512knl' {$ELSE} name 'bgraContrast_avx512knl' {$IFEND};
 
-procedure bgraSaturation_sse2(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraSaturation_sse2' {$ELSE} name 'bgraSaturation_sse2' {$IFEND};
-procedure bgraSaturation_sse4(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraSaturation_sse4' {$ELSE} name 'bgraSaturation_sse4' {$IFEND};
-procedure bgraSaturation_avx1(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraSaturation_avx' {$ELSE} name 'bgraSaturation_avx' {$IFEND};
-procedure bgraSaturation_avx2(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraSaturation_avx2' {$ELSE} name 'bgraSaturation_avx2' {$IFEND};
-procedure bgraSaturation_avx512skx(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraSaturation_avx512skx' {$ELSE} name 'bgraSaturation_avx512skx' {$IFEND};
-procedure bgraSaturation_avx512knl(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraSaturation_avx512knl' {$ELSE} name 'bgraSaturation_avx512knl' {$IFEND};
+procedure bgraSaturation_sse2(src: PByte; dst:PDWORD; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraSaturation_sse2' {$ELSE} name 'bgraSaturation_sse2' {$IFEND};
+procedure bgraSaturation_sse4(src: PByte; dst:PDWORD; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraSaturation_sse4' {$ELSE} name 'bgraSaturation_sse4' {$IFEND};
+procedure bgraSaturation_avx1(src: PByte; dst:PDWORD; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraSaturation_avx' {$ELSE} name 'bgraSaturation_avx' {$IFEND};
+procedure bgraSaturation_avx2(src: PByte; dst:PDWORD; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraSaturation_avx2' {$ELSE} name 'bgraSaturation_avx2' {$IFEND};
+procedure bgraSaturation_avx512skx(src: PByte; dst:PDWORD; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraSaturation_avx512skx' {$ELSE} name 'bgraSaturation_avx512skx' {$IFEND};
+procedure bgraSaturation_avx512knl(src: PByte; dst:PDWORD; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraSaturation_avx512knl' {$ELSE} name 'bgraSaturation_avx512knl' {$IFEND};
 
 procedure _abort; cdecl; external 'msvcrt.dll' name 'abort';
 procedure abort; cdecl; external 'msvcrt.dll' name 'abort';
