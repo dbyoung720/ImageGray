@@ -143,7 +143,12 @@ begin
 end;
 
 procedure Light(bmp: TBitmap; const intLightValue: Integer; const lt: TLightType = ltAVX1);
+var
+  pColor: PByte;
+  pLight: PDWORD;
 begin
+  pColor := GetBitsPointer(bmp);
+  pLight := GetBitsPointer(bmp);
   case lt of
     ltScanline:
       Light_ScanLine(bmp, intLightValue);
@@ -158,17 +163,17 @@ begin
     ltSSE:
       ;
     ltSSE2:
-      bgraLight_sse2(GetBitsPointer(bmp), bmp.width, bmp.height, intLightValue);
+      bgraLight_sse2(pColor, pLight, bmp.width, bmp.height, intLightValue);
     ltSSE4:
-      bgraLight_sse4(GetBitsPointer(bmp), bmp.width, bmp.height, intLightValue);
+      bgraLight_sse4(pColor, pLight, bmp.width, bmp.height, intLightValue);
     ltAVX1:
-      bgraLight_avx1(GetBitsPointer(bmp), bmp.width, bmp.height, intLightValue);
+      bgraLight_avx1(pColor, pLight, bmp.width, bmp.height, intLightValue);
     ltAVX2:
-      bgraLight_avx2(GetBitsPointer(bmp), bmp.width, bmp.height, intLightValue);
+      bgraLight_avx2(pColor, pLight, bmp.width, bmp.height, intLightValue);
     ltAVX512knl:
-      bgraLight_avx512knl(GetBitsPointer(bmp), bmp.width, bmp.height, intLightValue);
+      bgraLight_avx512knl(pColor, pLight, bmp.width, bmp.height, intLightValue);
     ltAVX512skx:
-      bgraLight_avx512skx(GetBitsPointer(bmp), bmp.width, bmp.height, intLightValue);
+      bgraLight_avx512skx(pColor, pLight, bmp.width, bmp.height, intLightValue);
   end;
 end;
 

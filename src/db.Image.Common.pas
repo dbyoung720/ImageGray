@@ -105,12 +105,12 @@ function GetPixelGray(const r, g, b: Byte): TRGBQuad; inline;
 function CheckValue(const intValue, intRange: Integer): Byte; inline;
 procedure ShowColorChange(frmMain: TForm; cc: TColorChange; OnChangeLight, OnLightResetClick, OnLightCancelClick, OnLightOKClick: TNotifyEvent; var lblValueShow: TLabel; const intMinValue, intMaxValue: Integer; const strCaption, strTip: string);
 
-procedure bgraGray_sse2(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraGray_sse2' {$ELSE} name 'bgraGray_sse2' {$IFEND};
-procedure bgraGray_sse4(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraGray_sse4' {$ELSE} name 'bgraGray_sse4' {$IFEND};
-procedure bgraGray_avx1(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraGray_avx' {$ELSE} name 'bgraGray_avx' {$IFEND};
-procedure bgraGray_avx2(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraGray_avx2' {$ELSE} name 'bgraGray_avx2' {$IFEND};
-procedure bgraGray_avx512skx(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraGray_avx512skx' {$ELSE} name 'bgraGray_avx512skx' {$IFEND};
-procedure bgraGray_avx512knl(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraGray_avx512knl' {$ELSE} name 'bgraGray_avx512knl' {$IFEND};
+procedure bgraGray_sse2(src: PByte; dst:PDWORD; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraGray_sse2' {$ELSE} name 'bgraGray_sse2' {$IFEND};
+procedure bgraGray_sse4(src: PByte; dst:PDWORD; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraGray_sse4' {$ELSE} name 'bgraGray_sse4' {$IFEND};
+procedure bgraGray_avx1(src: PByte; dst:PDWORD; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraGray_avx' {$ELSE} name 'bgraGray_avx' {$IFEND};
+procedure bgraGray_avx2(src: PByte; dst:PDWORD; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraGray_avx2' {$ELSE} name 'bgraGray_avx2' {$IFEND};
+procedure bgraGray_avx512skx(src: PByte; dst:PDWORD; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraGray_avx512skx' {$ELSE} name 'bgraGray_avx512skx' {$IFEND};
+procedure bgraGray_avx512knl(src: PByte; dst:PDWORD; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraGray_avx512knl' {$ELSE} name 'bgraGray_avx512knl' {$IFEND};
 
 procedure bgraInvert_sse2(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraInvert_sse2' {$ELSE} name 'bgraInvert_sse2' {$IFEND};
 procedure bgraInvert_sse4(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraInvert_sse4' {$ELSE} name 'bgraInvert_sse4' {$IFEND};
@@ -119,19 +119,19 @@ procedure bgraInvert_avx2(src: PByte; width, height: Integer); cdecl; external {
 procedure bgraInvert_avx512skx(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraInvert_avx512skx' {$ELSE} name 'bgraInvert_avx512skx' {$IFEND};
 procedure bgraInvert_avx512knl(src: PByte; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraInvert_avx512knl' {$ELSE} name 'bgraInvert_avx512knl' {$IFEND};
 
-procedure bgraLight_sse2(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraLight_sse2' {$ELSE} name 'bgraLight_sse2' {$IFEND};
-procedure bgraLight_sse4(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraLight_sse4' {$ELSE} name 'bgraLight_sse4' {$IFEND};
-procedure bgraLight_avx1(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraLight_avx' {$ELSE} name 'bgraLight_avx' {$IFEND};
-procedure bgraLight_avx2(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraLight_avx2' {$ELSE} name 'bgraLight_avx2' {$IFEND};
-procedure bgraLight_avx512skx(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraLight_avx512skx' {$ELSE} name 'bgraLight_avx512skx' {$IFEND};
-procedure bgraLight_avx512knl(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraLight_avx512knl' {$ELSE} name 'bgraLight_avx512knl' {$IFEND};
+procedure bgraLight_sse2(src: PByte; dst:PDWORD; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraLight_sse2' {$ELSE} name 'bgraLight_sse2' {$IFEND};
+procedure bgraLight_sse4(src: PByte; dst:PDWORD; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraLight_sse4' {$ELSE} name 'bgraLight_sse4' {$IFEND};
+procedure bgraLight_avx1(src: PByte; dst:PDWORD; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraLight_avx' {$ELSE} name 'bgraLight_avx' {$IFEND};
+procedure bgraLight_avx2(src: PByte; dst:PDWORD; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraLight_avx2' {$ELSE} name 'bgraLight_avx2' {$IFEND};
+procedure bgraLight_avx512skx(src: PByte; dst:PDWORD; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraLight_avx512skx' {$ELSE} name 'bgraLight_avx512skx' {$IFEND};
+procedure bgraLight_avx512knl(src: PByte; dst:PDWORD; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraLight_avx512knl' {$ELSE} name 'bgraLight_avx512knl' {$IFEND};
 
-procedure bgraContrast_sse2(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraContrast_sse2' {$ELSE} name 'bgraContrast_sse2' {$IFEND};
-procedure bgraContrast_sse4(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraContrast_sse4' {$ELSE} name 'bgraContrast_sse4' {$IFEND};
-procedure bgraContrast_avx1(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraContrast_avx' {$ELSE} name 'bgraContrast_avx' {$IFEND};
-procedure bgraContrast_avx2(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraContrast_avx2' {$ELSE} name 'bgraContrast_avx2' {$IFEND};
-procedure bgraContrast_avx512skx(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraContrast_avx512skx' {$ELSE} name 'bgraContrast_avx512skx' {$IFEND};
-procedure bgraContrast_avx512knl(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraContrast_avx512knl' {$ELSE} name 'bgraContrast_avx512knl' {$IFEND};
+procedure bgraContrast_sse2(src: PByte; dst:PDWORD; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraContrast_sse2' {$ELSE} name 'bgraContrast_sse2' {$IFEND};
+procedure bgraContrast_sse4(src: PByte; dst:PDWORD; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraContrast_sse4' {$ELSE} name 'bgraContrast_sse4' {$IFEND};
+procedure bgraContrast_avx1(src: PByte; dst:PDWORD; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraContrast_avx' {$ELSE} name 'bgraContrast_avx' {$IFEND};
+procedure bgraContrast_avx2(src: PByte; dst:PDWORD; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraContrast_avx2' {$ELSE} name 'bgraContrast_avx2' {$IFEND};
+procedure bgraContrast_avx512skx(src: PByte; dst:PDWORD; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraContrast_avx512skx' {$ELSE} name 'bgraContrast_avx512skx' {$IFEND};
+procedure bgraContrast_avx512knl(src: PByte; dst:PDWORD; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraContrast_avx512knl' {$ELSE} name 'bgraContrast_avx512knl' {$IFEND};
 
 procedure bgraSaturation_sse2(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraSaturation_sse2' {$ELSE} name 'bgraSaturation_sse2' {$IFEND};
 procedure bgraSaturation_sse4(src: PByte; width, height, keyValue: Integer); cdecl; external {$IFDEF WIN32}name '_bgraSaturation_sse4' {$ELSE} name 'bgraSaturation_sse4' {$IFEND};

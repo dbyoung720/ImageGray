@@ -1,5 +1,5 @@
 unit db.Image.Contrast;
-
+
 interface
 
 uses Winapi.Windows, Vcl.Graphics, System.Math, db.Image.Common;
@@ -49,33 +49,36 @@ end;
 procedure Contrast(bmp: TBitmap; const intContrastValue: Integer; const ct: TContrastType = ctAVX1);
 var
   pColor: PByte;
+  pContr: PDWORD;
 begin
   pColor := GetBitsPointer(bmp);
+  pContr := GetBitsPointer(bmp);
 
   case ct of
     ctScanline:
-      Contrast_ScanLine(bmp, intContrastValue);                                // 105 ms
-    ctDelphi:                                                                  //
-      Contrast_Delphi(bmp, intContrastValue);                                  // 100 ms
-    ctASM:                                                                     //
-      Contrast_ASM(bmp, intContrastValue);                                     //
-    ctMMX:                                                                     //
-      ;                                                                        //
-    ctSSE:                                                                     //
-      ;                                                                        //
-    ctSSE2:                                                                    //
-      bgraContrast_sse2(pColor, bmp.width, bmp.height, intContrastValue);      // 62 ms
-    ctSSE4:                                                                    //
-      bgraContrast_sse4(pColor, bmp.width, bmp.height, intContrastValue);      // 44 ms
-    ctAVX1:                                                                    //
-      bgraContrast_avx1(pColor, bmp.width, bmp.height, intContrastValue);      // 50 ms
-    ctAVX2:                                                                    //
-      bgraContrast_avx2(pColor, bmp.width, bmp.height, intContrastValue);      //
-    ctAVX512knl:                                                               //
-      bgraContrast_avx512knl(pColor, bmp.width, bmp.height, intContrastValue); //
-    ctAVX512skx:                                                               //
-      bgraContrast_avx512knl(pColor, bmp.width, bmp.height, intContrastValue); //
+      Contrast_ScanLine(bmp, intContrastValue);                                        // 105 ms
+    ctDelphi:                                                                          //
+      Contrast_Delphi(bmp, intContrastValue);                                          // 100 ms
+    ctASM:                                                                             //
+      Contrast_ASM(bmp, intContrastValue);                                             //
+    ctMMX:                                                                             //
+      ;                                                                                //
+    ctSSE:                                                                             //
+      ;                                                                                //
+    ctSSE2:                                                                            //
+      bgraContrast_sse2(pColor, pContr, bmp.width, bmp.height, intContrastValue);      // 62 ms
+    ctSSE4:                                                                            //
+      bgraContrast_sse4(pColor, pContr, bmp.width, bmp.height, intContrastValue);      // 44 ms
+    ctAVX1:                                                                            //
+      bgraContrast_avx1(pColor, pContr, bmp.width, bmp.height, intContrastValue);      // 50 ms
+    ctAVX2:                                                                            //
+      bgraContrast_avx2(pColor, pContr, bmp.width, bmp.height, intContrastValue);      //
+    ctAVX512knl:                                                                       //
+      bgraContrast_avx512knl(pColor, pContr, bmp.width, bmp.height, intContrastValue); //
+    ctAVX512skx:                                                                       //
+      bgraContrast_avx512knl(pColor, pContr, bmp.width, bmp.height, intContrastValue); //
   end;
 end;
 
 end.
+

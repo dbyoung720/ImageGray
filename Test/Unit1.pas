@@ -161,7 +161,7 @@ procedure TForm1.mniColorGrayClick(Sender: TObject);
 begin
   with TStopwatch.StartNew do
   begin
-    Gray(imgShow.Picture.Bitmap, gtSSE);
+    Gray(imgShow.Picture.Bitmap, gtAVX1);
     statTip.Panels[0].Text := Format('灰值化用时：%d 毫秒', [ElapsedMilliseconds]);
   end;
 
@@ -172,7 +172,7 @@ procedure TForm1.mniColorInvertClick(Sender: TObject);
 begin
   with TStopwatch.StartNew do
   begin
-    Invert(imgShow.Picture.Bitmap, itSSE);
+    Invert(imgShow.Picture.Bitmap, itAVX1);
     statTip.Panels[0].Text := Format('反色用时：%d 毫秒', [ElapsedMilliseconds]);
   end;
   imgShow.Invalidate;
@@ -197,9 +197,9 @@ begin
     with TStopwatch.StartNew do
     begin
       if ccChange = ccLight then
-        Light(bmp, FTrackColorChange.Position, ltASM)
+        Light(bmp, FTrackColorChange.Position, ltAVX1)
       else if ccChange = ccContrast then
-        Contrast(bmp, FTrackColorChange.Position + 128, ctAVX2)
+        Contrast(bmp, FTrackColorChange.Position + 128, ctAVX1)
       else if ccChange = ccSaturation then
         Saturation(bmp, FTrackColorChange.Position + 255, stDelphi);
 

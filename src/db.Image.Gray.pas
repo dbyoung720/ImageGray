@@ -505,54 +505,66 @@ end;
 procedure Gray_SSE2(bmp: TBitmap);
 var
   pColor: PByte;
+  pGray : PDWORD;
 begin
   pColor := GetBitsPointer(bmp);
-  bgraGray_sse2(pColor, bmp.Width, bmp.Height);
+  pGray  := GetBitsPointer(bmp);
+  bgraGray_sse2(pColor, pGray, bmp.Width, bmp.Height);
 end;
 
 { 27 ms }
 procedure Gray_SSE4(bmp: TBitmap);
 var
   pColor: PByte;
+  pGray : PDWORD;
 begin
   pColor := GetBitsPointer(bmp);
-  bgraGray_sse4(pColor, bmp.Width, bmp.Height);
+  pGray  := GetBitsPointer(bmp);
+  bgraGray_sse4(pColor, pGray, bmp.Width, bmp.Height);
 end;
 
 { 27 ms }
 procedure Gray_AVX(bmp: TBitmap);
 var
   pColor: PByte;
+  pGray : PDWORD;
 begin
   pColor := GetBitsPointer(bmp);
-  bgraGray_avx1(pColor, bmp.Width, bmp.Height);
+  pGray  := GetBitsPointer(bmp);
+  bgraGray_avx1(pColor, pGray, bmp.Width, bmp.Height);
 end;
 
 { 7 ms }
 procedure Gray_AVX2(bmp: TBitmap);
 var
   pColor: PByte;
+  pGray : PDWORD;
 begin
   pColor := GetBitsPointer(bmp);
-  bgraGray_avx2(pColor, bmp.Width, bmp.Height);
+  pGray  := GetBitsPointer(bmp);
+  bgraGray_avx2(pColor, pGray, bmp.Width, bmp.Height);
 end;
 
 { 7 ms }
 procedure Gray_AVX512knl(bmp: TBitmap);
 var
   pColor: PByte;
+  pGray : PDWORD;
 begin
   pColor := GetBitsPointer(bmp);
-  bgraGray_avx512knl(pColor, bmp.Width, bmp.Height);
+  pGray  := GetBitsPointer(bmp);
+  bgraGray_avx512knl(pColor, pGray, bmp.Width, bmp.Height);
 end;
 
 { 7 ms }
 procedure Gray_AVX512skx(bmp: TBitmap);
 var
   pColor: PByte;
+  pGray : PDWORD;
 begin
   pColor := GetBitsPointer(bmp);
-  bgraGray_avx512skx(pColor, bmp.Width, bmp.Height);
+  pGray  := GetBitsPointer(bmp);
+  bgraGray_avx512skx(pColor, pGray, bmp.Width, bmp.Height);
 end;
 
 procedure Gray_GPU(bmp: TBitmap);
