@@ -66,6 +66,7 @@ end;
 { 60ms ---- 90ms }
 procedure Light_ASM_Proc(pColor: PRGBQuad; const intLightValue: Integer; const Count: Integer); register;
 asm
+  {$IFDEF WIN32}
   PUSH   EDI
   MOV    EDI, EDX
 
@@ -130,6 +131,7 @@ asm
   JNZ    @LOOP
 
   POP    EDI
+  {$IFEND}
 end;
 
 procedure Light_ASM(bmp: TBitmap; const intLightValue: Integer);

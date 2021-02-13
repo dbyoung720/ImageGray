@@ -117,6 +117,9 @@ end;
 
 procedure Gray_Parallel_Proc(pColor: PRGBQuad; const bmpWidth: Integer);
 asm
+  {$IFDEF WIN64}
+  MOV     RAX,  RCX
+  {$IFEND}
   MOV     ECX,  EDX
   MOVSS   XMM1, [c_GraySSEMask]             // XMM1 = 000000000000000000000000000000FF
   MOVSS   XMM2, [c_GraySSERioB]             // XMM2 = 0000000000000000000000000000001C
