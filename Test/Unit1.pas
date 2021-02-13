@@ -161,7 +161,7 @@ procedure TForm1.mniColorGrayClick(Sender: TObject);
 begin
   with TStopwatch.StartNew do
   begin
-    Gray(imgShow.Picture.Bitmap, gtAVX1);
+    Gray(imgShow.Picture.Bitmap, gtParallel);
     statTip.Panels[0].Text := Format('灰值化用时：%d 毫秒', [ElapsedMilliseconds]);
   end;
 
