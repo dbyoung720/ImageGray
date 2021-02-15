@@ -1,4 +1,4 @@
-# RGB2Gray MMX/SSE/SSE2/SSE4/AVX/AVX2/AVX512 optimization
+# BGRA2Gray MMX/SSE/SSE2/SSE4/AVX/AVX2/AVX512 optimization
 
 - [简体中文](readmeCN.md)
 
@@ -10,5 +10,5 @@
 ### Delphi implemented function：
 ```
 type
-  TGrayType = (gtAPI, gtScanLine, gtDelphi, gtFourPoint, gtParallel, gtGDIPLUS, gtTable, gtASM, gtMMX, gtSSE, gtSSE2, gtSSE4, gtAVX, gtAVX2, gtAVX512, gtGPU, gtOther);
+  TGrayType = (gtAPI, gtScanLine, gtDelphi, gtFourPoint, gtParallel, gtGDIPLUS, gtTable, gtASM, gtMMX, gtSSE, gtSSE2, gtSSE4, gtSSEParallel, gtAVX, gtAVX2, gtAVX512, gtGPU, gtOther);
 ```

@@ -161,7 +161,7 @@ procedure TForm1.mniColorGrayClick(Sender: TObject);
 begin
   with TStopwatch.StartNew do
   begin
-    Gray(imgShow.Picture.Bitmap, gtParallel);
+    Gray(imgShow.Picture.Bitmap, gtSSEParallel);
     statTip.Panels[0].Text := Format('灰值化用时：%d 毫秒', [ElapsedMilliseconds]);
   end;
 
@@ -197,7 +197,7 @@ begin
     with TStopwatch.StartNew do
     begin
       if ccChange = ccLight then
-        Light(bmp, FTrackColorChange.Position, ltAVX1)
+        Light(bmp, FTrackColorChange.Position, ltSSEParallel)
       else if ccChange = ccContrast then
         Contrast(bmp, FTrackColorChange.Position + 128, ctAVX1)
       else if ccChange = ccSaturation then

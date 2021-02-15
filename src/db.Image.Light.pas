@@ -2,10 +2,10 @@ unit db.Image.Light;
 
 interface
 
-uses Winapi.Windows, Vcl.Graphics, System.Math, db.Image.Common;
+uses Winapi.Windows, Vcl.Graphics, System.Threading, System.Diagnostics, System.SyncObjs, System.Math, db.Image.Common;
 
 type
-  TLightType = (ltScanline, ltDelphi, ltTable, ltASM, ltMMX, ltSSE, ltSSE2, ltSSE4, ltAVX1, ltAVX2, ltAVX512knl, ltAVX512skx);
+  TLightType = (ltScanline, ltDelphi, ltTable, ltParallel, ltASM, ltSSE2, ltSSE4, ltSSEParallel, ltAVX1, ltAVX2, ltAVX512knl, ltAVX512skx);
 
 procedure Light(bmp: TBitmap; const intLightValue: Integer; const lt: TLightType = ltAVX1);
 
@@ -61,6 +61,38 @@ begin
     pColor^.rgbBlue  := g_LightTable[pColor^.rgbBlue, intLightValue];
     Inc(pColor);
   end;
+end;
+
+procedure bgraLight_Parallel_Proc(pColor: PRGBQuad; const bmpWidth, intLightValue: Integer);
+var
+  I: Integer;
+begin
+  for I := 0 to bmpWidth - 1 do
+  begin
+    pColor^.rgbRed   := CheckValue(pColor^.rgbRed, intLightValue);
+    pColor^.rgbGreen := CheckValue(pColor^.rgbGreen, intLightValue);
+    pColor^.rgbBlue  := CheckValue(pColor^.rgbBlue, intLightValue);
+    Inc(pColor);
+  end;
+end;
+
+{ 20ms --- 40ms  需要脱离 IDE 执行 / ScanLine 不能用于 TParallel.For 中 }
+procedure bgraLight_Parallel(bmp: TBitmap; const intLightValue: Integer);
+var
+  StartScanLine: Integer;
+  bmpWidthBytes: Integer;
+begin
+  StartScanLine := Integer(bmp.ScanLine[0]);
+  bmpWidthBytes := Integer(bmp.ScanLine[1]) - Integer(bmp.ScanLine[0]);
+
+  TParallel.For(0, bmp.height - 1,
+    procedure(Y: Integer)
+    var
+      pColor: PRGBQuad;
+    begin
+      pColor := PRGBQuad(StartScanLine + Y * bmpWidthBytes);
+      bgraLight_Parallel_Proc(pColor, bmp.width, intLightValue);
+    end);
 end;
 
 { 60ms ---- 90ms }
@@ -144,6 +176,79 @@ begin
   Light_ASM_Proc(pColor, intLightValue, Count);
 end;
 
+procedure Light_SSEParallel_Proc(pColor: PRGBQuad; const intLightValue, bmpWidth: Integer);
+asm
+  {$IFDEF WIN64}
+  XCHG    RAX,  RCX
+  {$IFEND}
+  MOVSS   XMM1, [c_GraySSEMask]             // XMM1 = 000000000000000000000000000000FF
+  MOVD    XMM2, EDX                         // XMM2 = 0000000000000000000intLightValue
+  SHUFPS  XMM1, XMM1, 0                     // XMM1 = |000000FF|000000FF|000000FF|000000FF|
+  SHUFPS  XMM2, XMM2, 0                     // XMM2 = |intLightValue|intLightValue|intLightValue|
+  MOVAPS  XMM3, XMM1                        // XMM3 = |000000FF|000000FF|000000FF|000000FF|
+  PSUBB   XMM3, XMM2                        // XMM3 = |000000FF - intLightValue|000000FF - intLightValue|000000FF - intLightValue|000000FF - intLightValue|
+
+@LOOP:
+  MOVUPS  XMM4, [EAX]                       // XMM4 = |A3R3G3B3|A2R2G2B2|A1R1G1B1|A0R0G0B0|
+  MOVAPS  XMM5, XMM4                        // XMM5 = |A3R3G3B3|A2R2G2B2|A1R1G1B1|A0R0G0B0|
+  MOVAPS  XMM6, XMM4                        // XMM6 = |A3R3G3B3|A2R2G2B2|A1R1G1B1|A0R0G0B0|
+  MOVAPS  XMM7, XMM4                        // XMM7 = |A3R3G3B3|A2R2G2B2|A1R1G1B1|A0R0G0B0|
+
+  // 获取 4 个像素的 B3, B2, B1, B0
+  ANDPS   XMM5, XMM1                        // XMM5 = |000000B3|000000B2|000000B1|000000B0|
+
+  // 获取 4 个像素的 G3, G2, G1, G0
+  PSRLD   XMM6, 8                           // XMM6 = |00A3R3G3|00A2R2G2|00A1R1G1|00A0R0G0|
+  ANDPS   XMM6, XMM1                        // XMM6 = |000000G3|000000G2|000000G1|000000G0|
+
+  // 获取 4 个像素的 R3, R2, R1, R0
+  PSRLD   XMM7, 16                          // XMM7 = |0000A3R3|0000A2R2|0000A1R1|0000A0R0|
+  ANDPS   XMM7, XMM1                        // XMM7 = |000000R3|000000R2|000000R1|000000R0|
+
+  // 计算亮度值(饱和加法)
+  CMP EDX, 0
+  JL  @Little
+  PADDUSB   XMM5, XMM2                      // XMM5 = |B3+intLightValue|B2+intLightValue|B1+intLightValue|B0+intLightValue|
+  PADDUSB   XMM6, XMM2                      // XMM6 = |G3+intLightValue|G2+intLightValue|G1+intLightValue|G0+intLightValue|
+  PADDUSB   XMM7, XMM2                      // XMM7 = |R3+intLightValue|R2+intLightValue|R1+intLightValue|R0+intLightValue|
+  JMP       @RValue
+@Little:
+  PSUBUSB   XMM5, XMM3                      // XMM5 = |B3 - (000000FF - intLightValue)|B2 - (000000FF - intLightValue)|B1 - (000000FF - intLightValue)|B0 - (000000FF - intLightValue)|
+  PSUBUSB   XMM6, XMM3                      // XMM6 = |G3 - (000000FF - intLightValue)|G2 - (000000FF - intLightValue)|G1 - (000000FF - intLightValue)|G0 - (000000FF - intLightValue)|
+  PSUBUSB   XMM7, XMM3                      // XMM7 = |R3 - (000000FF - intLightValue)|R2 - (000000FF - intLightValue)|R1 - (000000FF - intLightValue)|R0 - (000000FF - intLightValue)|
+
+  // 返回结果
+@RValue:
+  PSLLD   XMM6, 8                           // XMM6  = |0000Y300|0000Y200|0000Y100|0000Y000|
+  PSLLD   XMM7, 16                          // XMM7  = |00Y30000|00Y20000|00Y10000|00Y00000|
+  ORPS    XMM5, XMM6                        // XMM5  = |0000Y3Y3|0000Y2Y2|0000Y1Y1|0000Y0Y0|
+  ORPS    XMM5, XMM7                        // XMM5  = |00Y3Y3Y3|00Y2Y2Y2|00Y1Y1Y1|00Y0Y0Y0|
+  MOVUPS  [EAX], XMM5                       // [EAX] = XMM5
+
+  ADD     EAX, 16                           // pColor 地址加 16，EAX 指向下4个像素的地址
+  SUB     ECX, 4                            // Width 减 4, 每 4 个像素一循环
+  JNZ     @LOOP                             // 循环
+end;
+
+{ 11ms --- 13ms  需要脱离 IDE 执行 / ScanLine 不能用于 TParallel.For 中 }
+procedure Light_SSEParallel(bmp: TBitmap; const intLightValue: Integer);
+var
+  StartScanLine: Integer;
+  bmpWidthBytes: Integer;
+begin
+  StartScanLine := Integer(bmp.ScanLine[0]);
+  bmpWidthBytes := Integer(bmp.ScanLine[1]) - Integer(bmp.ScanLine[0]);
+
+  TParallel.For(0, bmp.height - 1,
+    procedure(Y: Integer)
+    var
+      pColor: PRGBQuad;
+    begin
+      pColor := PRGBQuad(StartScanLine + Y * bmpWidthBytes);
+      Light_SSEParallel_Proc(pColor, intLightValue, bmp.width);
+    end);
+end;
+
 procedure Light(bmp: TBitmap; const intLightValue: Integer; const lt: TLightType = ltAVX1);
 var
   pColor: PByte;
@@ -159,12 +264,12 @@ begin
       Light_Delphi(bmp, intLightValue);
     ltTable:
       Light_Table(bmp, intLightValue);
+    ltParallel:
+      bgraLight_Parallel(bmp, intLightValue);
     ltASM:
       Light_ASM(bmp, intLightValue);
-    ltMMX:
-      ;
-    ltSSE:
-      ;
+    ltSSEParallel:
+      Light_SSEParallel(bmp, intLightValue);
     ltSSE2:
       bgraLight_sse2(pColor, pLight, bmp.width, bmp.height, intLightValue);
     ltSSE4:
