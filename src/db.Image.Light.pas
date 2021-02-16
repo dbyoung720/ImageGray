@@ -7,7 +7,7 @@ uses Winapi.Windows, Vcl.Graphics, System.Threading, System.Diagnostics, System.
 type
   TLightType = (ltScanline, ltDelphi, ltTable, ltParallel, ltASM, ltSSE2, ltSSE4, ltSSEParallel, ltAVX1, ltAVX2, ltAVX512knl, ltAVX512skx);
 
-procedure Light(bmp: TBitmap; const intLightValue: Integer; const lt: TLightType = ltAVX1);
+procedure Light(bmp: TBitmap; const intLightValue: Integer; const lt: TLightType = ltSSEParallel);
 
 implementation
 
@@ -249,7 +249,7 @@ begin
     end);
 end;
 
-procedure Light(bmp: TBitmap; const intLightValue: Integer; const lt: TLightType = ltAVX1);
+procedure Light(bmp: TBitmap; const intLightValue: Integer; const lt: TLightType = ltSSEParallel);
 var
   pColor: PByte;
   pLight: PDWORD;
