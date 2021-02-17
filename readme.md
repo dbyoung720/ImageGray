@@ -1,4 +1,4 @@
-# BGRA2Gray MMX/SSE/SSE2/SSE4/AVX/AVX2/AVX512 optimization
+# RGB2Gray MMX/SSE/SSE2/SSE4/AVX/AVX2/AVX512 optimization
 
 - [简体中文](readmeCN.md)
 
