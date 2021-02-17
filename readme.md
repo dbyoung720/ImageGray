@@ -12,3 +12,6 @@
 type
   TGrayType = (gtAPI, gtScanLine, gtDelphi, gtFourPoint, gtParallel, gtGDIPLUS, gtTable, gtASM, gtMMX, gtSSE, gtSSE2, gtSSE4, gtSSEParallel, gtAVX, gtAVX2, gtAVX512, gtGPU, gtOther);
 ```
+## Best Optimization： 
+    gtSSEParallel
+  
