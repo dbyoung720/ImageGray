@@ -1,4 +1,4 @@
-# BGRA2Gray MMX/SSE/SSE2/SSE4/AVX/AVX2/AVX512 优化
+# RGB2Gray MMX/SSE/SSE2/SSE4/AVX/AVX2/AVX512 优化
 
 - [English](readme.md)
 
