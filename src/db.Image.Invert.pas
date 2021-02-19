@@ -16,7 +16,7 @@ unit db.Image.Invert;
 
 interface
 
-uses Winapi.Windows, System.Classes, System.SysUtils, System.StrUtils, {$IF CompilerVersion >= 24.0} System.Threading, {$IFEND} System.Diagnostics, System.SyncObjs, Vcl.Graphics, Winapi.GDIPOBJ, Winapi.GDIPAPI, db.Image.Common;
+uses Winapi.Windows, Vcl.Graphics, db.Image.Common;
 
 type
   TInvertType = (itDelphi, itASM, itMMX, itSSE, itSSE2, itSSE4, itAVX1, itAVX1_ASM, itAVX2, itAVX512knl, itAVX512skx);

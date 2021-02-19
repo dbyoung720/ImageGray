@@ -2,10 +2,10 @@ unit db.Image.Common;
 
 interface
 
-uses Winapi.Windows, Winapi.GDIPAPI, System.Classes, System.SysUtils, System.StrUtils, System.UITypes, System.Math, Vcl.Forms, Vcl.StdCtrls, Vcl.Graphics, Vcl.ComCtrls;
+uses Winapi.Windows, Winapi.GDIPAPI, System.Classes, System.SysUtils, System.UITypes, System.Math, Vcl.Forms, Vcl.StdCtrls, Vcl.Graphics, Vcl.ComCtrls;
 
 const
-  c_intMinMaxValue: array [0 .. 2, 0 .. 1] of Integer = ((-255, 255), (-128, 128), (-255, 255));
+  c_intMinMaxValue: array [0 .. 2, 0 .. 1] of Integer = ((-255, 255), (-128, 127), (-255, 255));
   c_strShowTips: array [0 .. 2, 0 .. 1] of String     = (('调节亮度：', '亮度：'), ('调节对比度：', '对比度：'), ('调节饱和度：', '饱和度：'));
   c_strShowTime: array [0 .. 2] of String             = ('调节亮度用时：%d 毫秒', '调节对比度用时：%d 毫秒', '调节饱和度用时：%d 毫秒');
 
@@ -77,11 +77,13 @@ const
     13684944, 13750737, 13816530, 13882323, 13948116, 14013909, 14079702, 14145495, 14211288, 14277081, 14342874, 14408667, 14474460, 14540253, 14606046, 14671839, //
     14737632, 14803425, 14869218, 14935011, 15000804, 15066597, 15132390, 15198183, 15263976, 15329769, 15395562, 15461355, 15527148, 15592941, 15658734, 15724527, //
     15790320, 15856113, 15921906, 15987699, 16053492, 16119285, 16185078, 16250871, 16316664, 16382457, 16448250, 16514043, 16579836, 16645629, 16711422, 16777215);
+  c_PixBGRAMask: DWORD            = $FF;
   c_GraySSERioR: DWORD            = $4D;
   c_GraySSERioG: DWORD            = $97;
   c_GraySSERioB: DWORD            = $1C;
-  c_GraySSEMask: DWORD            = $FF;
   c_GraySSEDiv3: DWORD            = $55;
+  c_ContSSERaio: DWORD            = $64;
+  c_ContSSEMask: DWORD            = $80;
   c_GrayMMXAdd: UINT64            = $0001000100010001;
   c_GrayMMXARGB: UINT64           = $0000004D0095001C;
   c_GrayMMXAMask: UINT64          = $FF000000FF000000;
@@ -104,6 +106,8 @@ type
   TColorChange = (ccLight, ccContrast, ccSaturation);
   TAlpha       = array [0 .. 255] of Integer;
   TGrays       = array [0 .. 767] of Integer;
+  TVec4f       = array [0 .. 3] of Single;
+  TVec4i       = array [0 .. 3] of Integer;
 
 function GetBitsPointer(bmp: TBitmap): Pointer;
 function GetPixelGray(const r, g, b: Byte): TRGBQuad; inline;
@@ -149,8 +153,9 @@ procedure _abort; cdecl; external 'msvcrt.dll' name 'abort';
 procedure abort; cdecl; external 'msvcrt.dll' name 'abort';
 
 var
-  g_GrayTable : TGrayTable;
-  g_LightTable: TLightTable;
+  g_GrayTable    : TGrayTable;
+  g_LightTable   : TLightTable;
+  g_ContrastTable: array [0 .. 255, 0 .. 255] of Byte;
 
 {$IFDEF WIN32}
   __fltused: Integer;
@@ -322,9 +327,23 @@ begin
   frmLight.Show;
 end;
 
+procedure InitContrastTable;
+var
+  I, J: Integer;
+begin
+  for I := 0 to 255 do
+  begin
+    for J := 0 to 255 do
+    begin
+      g_ContrastTable[I, J] := System.Math.EnsureRange((I - 128) * J div 100 + 128, 0, 255);
+    end;
+  end;
+end;
+
 initialization
   InitGrayTable;
   InitLightTable;
+  InitContrastTable;
 
 end.
 

@@ -1,11 +1,22 @@
 unit db.Image.Light;
-
+{
+  Func: 32位位图亮度调节
+  Name: dbyoung@sina.com
+  Date: 2020-10-01
+  Vers: Delphi 10.3.2
+  Test: 4096 * 4096 * 32
+  Note：Delphi 的 Release 模式是有优化的，Debug 是没有的；下面的时间，都是在 DEBUG 模式下的用时；
+
+  基本原理：
+  R、G、B 同时添加/减少一个值。并保证 R、G、B 在 0 --- 255 之间。
+}
+
 interface
 
-uses Winapi.Windows, Vcl.Graphics, System.Threading, System.Diagnostics, System.SyncObjs, System.Math, db.Image.Common;
+uses Winapi.Windows, Vcl.Graphics, System.Threading, System.Math, db.Image.Common;
 
 type
-  TLightType = (ltScanline, ltDelphi, ltTable, ltParallel, ltASM, ltSSE2, ltSSE4, ltSSEParallel, ltAVX1, ltAVX2, ltAVX512knl, ltAVX512skx);
+  TLightType = (ltScanline, ltDelphi, ltTable, ltParallel, ltASM, ltSSEParallel, ltSSE2, ltSSE4, ltAVX1, ltAVX2, ltAVX512knl, ltAVX512skx);
 
 procedure Light(bmp: TBitmap; const intLightValue: Integer; const lt: TLightType = ltSSEParallel);
 
@@ -181,10 +192,10 @@ asm
   {$IFDEF WIN64}
   XCHG    RAX,  RCX
   {$IFEND}
-  MOVSS   XMM1, [c_GraySSEMask]             // XMM1 = 000000000000000000000000000000FF
+  MOVSS   XMM1, [c_PixBGRAMask]             // XMM1 = 000000000000000000000000000000FF
   MOVD    XMM2, EDX                         // XMM2 = 0000000000000000000intLightValue
   SHUFPS  XMM1, XMM1, 0                     // XMM1 = |000000FF|000000FF|000000FF|000000FF|
-  SHUFPS  XMM2, XMM2, 0                     // XMM2 = |intLightValue|intLightValue|intLightValue|
+  SHUFPS  XMM2, XMM2, 0                     // XMM2 = |intLightValue|intLightValue|intLightValue|intLightValue|
   MOVAPS  XMM3, XMM1                        // XMM3 = |000000FF|000000FF|000000FF|000000FF|
   PSUBB   XMM3, XMM2                        // XMM3 = |000000FF - intLightValue|000000FF - intLightValue|000000FF - intLightValue|000000FF - intLightValue|
 
@@ -230,7 +241,7 @@ asm
   JNZ     @LOOP                             // 循环
 end;
 
-{ 11ms --- 13ms  需要脱离 IDE 执行 / ScanLine 不能用于 TParallel.For 中 }
+{ 4 ms  需要脱离 IDE 执行 / ScanLine 不能用于 TParallel.For 中 }
 procedure Light_SSEParallel(bmp: TBitmap; const intLightValue: Integer);
 var
   StartScanLine: Integer;

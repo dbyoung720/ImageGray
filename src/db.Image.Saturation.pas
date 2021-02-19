@@ -2,7 +2,7 @@ unit db.Image.Saturation;
 
 interface
 
-uses Winapi.Windows, System.Math, Vcl.Graphics, System.Win.Crtl, db.Image.Common;
+uses Winapi.Windows, System.Math, Vcl.Graphics, db.Image.Common;
 
 type
   TSaturationType = (stScanline, stDelphi, stASM, stMMX, stSSE, stSSE2, stSSE4, stAVX1, stAVX2, stAVX512knl, stAVX512skx);

@@ -3,7 +3,7 @@ unit Unit1;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, System.Diagnostics,
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes, System.Diagnostics,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Menus, Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.ExtDlgs, Vcl.StdCtrls,
   db.Image.Common;
 
@@ -199,18 +199,16 @@ begin
       if ccChange = ccLight then
         Light(bmp, FTrackColorChange.Position, ltSSEParallel)
       else if ccChange = ccContrast then
-        Contrast(bmp, FTrackColorChange.Position + 128, ctAVX1)
+        Contrast(bmp, FTrackColorChange.Position + 128, ctTableParallel)
       else if ccChange = ccSaturation then
         Saturation(bmp, FTrackColorChange.Position + 255, stAVX1);
-
-      imgShow.Picture.Bitmap.Canvas.Draw(0, 0, bmp);
       statTip.Panels[0].Text := Format(c_strShowTime[Integer(ccChange)], [ElapsedMilliseconds]);
     end;
+
+    imgShow.Picture.Bitmap.Assign(bmp);
   finally
     bmp.free;
   end;
-
-  imgShow.Invalidate;
 end;
 
 procedure TForm1.OnResetClick(Sender: TObject);

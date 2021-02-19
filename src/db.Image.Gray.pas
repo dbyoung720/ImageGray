@@ -32,10 +32,10 @@ unit db.Image.Gray;
 
 interface
 
-uses Winapi.Windows, System.Classes, System.SysUtils, System.StrUtils, System.Threading, System.Diagnostics, System.SyncObjs, Vcl.Graphics, Winapi.GDIPOBJ, Winapi.GDIPAPI, db.Image.Common;
+uses Winapi.Windows, System.SysUtils, System.Threading, Vcl.Graphics, Winapi.GDIPOBJ, Winapi.GDIPAPI, db.Image.Common;
 
 type
-  TGrayType = (gtAPI, gtScanLine, gtDelphi, gtFourPoint, gtParallel, gtGDIPLUS, gtTable, gtASM, gtMMX, gtSSE, gtSSE2, gtSSE4, gtSSEParallel, gtAVX1, gtAVX2, gtAVX512knl, gtAVX512skx, gtGPU, gtOther);
+  TGrayType = (gtAPI, gtScanLine, gtDelphi, gtFourPoint, gtParallel, gtGDIPLUS, gtTable, gtASM, gtMMX, gtSSE, gtSSEParallel, gtSSE2, gtSSE4, gtAVX1, gtAVX2, gtAVX512knl, gtAVX512skx, gtGPU, gtOther);
 
 procedure Gray(bmp: TBitmap; const gt: TGrayType = gtSSEParallel);
 
@@ -451,7 +451,7 @@ asm
   MOV     RAX,  RCX
   {$IFEND}
   MOV     ECX,  EDX
-  MOVSS   XMM1, [c_GraySSEMask]           // XMM1 = 000000000000000000000000000000FF
+  MOVSS   XMM1, [c_PixBGRAMask]           // XMM1 = 000000000000000000000000000000FF
   SHUFPS  XMM1, XMM1, 0                   // XMM1 = 000000FF000000FF000000FF000000FF
   MOVSS   XMM2, [c_GraySSEDiv3]           // XMM2 = 00000000000000000000000000000055
   SHUFPS  XMM2, XMM2, 0                   // XMM2 = 00000055000000550000005500000055
@@ -507,7 +507,7 @@ asm
   MOV     RAX,  RCX
   {$IFEND}
   MOV     ECX,  EDX
-  MOVSS   XMM1, [c_GraySSEMask]             // XMM1 = 000000000000000000000000000000FF
+  MOVSS   XMM1, [c_PixBGRAMask]             // XMM1 = 000000000000000000000000000000FF
   MOVSS   XMM2, [c_GraySSERioB]             // XMM2 = 0000000000000000000000000000001C
   MOVSS   XMM3, [c_GraySSERioG]             // XMM3 = 00000000000000000000000000000097
   MOVSS   XMM4, [c_GraySSERioR]             // XMM4 = 0000000000000000000000000000004D
@@ -677,12 +677,12 @@ begin
       Gray_MMX(bmp);
     gtSSE:
       Gray_SSE(bmp);
+    gtSSEParallel:
+      Gray_SSEParallel(bmp);
     gtSSE2:
       bgraGray_sse2(pColor, pGray, bmp.Width, bmp.Height);
     gtSSE4:
       bgraGray_sse4(pColor, pGray, bmp.Width, bmp.Height);
-    gtSSEParallel:
-      Gray_SSEParallel(bmp);
     gtAVX1:
       bgraGray_avx1(pColor, pGray, bmp.Width, bmp.Height);
     gtAVX2:
