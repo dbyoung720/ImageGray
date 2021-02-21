@@ -3,8 +3,7 @@ unit Unit1;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes, System.Diagnostics,
-  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Menus, Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.ExtDlgs, Vcl.StdCtrls,
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes, System.Diagnostics, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Menus, Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.ExtDlgs, Vcl.StdCtrls,
   db.Image.Common;
 
 type
@@ -40,12 +39,12 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
   private
-    FstrBackFileName : String;
+    FstrBackFileName : string;
     FbmpBackup       : TBitmap;
     FTrackColorChange: TTrackBar;
     FlblLightValue   : TLabel;
     procedure BackupBmp;
-    procedure LoadImageProc(const strFileName: String; img: TImage);
+    procedure LoadImageProc(const strFileName: string; img: TImage);
     procedure OnColorChange(Sender: TObject);
     procedure OnResetClick(Sender: TObject);
     procedure OnCancelClick(Sender: TObject);
@@ -61,9 +60,10 @@ implementation
 
 {$R *.dfm}
 
-uses db.Image.Load, db.Image.Gray, db.Image.Invert, db.Image.Light, db.Image.Contrast, db.Image.Saturation;
+uses
+  db.Image.Load, db.Image.Gray, db.Image.Invert, db.Image.Light, db.Image.Contrast, db.Image.Saturation;
 
-procedure TForm1.LoadImageProc(const strFileName: String; img: TImage);
+procedure TForm1.LoadImageProc(const strFileName: string; img: TImage);
 begin
   with TStopwatch.StartNew do
   begin
@@ -201,7 +201,7 @@ begin
       else if ccChange = ccContrast then
         Contrast(bmp, FTrackColorChange.Position + 128, ctTableParallel)
       else if ccChange = ccSaturation then
-        Saturation(bmp, FTrackColorChange.Position + 255, stAVX1);
+        Saturation(bmp, FTrackColorChange.Position + 255, stSSEParallel);
       statTip.Panels[0].Text := Format(c_strShowTime[Integer(ccChange)], [ElapsedMilliseconds]);
     end;
 
