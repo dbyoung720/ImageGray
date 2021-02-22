@@ -1,5 +1,13 @@
 unit db.Image.Contrast;
-
+{
+  Func: 32位位图灰值化
+  Name: dbyoung@sina.com
+  Date: 2020-10-01
+  Vers: Delphi 10.3.2
+  Test: 4096 * 4096 * 32
+  Note：Delphi 的 Release 模式是有优化的，Debug 是没有的；下面的时间，都是在 DEBUG 模式下的用时；
+}
+
 interface
 
 uses Winapi.Windows, Vcl.Graphics, System.Threading, System.Math, db.Image.Common;
@@ -121,7 +129,7 @@ procedure Contrast_SSEParallel_Proc(pColor: PRGBQuad; const bmpWidth: Integer; c
 asm
   MOVSS   XMM0, [c_PixBGRAMask]             // XMM0 = |00000000|00000000|00000000|000000FF
   MOVSS   XMM1, [c_ContSSEMask]             // XMM1 = |00000000|00000000|00000000|00000080
-  MOVSS   XMM2, [intContrastValue]          // XMM2 = |00000000|00000000|00000000|intContrastValue
+  MOVSS   XMM2, [ECX]                       // XMM2 = |00000000|00000000|00000000|intContrastValue
   MOVSS   XMM3, [c_ContSSETENX]             // XMM3 = |00000000|00000000|00000000|0000000A
   SHUFPS  XMM0, XMM0, 0                     // XMM0 = |000000FF|000000FF|000000FF|000000FF
   SHUFPS  XMM1, XMM1, 0                     // XMM1 = |00000080|00000080|00000080|00000080
@@ -133,6 +141,7 @@ asm
   MOVUPS  XMM5, [EAX]                       // XMM5 = |A3R3G3B3|A2R2G2B2|A1R1G1B1|A0R0G0B0|
   MOVAPS  XMM6, XMM5                        // XMM6 = |A3R3G3B3|A2R2G2B2|A1R1G1B1|A0R0G0B0|
   MOVAPS  XMM7, XMM5                        // XMM7 = |A3R3G3B3|A2R2G2B2|A1R1G1B1|A0R0G0B0|
+  MOVAPS  XMM4, XMM5                        // XMM4 = |A3R3G3B3|A2R2G2B2|A1R1G1B1|A0R0G0B0|
 
   // 获取 4 个像素的 B3, B2, B1, B0
   ANDPS   XMM5, XMM0                        // XMM5 = |000000B3|000000B2|000000B1|000000B0|
@@ -149,19 +158,22 @@ asm
   PSUBW   XMM5, XMM1                        // XMM5 = (pColor^.rgbBlue - 128)
   PMULLW  XMM5, XMM2                        // XMM5 = (pColor^.rgbBlue - 128) * intContrastValue
   PMULLW  XMM5, XMM3                        // XMM5 = (pColor^.rgbBlue - 128) * intContrastValue * 10
-  PSRLW   XMM5, 10                          // XMM5 = (pColor^.rgbBlue - 128) * intContrastValue * 10 / 1024  =  (pColor^.rgbBlue - 128) * intContrastValue / 100
+  PSRLD   XMM5, 10                          // XMM5 = (pColor^.rgbBlue - 128) * intContrastValue * 10 / 1024  =  (pColor^.rgbBlue - 128) * intContrastValue / 100
   PADDUSB XMM5, XMM1                        // XMM5 = (pColor^.rgbBlue - 128) * intContrastValue / 100 + 128
 
   PSUBW   XMM6, XMM1                        // XMM6 = (pColor^.rgbGreen - 128)
+  PABSW   XMM6, XMM6
   PMULLW  XMM6, XMM2                        // XMM6 = (pColor^.rgbGreen - 128) * intContrastValue
   PMULLW  XMM6, XMM3                        // XMM6 = (pColor^.rgbGreen - 128) * intContrastValue * 10
   PSRLW   XMM6, 10                          // XMM6 = (pColor^.rgbGreen - 128) * intContrastValue * 10 / 1024  =  (pColor^.rgbGreen - 128) * intContrastValue / 100
-  PADDUSB XMM6, XMM1                        // XMM6 = (pColor^.rgbGreen - 128) * intContrastValue / 100 + 128
+  MOVAPS  XMM4, XMM1
+  PSUBUSB XMM4, XMM6                        // XMM6 = (pColor^.rgbGreen - 128) * intContrastValue / 100 + 128
+  MOVAPS  XMM6, XMM4
 
   PSUBW   XMM7, XMM1                        // XMM7 = (pColor^.rgbRed - 128)
   PMULLW  XMM7, XMM2                        // XMM7 = (pColor^.rgbRed - 128) * intContrastValue
-  PMULLW  XMM7, XMM3                        // XMM7 = (pColor^.rgbRed - 128) * intContrastValue * 10
-  PSRLW   XMM7, 10                          // XMM7 = (pColor^.rgbRed - 128) * intContrastValue * 10 / 1024  =  (pColor^.rgbRed - 128) * intContrastValue / 100
+  PMULLD  XMM7, XMM3                        // XMM7 = (pColor^.rgbRed - 128) * intContrastValue * 10
+  PSRLD   XMM7, 10                          // XMM7 = (pColor^.rgbRed - 128) * intContrastValue * 10 / 1024  =  (pColor^.rgbRed - 128) * intContrastValue / 100
   PADDUSB XMM7, XMM1                        // XMM7 = (pColor^.rgbRed - 128) * intContrastValue / 100 + 128
 
   // 返回结果
@@ -231,4 +243,3 @@ begin
 end;
 
 end.
-
