@@ -86,6 +86,9 @@ begin
 end;
 
 procedure TForm1.FormCreate(Sender: TObject);
+var
+  aaa: TVec4i;
+  bbb: Integer;
 begin
   FstrBackFileName := ExtractFilePath(ParamStr(0)) + 'test.jpg';
   if not FileExists(FstrBackFileName) then
@@ -94,6 +97,16 @@ begin
     Exit;
   end;
 
+  aaa[0] := 10;
+  aaa[1] := 11;
+  aaa[2] := 12;
+  aaa[3] := 13;
+  bbb    := 3;
+  SSEiDiv(@aaa, bbb);
+  if aaa[0] = 0 then
+  begin
+
+  end;
   FbmpBackup             := TBitmap.Create;
   FbmpBackup.PixelFormat := pf32bit;
 
@@ -199,7 +212,7 @@ begin
       if ccChange = ccLight then
         Light(bmp, FTrackColorChange.Position, ltSSEParallel)
       else if ccChange = ccContrast then
-        Contrast(bmp, FTrackColorChange.Position + 128, ctTableParallel)
+        Contrast(bmp, FTrackColorChange.Position + 128, ctSSEParallel)
       else if ccChange = ccSaturation then
         Saturation(bmp, FTrackColorChange.Position + 255, stSSEParallel);
       statTip.Panels[0].Text := Format(c_strShowTime[Integer(ccChange)], [ElapsedMilliseconds]);
