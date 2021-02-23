@@ -5,7 +5,7 @@ interface
 uses Winapi.Windows, Winapi.GDIPAPI, System.Classes, System.SysUtils, System.UITypes, System.Math, Vcl.Forms, Vcl.StdCtrls, Vcl.Graphics, Vcl.ComCtrls;
 
 const
-  c_intMinMaxValue: array [0 .. 2, 0 .. 1] of Integer = ((-255, 255), (-128, 127), (-255, 255));
+  c_intMinMaxValue: array [0 .. 2, 0 .. 1] of Integer = ((-255, 255), (-128, 127), (-256, 256));
   c_strShowTips: array [0 .. 2, 0 .. 1] of String     = (('调节亮度：', '亮度：'), ('调节对比度：', '对比度：'), ('调节饱和度：', '饱和度：'));
   c_strShowTime: array [0 .. 2] of String             = ('调节亮度用时：%d 毫秒', '调节对比度用时：%d 毫秒', '调节饱和度用时：%d 毫秒');
 

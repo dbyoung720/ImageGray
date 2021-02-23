@@ -201,7 +201,7 @@ begin
       else if ccChange = ccContrast then
         Contrast(bmp, FTrackColorChange.Position + 128, ctSSEParallel)
       else if ccChange = ccSaturation then
-        Saturation(bmp, FTrackColorChange.Position + 255, stSSEParallel);
+        Saturation(bmp, FTrackColorChange.Position + 256, stSSEParallel);
       statTip.Panels[0].Text := Format(c_strShowTime[Integer(ccChange)], [ElapsedMilliseconds]);
     end;
 

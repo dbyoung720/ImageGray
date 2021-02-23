@@ -1,11 +1,11 @@
 unit db.Image.Saturation;
-
+
 interface
 
 uses Winapi.Windows, System.Math, System.Threading, Vcl.Graphics, db.Image.Common;
 
 type
-  TSaturationType = (stScanline, stDelphi, stParallel, stASM, stMMX, stSSEParallel, stSSE2, stSSE4, stAVX1, stAVX2, stAVX512knl, stAVX512skx);
+  TSaturationType = (stScanline, stDelphi, stParallel, stSSEParallel, stSSE2, stSSE4, stAVX1, stAVX2, stAVX512knl, stAVX512skx);
 
 procedure Saturation(bmp: TBitmap; const intSaturationValue: Integer; const st: TSaturationType = stAVX1);
 
@@ -99,11 +99,10 @@ begin
     end);
 end;
 
-procedure Saturation_SSEParallel_Proc(pColor: PRGBQuad; const bmpWidth: Integer; const intSaturationValue: PInteger);
+procedure Saturation_SSEParallel_Proc(pColor: PRGBQuad; const intSaturationValue, bmpWidth: Integer);
 asm
   MOVSS   XMM0, [c_GraySSEDiv3]             // XMM0 = 00000000000000000000000000000055
-  MOVSS   XMM1, [intSaturationValue]        // XMM1 = 00000000000000intSaturationValue
-  MOV     ECX,  EDX                         // ECX  = 循环计数
+  MOVD    XMM1, EDX                         // XMM1 = 00000000000000intSaturationValue
   MOVSS   XMM2, [c_PixBGRAMask]             // XMM2 = |00000000|00000000|00000000|000000FF
   SHUFPS  XMM0, XMM0, 0                     // XMM2 = |00000055|00000055|00000055|00000055
   SHUFPS  XMM1, XMM1, 0                     // XMM1 = |intSaturationValue|intSaturationValue|intSaturationValue|intSaturationValue
@@ -125,29 +124,33 @@ asm
   PSRLD   XMM7, 16                          // XMM7 = |0000A3R3|0000A2R2|0000A1R1|0000A0R0|
   ANDPS   XMM7, XMM2                        // XMM7 = |000000R3|000000R2|000000R1|000000R0|
 
-  // 计算饱和值
-  MOVAPS  XMM3, XMM5                        // XMM3  = XMM5 = |B3|B2|B1|B0|
-  PADDW   XMM5, XMM6                        // XMM5  = G+B
-  PADDW   XMM5, XMM7                        // XMM5  = G+B+R
+  // 计算饱和值                             // Gray = I - alpha[I] = I - (I * intSaturationValue) shr 8
+  MOVAPS  XMM3, XMM5                        // XMM3  = XMM5
+  PADDD   XMM5, XMM6                        // XMM5  = G+B
+  PADDD   XMM5, XMM7                        // XMM5  = G+B+R
   PMULLW  XMM5, XMM0                        // XMM5  = (G+B+R)*85
-  PSRLW   XMM5,  8                          // XMM5  = (G+B+R)*85/256 = (G+B+R) / 3
-  MOVAPS  XMM4, XMM5                        // XMM4  = (G+B+R)*85/256 = (G+B+R) / 3
-  PMULLW  XMM5, XMM1                        // XMM5  = * intSaturationValue
-  PSRLW   XMM5,  8                          // XMM5  = * intSaturationValue >> 8
-  PSUBW   XMM4, XMM5                        // XMM4  = Gray
+  PSRLD   XMM5,  8                          // XMM5  = I = (G+B+R)*85/256 = (G+B+R) / 3
+  MOVAPS  XMM4, XMM5                        // XMM4  = I = (G+B+R)*85/256 = (G+B+R) / 3
+  PMULLW  XMM5, XMM1                        // XMM5  = I * intSaturationValue
+  PSRLD   XMM5,  8                          // XMM5  = I * intSaturationValue >> 8
+  PSUBW   XMM4, XMM5                        // XMM4  = Gray = I - alpha[I]
 
-  PMULLD  XMM3, XMM1                        // XMM3 = pColor^.rgbBlue * intSaturationValue
+  PMULLW  XMM3, XMM1                        // XMM3 = pColor^.rgbBlue * intSaturationValue
   PSRLD   XMM3, 8                           // XMM3 = (pColor^.rgbBlue * intSaturationValue) >> 8 = alpha[pColor^.rgbBlue]
-  PADDUSB XMM3, XMM4                        // XMM3 = Gray + alpha[pColor^.rgbBlue]
+  PADDW   XMM3, XMM4                        // XMM3 = Gray + alpha[pColor^.rgbBlue]
   MOVAPS  XMM5, XMM3                        // XMM5 = Gray + alpha[pColor^.rgbBlue]
+  PXOR    XMM3, XMM3                        // XMM3 = |00000000|00000000|00000000|00000000|
+  PADDUSB XMM5, XMM3                        // XMM5 控制在 0 --- 255 之间
 
-  PMULLD  XMM6, XMM1                        // XMM6 = pColor^.rgbGreen * intSaturationValue
+  PMULLW  XMM6, XMM1                        // XMM6 = pColor^.rgbGreen * intSaturationValue
   PSRLD   XMM6, 8                           // XMM6 = (pColor^.rgbGreen * intSaturationValue) >> 8 = alpha[pColor^.rgbGreen]
-  PADDUSB XMM6, XMM4                        // XMM6 = Gray + alpha[pColor^.rgbGreen]
+  PADDW   XMM6, XMM4                        // XMM6 = Gray + alpha[pColor^.rgbGreen]
+  PADDUSB XMM6, XMM3                        // XMM6 控制在 0 --- 255 之间
 
-  PMULLD  XMM7, XMM1                        // XMM7 = pColor^.rgbRed * intSaturationValue
+  PMULLW  XMM7, XMM1                        // XMM7 = pColor^.rgbRed * intSaturationValue
   PSRLD   XMM7, 8                           // XMM7 = (pColor^.rgbRed * intSaturationValue) >> 8 = alpha[pColor^.rgbRed]
-  PADDUSB XMM7, XMM4                        // XMM7 = Gray + alpha[pColor^.rgbRed]
+  PADDW   XMM7, XMM4                        // XMM7 = Gray + alpha[pColor^.rgbRed]
+  PADDUSB XMM7, XMM3                        // XMM7 控制在 0 --- 255 之间
 
   // 返回结果
   PSLLD   XMM6,  8                          // XMM6  = |0000Y300|0000Y200|0000Y100|0000Y000|
@@ -175,7 +178,7 @@ begin
       pColor: PRGBQuad;
     begin
       pColor := PRGBQuad(StartScanLine + Y * bmpWidthBytes);
-      Saturation_SSEParallel_Proc(pColor, bmp.width, @intSaturationValue);
+      Saturation_SSEParallel_Proc(pColor, intSaturationValue, bmp.width);
     end);
 end;
 
@@ -197,10 +200,6 @@ begin
       Saturation_Delphi(bmp, alpha, grays);
     stParallel:
       Saturation_Parallel(bmp, alpha, grays);
-    stASM:
-      ;
-    stMMX:
-      ;
     stSSEParallel:
       Saturation_SSEParallel(bmp, intSaturationValue);
     stSSE2:
@@ -219,4 +218,3 @@ begin
 end;
 
 end.
-
