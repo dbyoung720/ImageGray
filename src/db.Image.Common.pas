@@ -84,7 +84,7 @@ const
   c_GraySSEDiv3: DWORD            = $55;
   c_ContSSERaio: DWORD            = $64;
   c_ContSSEMask: DWORD            = $80;
-  c_ContSSETENX: DWORD            = $0A;
+  c_ContSSETENX: DWORD            = $028F;
   c_GrayMMXAdd: UINT64            = $0001000100010001;
   c_GrayMMXARGB: UINT64           = $0000004D0095001C;
   c_GrayMMXAMask: UINT64          = $FF000000FF000000;
@@ -155,13 +155,6 @@ procedure abort; cdecl; external 'msvcrt.dll' name 'abort';
 function __alldiv(a, b: Int64): Int64; stdcall; external 'ntdll.dll' name '_alldiv';
 function __aulldiv(a, b: UINT64): UINT64; stdcall; external 'ntdll.dll' name '_aulldiv';
 
-// SSE ³ý·¨
-{$IFDEF WIN32}
-procedure SSEiDiv(a: PVec4i; b: Integer); cdecl; external name '_SSEiDiv';
-{$ELSE}
-procedure SSEiDiv(a: PVec4i; b: Integer); cdecl; external name 'SSEiDiv';
-{$IFEND}
-
 var
   g_GrayTable    : TGrayTable;
   g_LightTable   : TLightTable;
@@ -176,7 +169,6 @@ var
 implementation
 
 {$IFDEF WIN32}
-{$LINK obj\SSEDIV_X86.obj}
 {$LINK obj\DAVX_X86.obj}
 {$LINK obj\DAVX_X86_sse2.obj}
 {$LINK obj\DAVX_X86_sse4.obj}
@@ -185,7 +177,6 @@ implementation
 {$LINK obj\DAVX_X86_avx512knl.obj}
 {$LINK obj\DAVX_X86_avx512skx.obj}
 {$ELSE}
-{$LINK obj\SSEDIV_X64.obj}
 {$LINK obj\DAVX_X64.obj}
 {$LINK obj\DAVX_X64_sse2.obj}
 {$LINK obj\DAVX_X64_sse4.obj}
