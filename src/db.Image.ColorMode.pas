@@ -13,34 +13,43 @@ implementation
 
 procedure RGBToHSV(const R, G, B: Single; var H, S, V: Single);
 var
-  Delta: Single;
-  iMin : Single;
+  cDelta    : Single;
+  kDelta    : Single;
+  iMax, iMin: Single;
 begin
-  iMin  := MinValue([R, G, B]);
-  V     := MaxValue([R, G, B]);
-  Delta := V - iMin;
+  iMax   := MaxValue([R, G, B]);
+  iMin   := MinValue([R, G, B]);
+  cDelta := iMax - iMin;
+  V      := iMax;
+
+  if cDelta = 0.0 then
+  begin
+    H := 0;
+    S := 0;
+    Exit;
+  end;
 
   if V = 0.0 then
     S := 0
   else
-    S := Delta / V;
+    S := cDelta / iMax;
 
   if S = 0.0 then
   begin
     H := NaN;
-  end
-  else
-  begin
-    if R = V then
-      H := 60.0 * (G - B) / Delta
-    else if G = V then
-      H := 120.0 + 60.0 * (B - R) / Delta
-    else if B = V then
-      H := 240.0 + 60.0 * (R - G) / Delta;
+    Exit;
+  end;
 
-    if H < 0.0 then
-      H := H + 360.0
-  end
+  kDelta := 1 / cDelta;
+  if R = V then
+    H := 60.0 * (G - B) * kDelta
+  else if G = V then
+    H := 120.0 + 60.0 * (B - R) * kDelta
+  else if B = V then
+    H := 240.0 + 60.0 * (R - G) * kDelta;
+
+  if H < 0.0 then
+    H := H + 360.0
 end;
 
 procedure HSVtoRGB(const H, S, V: Single; var R, G, B: Single);
@@ -201,8 +210,10 @@ procedure RGBToHSV_Opt(R, G, B: Single; var H, S, V: Single);
 var
   K  : Single;
   tmp: Single;
+  sst: Single;
 begin
-  K := 0.0;
+  K   := 0.0;
+  sst := 0.00000000000000000001;
 
   if G < B then
   begin
@@ -221,8 +232,8 @@ begin
   end;
 
   tmp := R - Min(G, B);
-  H   := abs(K + (G - B) / (6.0 * tmp + 1E-20));
-  S   := tmp / (R + 1E-20);
+  H   := abs(K + (G - B) / (6.0 * tmp + sst));
+  S   := tmp / (R + sst);
   V   := R;
 end;
 
