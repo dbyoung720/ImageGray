@@ -117,7 +117,7 @@ begin
   end;
 end;
 
-procedure ColorMap_Scanline(bmp: TBitmap; intValue: Integer);
+procedure ColorMap_Scanline(bmp: TBitmap; const intValue: Integer);
 var
   pColor : PRGBQuad;
   I, J   : Integer;
@@ -173,7 +173,7 @@ begin
   end;
 end;
 
-procedure ColorMap_Parallel(bmp: TBitmap; intValue: Integer);
+procedure ColorMap_Parallel(bmp: TBitmap; const intValue: Integer);
 var
   StartScanLine: Integer;
   bmpWidthBytes: Integer;
@@ -235,7 +235,7 @@ asm
   JNZ     @LOOP                             // Ñ­»·
 end;
 
-procedure ColorMap_SSEParallel(bmp: TBitmap; intValue: Integer);
+procedure ColorMap_SSEParallel(bmp: TBitmap; const intValue: Integer);
 var
   StartScanLine: Integer;
   bmpWidthBytes: Integer;
