@@ -27,6 +27,7 @@ type
     mniColorContrast: TMenuItem;
     mniColorLine01: TMenuItem;
     mniColorSaturation: TMenuItem;
+    mniColorMode: TMenuItem;
     procedure mniFileOepnClick(Sender: TObject);
     procedure mniColorGrayClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -61,7 +62,7 @@ implementation
 {$R *.dfm}
 
 uses
-  db.Image.Load, db.Image.Gray, db.Image.Invert, db.Image.Light, db.Image.Contrast, db.Image.Saturation;
+  db.Image.Load, db.Image.Gray, db.Image.Invert, db.Image.Light, db.Image.Contrast, db.Image.Saturation, db.Image.ColorMode;
 
 procedure TForm1.LoadImageProc(const strFileName: string; img: TImage);
 begin
@@ -197,11 +198,14 @@ begin
     with TStopwatch.StartNew do
     begin
       if ccChange = ccLight then
-        Light(bmp, FTrackColorChange.Position, ltSSEParallel)
-      else if ccChange = ccContrast then
-        Contrast(bmp, FTrackColorChange.Position + 128, ctSSEParallel)
-      else if ccChange = ccSaturation then
-        Saturation(bmp, FTrackColorChange.Position + 256, stSSEParallel);
+        Light(bmp, FTrackColorChange.Position, ltSSEParallel)            // 调节亮度
+      else if ccChange = ccContrast then                                 //
+        Contrast(bmp, FTrackColorChange.Position + 128, ctSSEParallel)   // 调节对比度
+      else if ccChange = ccSaturation then                               //
+        Saturation(bmp, FTrackColorChange.Position + 255, stSSEParallel) // 调节饱和度
+      else if ccChange = ccColorMode then                                //
+        ColorMode(bmp, FTrackColorChange.Position + 20, cmtParallel);    // 调节色彩
+
       statTip.Panels[0].Text := Format(c_strShowTime[Integer(ccChange)], [ElapsedMilliseconds]);
     end;
 
@@ -219,9 +223,7 @@ end;
 
 procedure TForm1.OnCancelClick(Sender: TObject);
 begin
-  if FTrackColorChange <> nil then
-    FTrackColorChange.Position := 0;
-
+  imgShow.Picture.Bitmap.Canvas.Draw(0, 0, FbmpBackup);
   TForm(TButton(Sender).Parent).Close;
 end;
 

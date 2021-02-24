@@ -5,7 +5,7 @@
         <FrameworkType>VCL</FrameworkType>
         <MainSource>dbImage.dpr</MainSource>
         <Base>True</Base>
-        <Config Condition="'$(Config)'==''">Debug</Config>
+        <Config Condition="'$(Config)'==''">Release</Config>
         <Platform Condition="'$(Platform)'==''">Win32</Platform>
         <TargetedPlatforms>3</TargetedPlatforms>
         <AppType>Application</AppType>
@@ -155,6 +155,7 @@
         <DCCReference Include="..\src\db.Image.Light.pas"/>
         <DCCReference Include="..\src\db.Image.Contrast.pas"/>
         <DCCReference Include="..\src\db.Image.Saturation.pas"/>
+        <DCCReference Include="..\src\db.Image.ColorMode.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

@@ -1,5 +1,6 @@
 unit db.Image.Light;
-{
+
+{
   Func: 32位位图亮度调节
   Name: dbyoung@sina.com
   Date: 2020-10-01
@@ -297,4 +298,4 @@ begin
 end;
 
 end.
-
+
