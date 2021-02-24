@@ -52,6 +52,37 @@ begin
     H := H + 360.0
 end;
 
+procedure RGBToHSV_Opt(R, G, B: Single; var H, S, V: Single);
+var
+  K  : Single;
+  tmp: Single;
+  sst: Single;
+begin
+  K   := 0.0;
+  sst := 0.00000000000000000001;
+
+  if G < B then
+  begin
+    tmp := G;
+    G   := B;
+    B   := tmp;
+    K   := -1.0;
+  end;
+
+  if R < G then
+  begin
+    tmp := R;
+    R   := G;
+    G   := tmp;
+    K   := -2 / (6 - K);
+  end;
+
+  tmp := R - Min(G, B);
+  H   := abs(K + (G - B) / (6.0 * tmp + sst));
+  S   := tmp / (R + sst);
+  V   := R;
+end;
+
 procedure HSVtoRGB(const H, S, V: Single; var R, G, B: Single);
 var
   f      : Single;
@@ -175,7 +206,7 @@ begin
     FR := R;
     FG := G;
     FB := B;
-    RGBToHSV(FR, FG, FB, FH, FS, FV);
+    RGBToHSV_Opt(FR, FG, FB, FH, FS, FV);
     FH := intValue;
     if FS = 0.0 then
       FH := 0;
@@ -204,37 +235,6 @@ begin
       pColor := PRGBQuad(StartScanLine + Y * bmpWidthBytes);
       ColorMap_Parallel_Proc(pColor, bmp.Width, intValue);
     end);
-end;
-
-procedure RGBToHSV_Opt(R, G, B: Single; var H, S, V: Single);
-var
-  K  : Single;
-  tmp: Single;
-  sst: Single;
-begin
-  K   := 0.0;
-  sst := 0.00000000000000000001;
-
-  if G < B then
-  begin
-    tmp := G;
-    G   := B;
-    B   := tmp;
-    K   := -1.0;
-  end;
-
-  if R < G then
-  begin
-    tmp := R;
-    R   := G;
-    G   := tmp;
-    K   := -2 / (6 - K);
-  end;
-
-  tmp := R - Min(G, B);
-  H   := abs(K + (G - B) / (6.0 * tmp + sst));
-  S   := tmp / (R + sst);
-  V   := R;
 end;
 
 procedure ColorMap_SSEParallel_Proc(pColor: PRGBQuad; const intValue, bmpWidth: Integer);
