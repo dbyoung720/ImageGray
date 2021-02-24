@@ -204,7 +204,7 @@ begin
       else if ccChange = ccSaturation then                               //
         Saturation(bmp, FTrackColorChange.Position + 255, stSSEParallel) // 调节饱和度
       else if ccChange = ccColorMode then                                //
-        ColorMode(bmp, FTrackColorChange.Position + 20, cmtParallel);    // 调节色彩
+        ColorMode(bmp, 370 - FTrackColorChange.Position, cmtParallel);   // 调节色彩
 
       statTip.Panels[0].Text := Format(c_strShowTime[Integer(ccChange)], [ElapsedMilliseconds]);
     end;
@@ -223,6 +223,8 @@ end;
 
 procedure TForm1.OnCancelClick(Sender: TObject);
 begin
+  // if FTrackColorChange <> nil then
+  // FTrackColorChange.Position := 0;
   imgShow.Picture.Bitmap.Canvas.Draw(0, 0, FbmpBackup);
   TForm(TButton(Sender).Parent).Close;
 end;
