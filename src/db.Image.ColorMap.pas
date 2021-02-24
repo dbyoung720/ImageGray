@@ -6,6 +6,7 @@ unit db.Image.ColorMap;
   Vers: Delphi 10.3.2
   Test: 4096 * 4096 * 32
   Note：Delphi 的 Release 模式是有优化的，Debug 是没有的；下面的时间，都是在 DEBUG 模式下的用时；
+  Note: 并行程序，不能在 IDE 下运行查看效果。必须脱离 IDE 执行查看效果。
 }
 
 interface
@@ -21,31 +22,39 @@ implementation
 
 procedure RGBToHSV(const R, G, B: Byte; var H, S, V: Integer);
 var
-  Delta, Min, H1, S1: real;
+  Delta, iMax, iMin: Integer;
+  H1, S1           : real;
 begin
-  H1    := H;
-  Min   := MinIntValue([R, G, B]);
-  V     := MaxIntValue([R, G, B]);
-  Delta := V - Min;
+  iMax  := MaxIntValue([R, G, B]);
+  iMin  := MinIntValue([R, G, B]);
+  Delta := iMax - iMin;
+  H1    := 0;
+
+  V := iMax;
+
   if V = 0.0 then
     S1 := 0
   else
-    S1 := Delta / V;
+    S1 := Delta / iMax;
+
   if S1 = 0.0 then
-    H1 := 0
+  begin
+    H1 := 0;
+  end
   else
   begin
-    if R = V then
+    if R = iMax then
       H1 := 60.0 * (G - B) / Delta
-    else if G = V then
+    else if G = iMax then
       H1 := 120.0 + 60.0 * (B - R) / Delta
-    else if B = V then
+    else if B = iMax then
       H1 := 240.0 + 60.0 * (R - G) / Delta;
     if H1 < 0.0 then
       H1 := H1 + 360.0;
   end;
-  H := round(H1);
-  S := round(S1 * 255);
+
+  H := Round(H1);
+  S := Round(S1 * 255);
 end;
 
 procedure HSVtoRGB(H, S, V: Integer; var R, G, B: Byte);

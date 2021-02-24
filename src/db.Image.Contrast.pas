@@ -6,6 +6,7 @@ unit db.Image.Contrast;
   Vers: Delphi 10.3.2
   Test: 4096 * 4096 * 32
   Note：Delphi 的 Release 模式是有优化的，Debug 是没有的；下面的时间，都是在 DEBUG 模式下的用时；
+  Note: 并行程序，不能在 IDE 下运行查看效果。必须脱离 IDE 执行查看效果。
 }
 
 interface
