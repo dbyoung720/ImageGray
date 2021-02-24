@@ -19,109 +19,63 @@ procedure ColorMap(bmp: TBitmap; const intColorMapValue: Integer; const cmt: TCo
 
 implementation
 
-procedure RGBToHSV(const R, G, B: Single; var H, S, V: Single);
+procedure RGBToHSV(const R, G, B: Byte; var H, S, V: Integer);
 var
-  cDelta    : Single;
-  kDelta    : Single;
-  iMax, iMin: Single;
+  Delta, Min, H1, S1: real;
 begin
-  iMax   := MaxValue([R, G, B]);
-  iMin   := MinValue([R, G, B]);
-  cDelta := iMax - iMin;
-  V      := iMax;
-
-  if cDelta = 0.0 then
-  begin
-    H := 0;
-    S := 0;
-    Exit;
-  end;
-
+  H1    := H;
+  Min   := MinIntValue([R, G, B]);
+  V     := MaxIntValue([R, G, B]);
+  Delta := V - Min;
   if V = 0.0 then
-    S := 0
+    S1 := 0
   else
-    S := cDelta / iMax;
-
-  if S = 0.0 then
+    S1 := Delta / V;
+  if S1 = 0.0 then
+    H1 := 0
+  else
   begin
-    H := NaN;
-    Exit;
+    if R = V then
+      H1 := 60.0 * (G - B) / Delta
+    else if G = V then
+      H1 := 120.0 + 60.0 * (B - R) / Delta
+    else if B = V then
+      H1 := 240.0 + 60.0 * (R - G) / Delta;
+    if H1 < 0.0 then
+      H1 := H1 + 360.0;
   end;
-
-  kDelta := 1 / cDelta;
-  if R = V then
-    H := 60.0 * (G - B) * kDelta
-  else if G = V then
-    H := 120.0 + 60.0 * (B - R) * kDelta
-  else if B = V then
-    H := 240.0 + 60.0 * (R - G) * kDelta;
-
-  if H < 0.0 then
-    H := H + 360.0
+  H := round(H1);
+  S := round(S1 * 255);
 end;
 
-procedure RGBToHSV_Opt(R, G, B: Single; var H, S, V: Single);
+procedure HSVtoRGB(H, S, V: Integer; var R, G, B: Byte);
+const
+  divisor: Integer = 255 * 60;
 var
-  K  : Single;
-  tmp: Single;
-  sst: Single;
+  f, I, p, q, t, VS: Integer;
 begin
-  K   := 0.0;
-  sst := 0.00000000000000000001;
-
-  if G < B then
+  if H > 360 then
+    H := H - 360;
+  if H < 0 then
+    H := H + 360;
+  if S = 0 then
   begin
-    tmp := G;
-    G   := B;
-    B   := tmp;
-    K   := -1.0;
-  end;
-
-  if R < G then
-  begin
-    tmp := R;
-    R   := G;
-    G   := tmp;
-    K   := -2 / (6 - K);
-  end;
-
-  tmp := R - Min(G, B);
-  H   := abs(K + (G - B) / (6.0 * tmp + sst));
-  S   := tmp / (R + sst);
-  V   := R;
-end;
-
-procedure HSVtoRGB(const H, S, V: Single; var R, G, B: Single);
-var
-  f      : Single;
-  I      : Integer;
-  hTemp  : Single;
-  p, q, t: Single;
-begin
-  if S = 0.0 then
-  begin
-    if H = 0 then
-    begin
-      R := V;
-      G := V;
-      B := V
-    end;
+    R := V;
+    G := V;
+    B := V;
   end
   else
   begin
-    if H = 360.0 then
-      hTemp := 0.0
+    if H = 360 then
+      I := 0
     else
-      hTemp := H;
-
-    hTemp := hTemp / 60;
-    I     := TRUNC(hTemp);
-    f     := hTemp - I;
-
-    p := V * (1.0 - S);
-    q := V * (1.0 - (S * f));
-    t := V * (1.0 - (S * (1.0 - f)));
-
+      I := H;
+    f   := I mod 60;
+    I   := I div 60;
+    VS  := V * S;
+    p   := V - VS div 255;
+    q   := V - (VS * f) div divisor;
+    t   := V - (VS * (60 - f)) div divisor;
     case I of
       0:
         begin
@@ -160,40 +114,36 @@ begin
           B := q
         end
     end
-  end
+  end;
 end;
 
 procedure ColorMap_Scanline(bmp: TBitmap; intValue: Integer);
 var
-  pColor    : PRGBQuad;
-  I, J      : Integer;
-  R, G, B   : byte;
-  FR, FG, FB: Single;
-  FH, FS, FV: Single;
+  pColor : PRGBQuad;
+  I, J   : Integer;
+  R, G, B: Byte;
+  H, S, V: Integer;
 begin
-  FH    := intValue;
-  FS    := 0;
-  FV    := 0;
+  H     := intValue;
+  S     := 0;
+  V     := 0;
   for I := 0 to bmp.Height - 1 do
   begin
     pColor := bmp.ScanLine[I];
     for J  := 0 to bmp.Width - 1 do
     begin
-      B  := pColor^.rgbBlue;
-      G  := pColor^.rgbGreen;
-      R  := pColor^.rgbRed;
-      FR := R;
-      FG := G;
-      FB := B;
-      RGBToHSV(FR, FG, FB, FH, FS, FV);
-      FH := intValue;
-      if FS = 0.0 then
-        FH := 0;
+      B := pColor^.rgbBlue;
+      G := pColor^.rgbGreen;
+      R := pColor^.rgbRed;
+      RGBToHSV(R, G, B, H, S, V);
+      H := EnsureRange(H + intValue, 0, 360);
+      if S = 0.0 then
+        H := 0;
 
-      HSVtoRGB(FH, FS, FV, FR, FG, FB);
-      pColor^.rgbRed   := Round(FR);
-      pColor^.rgbGreen := Round(FG);
-      pColor^.rgbBlue  := Round(FB);
+      HSVtoRGB(H, S, V, R, G, B);
+      pColor^.rgbRed   := R;
+      pColor^.rgbGreen := G;
+      pColor^.rgbBlue  := B;
       Inc(pColor);
     end;
   end;
@@ -201,28 +151,24 @@ end;
 
 procedure ColorMap_Parallel_Proc(pColor: PRGBQuad; const bmpWidth, intValue: Integer);
 var
-  I         : Integer;
-  R, G, B   : byte;
-  FR, FG, FB: Single;
-  FH, FS, FV: Single;
+  I      : Integer;
+  R, G, B: Byte;
+  H, S, V: Integer;
 begin
   for I := 0 to bmpWidth - 1 do
   begin
-    B  := pColor^.rgbBlue;
-    G  := pColor^.rgbGreen;
-    R  := pColor^.rgbRed;
-    FR := R;
-    FG := G;
-    FB := B;
-    RGBToHSV_Opt(FR, FG, FB, FH, FS, FV);
-    FH := intValue;
-    if FS = 0.0 then
-      FH := 0;
+    B := pColor^.rgbBlue;
+    G := pColor^.rgbGreen;
+    R := pColor^.rgbRed;
+    RGBToHSV(R, G, B, H, S, V);
+    H := EnsureRange(H + intValue, 0, 360);
+    if S = 0.0 then
+      H := 0;
 
-    HSVtoRGB(FH, FS, FV, FR, FG, FB);
-    pColor^.rgbRed   := Round(FR);
-    pColor^.rgbGreen := Round(FG);
-    pColor^.rgbBlue  := Round(FB);
+    HSVtoRGB(H, S, V, R, G, B);
+    pColor^.rgbRed   := R;
+    pColor^.rgbGreen := G;
+    pColor^.rgbBlue  := B;
     Inc(pColor);
   end;
 end;

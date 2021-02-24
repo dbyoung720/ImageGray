@@ -204,7 +204,7 @@ begin
       else if ccChange = ccSaturation then                               //
         Saturation(bmp, FTrackColorChange.Position + 255, stSSEParallel) // 调节饱和度
       else if ccChange = ccColorMode then                                //
-        ColorMap(bmp, 370 - FTrackColorChange.Position, cmtParallel);    // 调节色彩
+        ColorMap(bmp, FTrackColorChange.Position, cmtParallel);          // 调节色彩
 
       statTip.Panels[0].Text := Format(c_strShowTime[Integer(ccChange)], [ElapsedMilliseconds]);
     end;
