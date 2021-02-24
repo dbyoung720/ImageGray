@@ -1,13 +1,13 @@
-unit db.Image.ColorMode;
+unit db.Image.ColorMap;
 
 interface
 
 uses Winapi.Windows, Vcl.Graphics, System.Threading, System.Math, db.Image.Common;
 
 type
-  TColorModeType = (cmtScanline, cmtParallel, cmtSSEParallel, cmtSSE2, cmtSSE4, cmtAVX1, cmtAVX2, cmtAVX512knl, cmtAVX512skx);
+  TColorMapType = (cmtScanline, cmtParallel, cmtSSEParallel, cmtSSE2, cmtSSE4, cmtAVX1, cmtAVX2, cmtAVX512knl, cmtAVX512skx);
 
-procedure ColorMode(bmp: TBitmap; const intColorModeValue: Integer; const cmt: TColorModeType = cmtSSEParallel);
+procedure ColorMap(bmp: TBitmap; const intColorMapValue: Integer; const cmt: TColorMapType = cmtSSEParallel);
 
 implementation
 
@@ -124,7 +124,7 @@ begin
   end
 end;
 
-procedure ColorMode_Scanline(bmp: TBitmap; intValue: Integer);
+procedure ColorMap_Scanline(bmp: TBitmap; intValue: Integer);
 var
   pColor    : PRGBQuad;
   I, J      : Integer;
@@ -160,7 +160,7 @@ begin
   end;
 end;
 
-procedure ColorMode_Parallel_Proc(pColor: PRGBQuad; const bmpWidth, intValue: Integer);
+procedure ColorMap_Parallel_Proc(pColor: PRGBQuad; const bmpWidth, intValue: Integer);
 var
   I         : Integer;
   R, G, B   : byte;
@@ -188,7 +188,7 @@ begin
   end;
 end;
 
-procedure ColorMode_Parallel(bmp: TBitmap; intValue: Integer);
+procedure ColorMap_Parallel(bmp: TBitmap; intValue: Integer);
 var
   StartScanLine: Integer;
   bmpWidthBytes: Integer;
@@ -202,7 +202,7 @@ begin
       pColor: PRGBQuad;
     begin
       pColor := PRGBQuad(StartScanLine + Y * bmpWidthBytes);
-      ColorMode_Parallel_Proc(pColor, bmp.Width, intValue);
+      ColorMap_Parallel_Proc(pColor, bmp.Width, intValue);
     end);
 end;
 
@@ -237,7 +237,7 @@ begin
   V   := R;
 end;
 
-procedure ColorMode_SSEParallel_Proc(pColor: PRGBQuad; const intValue, bmpWidth: Integer);
+procedure ColorMap_SSEParallel_Proc(pColor: PRGBQuad; const intValue, bmpWidth: Integer);
 asm
   {$IFDEF WIN64}
   XCHG    RAX,  RCX
@@ -281,7 +281,7 @@ asm
   JNZ     @LOOP                             // Ñ­»·
 end;
 
-procedure ColorMode_SSEParallel(bmp: TBitmap; intValue: Integer);
+procedure ColorMap_SSEParallel(bmp: TBitmap; intValue: Integer);
 var
   StartScanLine: Integer;
   bmpWidthBytes: Integer;
@@ -295,19 +295,19 @@ begin
       pColor: PRGBQuad;
     begin
       pColor := PRGBQuad(StartScanLine + Y * bmpWidthBytes);
-      ColorMode_SSEParallel_Proc(pColor, intValue, bmp.Width);
+      ColorMap_SSEParallel_Proc(pColor, intValue, bmp.Width);
     end);
 end;
 
-procedure ColorMode(bmp: TBitmap; const intColorModeValue: Integer; const cmt: TColorModeType = cmtSSEParallel);
+procedure ColorMap(bmp: TBitmap; const intColorMapValue: Integer; const cmt: TColorMapType = cmtSSEParallel);
 begin
   case cmt of
     cmtScanline:
-      ColorMode_Scanline(bmp, intColorModeValue);
+      ColorMap_Scanline(bmp, intColorMapValue);
     cmtParallel:
-      ColorMode_Parallel(bmp, intColorModeValue);
+      ColorMap_Parallel(bmp, intColorMapValue);
     cmtSSEParallel:
-      ColorMode_SSEParallel(bmp, intColorModeValue);
+      ColorMap_SSEParallel(bmp, intColorMapValue);
     cmtSSE2:
       ;
     cmtSSE4:

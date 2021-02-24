@@ -17,7 +17,7 @@ uses
   db.Image.Light in '..\src\db.Image.Light.pas',
   db.Image.Contrast in '..\src\db.Image.Contrast.pas',
   db.Image.Saturation in '..\src\db.Image.Saturation.pas',
-  db.Image.ColorMode in '..\src\db.Image.ColorMode.pas';
+  db.Image.ColorMap in '..\src\db.Image.ColorMap.pas';
 
 {$R *.res}
 

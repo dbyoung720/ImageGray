@@ -62,7 +62,7 @@ implementation
 {$R *.dfm}
 
 uses
-  db.Image.Load, db.Image.Gray, db.Image.Invert, db.Image.Light, db.Image.Contrast, db.Image.Saturation, db.Image.ColorMode;
+  db.Image.Load, db.Image.Gray, db.Image.Invert, db.Image.Light, db.Image.Contrast, db.Image.Saturation, db.Image.ColorMap;
 
 procedure TForm1.LoadImageProc(const strFileName: string; img: TImage);
 begin
@@ -204,7 +204,7 @@ begin
       else if ccChange = ccSaturation then                               //
         Saturation(bmp, FTrackColorChange.Position + 255, stSSEParallel) // 调节饱和度
       else if ccChange = ccColorMode then                                //
-        ColorMode(bmp, 370 - FTrackColorChange.Position, cmtParallel);   // 调节色彩
+        ColorMap(bmp, 370 - FTrackColorChange.Position, cmtParallel);    // 调节色彩
 
       statTip.Panels[0].Text := Format(c_strShowTime[Integer(ccChange)], [ElapsedMilliseconds]);
     end;
