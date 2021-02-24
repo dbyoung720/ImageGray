@@ -10,7 +10,7 @@ unit db.Image.Contrast;
 
 interface
 
-uses Winapi.Windows, Vcl.Graphics, System.Threading, System.Math, db.Image.Common;
+uses Winapi.Windows, System.Threading, System.Math, Vcl.Graphics, db.Image.Common;
 
 type
   TContrastType = (ctScanline, ctDelphi, ctTable, ctTableParallel, ctParallel, ctSSEParallel, ctSSE2, ctSSE4, ctAVX1, ctAVX2, ctAVX512knl, ctAVX512skx);

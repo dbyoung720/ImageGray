@@ -1,8 +1,16 @@
 unit db.Image.Saturation;
+{
+  Func: 32位位图饱和度
+  Name: dbyoung@sina.com
+  Date: 2021-2-23
+  Vers: Delphi 10.3.2
+  Test: 4096 * 4096 * 32
+  Note：Delphi 的 Release 模式是有优化的，Debug 是没有的；下面的时间，都是在 DEBUG 模式下的用时；
+}
 
 interface
 
-uses Winapi.Windows, System.Math, System.Threading, Vcl.Graphics, db.Image.Common;
+uses Winapi.Windows, System.Threading, System.Math, Vcl.Graphics, db.Image.Common;
 
 type
   TSaturationType = (stScanline, stDelphi, stParallel, stSSEParallel, stSSE2, stSSE4, stAVX1, stAVX2, stAVX512knl, stAVX512skx);

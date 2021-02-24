@@ -1,8 +1,16 @@
 unit db.Image.ColorMap;
+{
+  Func: 32位位图图像色彩
+  Name: dbyoung@sina.com
+  Date: 2021-2-24
+  Vers: Delphi 10.3.2
+  Test: 4096 * 4096 * 32
+  Note：Delphi 的 Release 模式是有优化的，Debug 是没有的；下面的时间，都是在 DEBUG 模式下的用时；
+}
 
 interface
 
-uses Winapi.Windows, Vcl.Graphics, System.Threading, System.Math, db.Image.Common;
+uses Winapi.Windows, System.Threading, System.Math, Vcl.Graphics, db.Image.Common;
 
 type
   TColorMapType = (cmtScanline, cmtParallel, cmtSSEParallel, cmtSSE2, cmtSSE4, cmtAVX1, cmtAVX2, cmtAVX512knl, cmtAVX512skx);
