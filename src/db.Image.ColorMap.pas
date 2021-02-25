@@ -23,43 +23,32 @@ implementation
 procedure RGBToHSV(const R, G, B: Byte; var H, S, V: Integer);
 var
   Delta, iMax, iMin: Integer;
-  H1, S1           : real;
 begin
   iMax  := MaxIntValue([R, G, B]);
   iMin  := MinIntValue([R, G, B]);
   Delta := iMax - iMin;
-  H1    := 0;
 
   V := iMax;
+  S := Ifthen(V = 0, 0, Round(255 * (Delta / iMax)));
 
-  if V = 0.0 then
-    S1 := 0
-  else
-    S1 := Delta / iMax;
-
-  if S1 = 0.0 then
+  if S = 0 then
   begin
-    H1 := 0;
+    H := 0;
   end
   else
   begin
     if R = iMax then
-      H1 := 60.0 * (G - B) / Delta
+      H := Round(000 + 60 * (G - B) / Delta)
     else if G = iMax then
-      H1 := 120.0 + 60.0 * (B - R) / Delta
+      H := Round(120 + 60 * (B - R) / Delta)
     else if B = iMax then
-      H1 := 240.0 + 60.0 * (R - G) / Delta;
-    if H1 < 0.0 then
-      H1 := H1 + 360.0;
+      H := Round(240 + 60 * (R - G) / Delta);
+    if H < 0 then
+      H := H + 360;
   end;
-
-  H := Round(H1);
-  S := Round(S1 * 255);
 end;
 
 procedure HSVtoRGB(H, S, V: Integer; var R, G, B: Byte);
-const
-  divisor: Integer = 255 * 60;
 var
   f, I, p, q, t, VS: Integer;
 begin
@@ -67,6 +56,7 @@ begin
     H := H - 360;
   if H < 0 then
     H := H + 360;
+
   if S = 0 then
   begin
     R := V;
@@ -83,8 +73,8 @@ begin
     I   := I div 60;
     VS  := V * S;
     p   := V - VS div 255;
-    q   := V - (VS * f) div divisor;
-    t   := V - (VS * (60 - f)) div divisor;
+    q   := V - (VS * f) div 15300;
+    t   := V - (VS * (60 - f)) div 15300;
     case I of
       0:
         begin
