@@ -28,6 +28,20 @@ type
     mniColorLine01: TMenuItem;
     mniColorSaturation: TMenuItem;
     mniColorMode: TMenuItem;
+    mniEffect: TMenuItem;
+    mniEffectExposure: TMenuItem;
+    mniEffectEmboss: TMenuItem;
+    mniEffectEngrave: TMenuItem;
+    mniEffectBlur: TMenuItem;
+    mniEffectSharpen: TMenuItem;
+    mniEffectSponge: TMenuItem;
+    mniEffectSand: TMenuItem;
+    mniEffectDitherBmp: TMenuItem;
+    mniGeometry: TMenuItem;
+    mniGeometryHMirror: TMenuItem;
+    mniGeometryVMirror: TMenuItem;
+    mniGeometryRotate: TMenuItem;
+    mniGeometryHVMirror: TMenuItem;
     procedure mniFileOepnClick(Sender: TObject);
     procedure mniColorGrayClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -39,6 +53,7 @@ type
     procedure mniColorLightClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
+    procedure mniEffectExposureClick(Sender: TObject);
   private
     FstrBackFileName : string;
     FbmpBackup       : TBitmap;
@@ -50,6 +65,7 @@ type
     procedure OnResetClick(Sender: TObject);
     procedure OnCancelClick(Sender: TObject);
     procedure OnOKClick(Sender: TObject);
+    procedure Effect(Proc: TProc<TBitmap>; const strTip: String);
   public
     { Public declarations }
   end;
@@ -62,7 +78,7 @@ implementation
 {$R *.dfm}
 
 uses
-  db.Image.Load, db.Image.Gray, db.Image.Invert, db.Image.Light, db.Image.Contrast, db.Image.Saturation, db.Image.ColorMap;
+  db.Image.Load, db.Image.Gray, db.Image.Invert, db.Image.Light, db.Image.Contrast, db.Image.Saturation, db.Image.ColorMap, db.Image.Effect;
 
 procedure TForm1.LoadImageProc(const strFileName: string; img: TImage);
 begin
@@ -241,6 +257,30 @@ var
 begin
   intTag := TMenuItem(Sender).Tag;
   ShowColorChange(Form1, TColorChange(intTag), OnColorChange, OnResetClick, OnCancelClick, OnOKClick, FlblLightValue, c_intMinMaxValue[intTag, 0], c_intMinMaxValue[intTag, 1], c_strShowTips[intTag, 0], c_strShowTips[intTag, 1]);
+end;
+
+procedure TForm1.Effect(Proc: TProc<TBitmap>; const strTip: String);
+begin
+  with TStopwatch.StartNew do
+  begin
+    Proc(imgShow.Picture.Bitmap);
+    statTip.Panels[0].Text := Format(strTip, [ElapsedMilliseconds]);
+  end;
+  imgShow.Invalidate;
+end;
+
+procedure TForm1.mniEffectExposureClick(Sender: TObject);
+begin
+  case TMenuItem(Sender).Tag of
+    0:
+      Effect(Exposure, '曝光效果用时：%d 毫秒');
+    1:
+      Effect(Emboss, '浮雕效果用时：%d 毫秒');
+    2:
+      Effect(Engrave, '雕刻效果用时：%d 毫秒');
+    3:
+      Effect(Blur, '模糊效果用时：%d 毫秒');
+  end;
 end;
 
 end.

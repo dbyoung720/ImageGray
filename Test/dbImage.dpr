@@ -1,5 +1,6 @@
 program dbImage;
-{$IF CompilerVersion >= 21.0}
+
+{$IF CompilerVersion >= 21.0}
 {$WEAKLINKRTTI ON}
 {$RTTI EXPLICIT METHODS([]) PROPERTIES([]) FIELDS([])}
 {$IFEND}
@@ -17,7 +18,8 @@ uses
   db.Image.Light in '..\src\db.Image.Light.pas',
   db.Image.Contrast in '..\src\db.Image.Contrast.pas',
   db.Image.Saturation in '..\src\db.Image.Saturation.pas',
-  db.Image.ColorMap in '..\src\db.Image.ColorMap.pas';
+  db.Image.ColorMap in '..\src\db.Image.ColorMap.pas',
+  db.Image.Effect in '..\src\db.Image.Effect.pas';
 
 {$R *.res}
 
@@ -29,4 +31,4 @@ begin
   Application.Run;
 
 end.
-
+

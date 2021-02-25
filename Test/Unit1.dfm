@@ -102,6 +102,63 @@ object Form1: TForm1
         OnClick = mniColorLightClick
       end
     end
+    object mniEffect: TMenuItem
+      Caption = #25928#26524
+      object mniEffectExposure: TMenuItem
+        Caption = #26333#20809
+        OnClick = mniEffectExposureClick
+      end
+      object mniEffectEmboss: TMenuItem
+        Tag = 1
+        Caption = #28014#38613
+        OnClick = mniEffectExposureClick
+      end
+      object mniEffectEngrave: TMenuItem
+        Tag = 2
+        Caption = #38613#21051
+        OnClick = mniEffectExposureClick
+      end
+      object mniEffectBlur: TMenuItem
+        Tag = 3
+        Caption = #27169#31946
+        OnClick = mniEffectExposureClick
+      end
+      object mniEffectSharpen: TMenuItem
+        Tag = 4
+        Caption = #38160#21270
+        OnClick = mniEffectExposureClick
+      end
+      object mniEffectSponge: TMenuItem
+        Tag = 5
+        Caption = #27833#30011
+        OnClick = mniEffectExposureClick
+      end
+      object mniEffectSand: TMenuItem
+        Tag = 6
+        Caption = #30952#30722
+        OnClick = mniEffectExposureClick
+      end
+      object mniEffectDitherBmp: TMenuItem
+        Tag = 7
+        Caption = #25238#21160
+        OnClick = mniEffectExposureClick
+      end
+    end
+    object mniGeometry: TMenuItem
+      Caption = #20960#20309
+      object mniGeometryHMirror: TMenuItem
+        Caption = #27700#24179#32763#36716
+      end
+      object mniGeometryVMirror: TMenuItem
+        Caption = #22402#30452#32763#36716
+      end
+      object mniGeometryHVMirror: TMenuItem
+        Caption = #36716#32622
+      end
+      object mniGeometryRotate: TMenuItem
+        Caption = #26059#36716
+      end
+    end
     object mniSize: TMenuItem
       Caption = #22823#23567
       object mniSizeActual: TMenuItem
