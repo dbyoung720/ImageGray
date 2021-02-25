@@ -161,7 +161,8 @@ begin
     R := pColor^.rgbRed;
     RGBToHSV(R, G, B, H, S, V);
     H := EnsureRange(H + intValue, 0, 360);
-    if S = 0.0 then
+    // S := EnsureRange(S + intValue, 0, 255);  // 调节饱和度 (范围在 -225 --- 255 之间)
+    if S = 0 then
       H := 0;
 
     HSVtoRGB(H, S, V, R, G, B);
