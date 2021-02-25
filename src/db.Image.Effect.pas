@@ -30,42 +30,75 @@ implementation
 { ÆØ¹â }
 procedure Exposure(bmp: TBitmap);
 var
-  X, Y  : Integer;
-  pColor: PRGBQuad;
+  StartScanLine: Integer;
+  bmpWidthBytes: Integer;
 begin
-  for Y := 0 to bmp.Height - 1 do
-  begin
-    pColor := bmp.ScanLine[Y];
-    for X  := 0 to bmp.Width - 1 do
+  StartScanLine := Integer(bmp.ScanLine[0]);
+  bmpWidthBytes := Integer(bmp.ScanLine[1]) - Integer(bmp.ScanLine[0]);
+
+  TParallel.For(0, bmp.Height - 1,
+    procedure(Y: Integer)
+    var
+      X: Integer;
+      pColor: PRGBQuad;
     begin
-      pColor^.rgbBlue  := Ifthen(pColor^.rgbBlue < 128, not pColor^.rgbBlue, pColor^.rgbBlue);
-      pColor^.rgbGreen := Ifthen(pColor^.rgbGreen < 128, not pColor^.rgbGreen, pColor^.rgbGreen);
-      pColor^.rgbRed   := Ifthen(pColor^.rgbRed < 128, not pColor^.rgbRed, pColor^.rgbRed);
-      Inc(pColor);
-    end;
-  end;
+      pColor := PRGBQuad(StartScanLine + Y * bmpWidthBytes);
+      for X := 0 to bmp.Width - 1 do
+      begin
+        pColor^.rgbBlue := Ifthen(pColor^.rgbBlue < 128, not pColor^.rgbBlue, pColor^.rgbBlue);
+        pColor^.rgbGreen := Ifthen(pColor^.rgbGreen < 128, not pColor^.rgbGreen, pColor^.rgbGreen);
+        pColor^.rgbRed := Ifthen(pColor^.rgbRed < 128, not pColor^.rgbRed, pColor^.rgbRed);
+        Inc(pColor);
+      end;
+    end);
 end;
 
 { ¸¡µñ }
 procedure Emboss(bmp: TBitmap);
+// var
+// X, Y      : Integer;
+// SrcRow    : PRGBQuad;
+// SrcNextRow: PRGBQuad;
+// begin
+// for Y := 0 to bmp.Height - 2 do
+// begin
+// SrcRow     := bmp.ScanLine[Y + 0];
+// SrcNextRow := bmp.ScanLine[Y + 1];
+// for X      := 0 to bmp.Width - 1 do
+// begin
+// Inc(SrcNextRow);
+// SrcRow^.rgbRed   := EnsureRange(SrcRow^.rgbRed - SrcNextRow^.rgbRed + 128, 0, 255);
+// SrcRow^.rgbGreen := EnsureRange(SrcRow^.rgbGreen - SrcNextRow^.rgbGreen + 128, 0, 255);
+// SrcRow^.rgbBlue  := EnsureRange(SrcRow^.rgbBlue - SrcNextRow^.rgbBlue + 128, 0, 255);
+// Inc(SrcRow);
+// end;
+// end;
+// end;
 var
-  X, Y      : Integer;
-  SrcRow    : PRGBQuad;
-  SrcNextRow: PRGBQuad;
+  StartScanLine: Integer;
+  bmpWidthBytes: Integer;
 begin
-  for Y := 0 to bmp.Height - 2 do
-  begin
-    SrcRow     := bmp.ScanLine[Y + 0];
-    SrcNextRow := bmp.ScanLine[Y + 1];
-    for X      := 0 to bmp.Width - 1 do
+  StartScanLine := Integer(bmp.ScanLine[0]);
+  bmpWidthBytes := Integer(bmp.ScanLine[1]) - Integer(bmp.ScanLine[0]);
+
+  TParallel.For(0, bmp.Height - 2,
+    procedure(Y: Integer)
+    var
+      X: Integer;
+      pColor01: PRGBQuad;
+      pColor02: PRGBQuad;
     begin
-      Inc(SrcNextRow);
-      SrcRow^.rgbRed   := EnsureRange(SrcRow^.rgbRed - SrcNextRow^.rgbRed + 128, 0, 255);
-      SrcRow^.rgbGreen := EnsureRange(SrcRow^.rgbGreen - SrcNextRow^.rgbGreen + 128, 0, 255);
-      SrcRow^.rgbBlue  := EnsureRange(SrcRow^.rgbBlue - SrcNextRow^.rgbBlue + 128, 0, 255);
-      Inc(SrcRow);
-    end;
-  end;
+      pColor01 := PRGBQuad(StartScanLine + (Y + 0) * bmpWidthBytes);
+      pColor02 := PRGBQuad(StartScanLine + (Y + 1) * bmpWidthBytes);
+      for X := 0 to bmp.Width - 1 do
+      begin
+        Inc(pColor02);
+        pColor01^.rgbRed := EnsureRange(pColor01^.rgbRed - pColor02^.rgbRed + 128, 0, 255);
+        pColor01^.rgbGreen := EnsureRange(pColor01^.rgbGreen - pColor02^.rgbGreen + 128, 0, 255);
+        pColor01^.rgbBlue := EnsureRange(pColor01^.rgbBlue - pColor02^.rgbBlue + 128, 0, 255);
+        Inc(pColor01);
+      end;
+    end);
 end;
 
 { µñ¿Ì }
