@@ -1,16 +1,16 @@
 program dbImage;
-
 {$IF CompilerVersion >= 21.0}
 {$WEAKLINKRTTI ON}
 {$RTTI EXPLICIT METHODS([]) PROPERTIES([]) FIELDS([])}
 {$IFEND}
 
 uses
-  Vcl.Forms,
-  Unit1 in 'Unit1.pas' {Form1},
-  {$IFDEF WIN32}
+{$IFDEF WIN32}
+  FastMove,
   db.Image.jpegdec in '..\src\db.Image.jpegdec.pas',
-  {$IFEND }
+{$IFEND }
+  Vcl.Forms,
+  Unit1 in 'Unit1.pas' {Form1} ,
   db.Image.Gray in '..\src\db.Image.Gray.pas',
   db.Image.Load in '..\src\db.Image.Load.pas',
   db.Image.Common in '..\src\db.Image.Common.pas',
@@ -32,4 +32,3 @@ begin
   Application.Run;
 
 end.
-
