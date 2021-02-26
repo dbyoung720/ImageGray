@@ -126,6 +126,8 @@ function GetPixelGray(const r, g, b: Byte): TRGBQuad; inline;
 function CheckValue(const intValue, intRange: Integer): Byte; inline;
 procedure ShowColorChange(frmMain: TForm; cc: TColorChange; OnChangeLight, OnLightResetClick, OnLightCancelClick, OnLightOKClick: TNotifyEvent; var lblValueShow: TLabel; const intMinValue, intMaxValue: Integer; const strCaption, strTip: string);
 
+function CRC32_Calculate(Buffer: PChar; len: Cardinal): Cardinal; cdecl; external name {$IFDEF win32} '_sse42_calculate'; {$ELSE} 'sse42_calculate'; {$ENDIF}
+
 procedure bgraGray_sse2(src: PByte; dst: PDWORD; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraGray_sse2' {$ELSE} name 'bgraGray_sse2' {$IFEND};
 procedure bgraGray_sse4(src: PByte; dst: PDWORD; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraGray_sse4' {$ELSE} name 'bgraGray_sse4' {$IFEND};
 procedure bgraGray_avx1(src: PByte; dst: PDWORD; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraGray_avx' {$ELSE} name 'bgraGray_avx' {$IFEND};
@@ -180,6 +182,7 @@ var
 implementation
 
 {$IFDEF WIN32}
+{$LINK obj\crc32_x86.obj}
 {$LINK obj\DAVX_X86.obj}
 {$LINK obj\DAVX_X86_sse2.obj}
 {$LINK obj\DAVX_X86_sse4.obj}
@@ -188,6 +191,7 @@ implementation
 {$LINK obj\DAVX_X86_avx512knl.obj}
 {$LINK obj\DAVX_X86_avx512skx.obj}
 {$ELSE}
+{$LINK obj\crc32_x64.obj}
 {$LINK obj\DAVX_X64.obj}
 {$LINK obj\DAVX_X64_sse2.obj}
 {$LINK obj\DAVX_X64_sse4.obj}
