@@ -121,6 +121,7 @@ type
   PVec4i       = ^TVec4i;
   PVec4f       = ^TVec4f;
 
+function GetBmpWidthBytes(bmp: TBitmap):DWORD;
 function GetBitsPointer(bmp: TBitmap): Pointer;
 function GetPixelGray(const r, g, b: Byte): TRGBQuad; inline;
 function CheckValue(const intValue, intRange: Integer): Byte; inline;
@@ -205,6 +206,22 @@ implementation
 type
   TBMPAccess         = class(TBitmap);
   TBitmapImageAccess = class(TBitmapImage);
+
+function GetBmpWidthBytes(bmp: TBitmap):DWORD;
+{$IF CompilerVersion < 24.0}
+var
+  FImage: PDWORD;
+  FDIB  : PDIBSection;
+begin
+  FImage := Pointer(@bmp.IgnorePalette);
+  Dec(FImage, SizeOf(TCanvas) - 2);
+  FDIB   := Pointer(FImage^ + 24);
+  Result := FDIB^.dsBm.bmWidthBytes;
+{$ELSE}
+begin
+  Result := TBitmapImageAccess(TBMPAccess(bmp).FImage).FDIB.dsBm.bmWidthBytes;
+{$IFEND}
+end;
 
 function GetBitsPointer(bmp: TBitmap): Pointer;
 {$IF CompilerVersion < 24.0}

@@ -19,7 +19,8 @@ uses
   db.Image.Contrast in '..\src\db.Image.Contrast.pas',
   db.Image.Saturation in '..\src\db.Image.Saturation.pas',
   db.Image.ColorMap in '..\src\db.Image.ColorMap.pas',
-  db.Image.Effect in '..\src\db.Image.Effect.pas';
+  db.Image.Effect in '..\src\db.Image.Effect.pas',
+  db.Image.GeometricTrans in '..\src\db.Image.GeometricTrans.pas';
 
 {$R *.res}
 

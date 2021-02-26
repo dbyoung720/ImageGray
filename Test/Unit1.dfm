@@ -148,12 +148,17 @@ object Form1: TForm1
       Caption = #20960#20309
       object mniGeometryHMirror: TMenuItem
         Caption = #27700#24179#32763#36716
+        OnClick = mniGeometryHVMirrorClick
       end
       object mniGeometryVMirror: TMenuItem
+        Tag = 1
         Caption = #22402#30452#32763#36716
+        OnClick = mniGeometryHVMirrorClick
       end
       object mniGeometryHVMirror: TMenuItem
+        Tag = 2
         Caption = #36716#32622
+        OnClick = mniGeometryHVMirrorClick
       end
       object mniGeometryRotate: TMenuItem
         Caption = #26059#36716

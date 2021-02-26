@@ -54,6 +54,7 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure mniEffectExposureClick(Sender: TObject);
+    procedure mniGeometryHVMirrorClick(Sender: TObject);
   private
     FstrBackFileName : string;
     FbmpBackup       : TBitmap;
@@ -66,6 +67,7 @@ type
     procedure OnCancelClick(Sender: TObject);
     procedure OnOKClick(Sender: TObject);
     procedure Effect(Proc: TProc<TBitmap>; const strTip: String);
+    procedure GeometricTrans(Proc: TProc<TBitmap>; const strTip: String);
   public
     { Public declarations }
   end;
@@ -78,7 +80,7 @@ implementation
 {$R *.dfm}
 
 uses
-  db.Image.Load, db.Image.Gray, db.Image.Invert, db.Image.Light, db.Image.Contrast, db.Image.Saturation, db.Image.ColorMap, db.Image.Effect;
+  db.Image.Load, db.Image.Gray, db.Image.Invert, db.Image.Light, db.Image.Contrast, db.Image.Saturation, db.Image.ColorMap, db.Image.Effect, db.Image.GeometricTrans;
 
 procedure TForm1.LoadImageProc(const strFileName: string; img: TImage);
 begin
@@ -280,6 +282,32 @@ begin
       Effect(Engrave, '雕刻效果用时：%d 毫秒');
     3:
       Effect(Blur, '模糊效果用时：%d 毫秒');
+    4:
+      Effect(Sharpen, '锐化效果用时：%d 毫秒');
+    5:
+      Effect(Sponge, '油画效果用时：%d 毫秒');
+  end;
+end;
+
+procedure TForm1.GeometricTrans(Proc: TProc<TBitmap>; const strTip: String);
+begin
+  with TStopwatch.StartNew do
+  begin
+    Proc(imgShow.Picture.Bitmap);
+    statTip.Panels[0].Text := Format(strTip, [ElapsedMilliseconds]);
+  end;
+  imgShow.Invalidate;
+end;
+
+procedure TForm1.mniGeometryHVMirrorClick(Sender: TObject);
+begin
+  case TMenuItem(Sender).Tag of
+    0:
+      GeometricTrans(HorizMirror, '水平翻转用时：%d 毫秒');
+    1:
+      GeometricTrans(VertiMirror, '垂直翻转用时：%d 毫秒');
+    2:
+      GeometricTrans(HAndVMirror, '水平+垂直翻转用时：%d 毫秒');
   end;
 end;
 

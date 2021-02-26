@@ -25,7 +25,15 @@ procedure Engrave(bmp: TBitmap);
 { Ä£ºý }
 procedure Blur(bmp: TBitmap);
 
+{ Èñ»¯ }
+procedure Sharpen(bmp: TBitmap);
+
+{ ÓÍ»­ }
+procedure Sponge(ABmp: TBitmap);
+
 implementation
+
+uses Forms;
 
 { ÆØ¹â }
 procedure Exposure(bmp: TBitmap);
@@ -56,21 +64,21 @@ end;
 { ¸¡µñ }
 procedure Emboss(bmp: TBitmap);
 // var
-// X, Y      : Integer;
-// SrcRow    : PRGBQuad;
-// SrcNextRow: PRGBQuad;
+// X, Y    : Integer;
+// pColor01: PRGBQuad;
+// pColor02: PRGBQuad;
 // begin
 // for Y := 0 to bmp.Height - 2 do
 // begin
-// SrcRow     := bmp.ScanLine[Y + 0];
-// SrcNextRow := bmp.ScanLine[Y + 1];
-// for X      := 0 to bmp.Width - 1 do
+// pColor01 := bmp.ScanLine[Y + 0];
+// pColor02 := bmp.ScanLine[Y + 1];
+// for X    := 0 to bmp.Width - 1 do
 // begin
-// Inc(SrcNextRow);
-// SrcRow^.rgbRed   := EnsureRange(SrcRow^.rgbRed - SrcNextRow^.rgbRed + 128, 0, 255);
-// SrcRow^.rgbGreen := EnsureRange(SrcRow^.rgbGreen - SrcNextRow^.rgbGreen + 128, 0, 255);
-// SrcRow^.rgbBlue  := EnsureRange(SrcRow^.rgbBlue - SrcNextRow^.rgbBlue + 128, 0, 255);
-// Inc(SrcRow);
+// Inc(pColor02);
+// pColor01^.rgbRed   := EnsureRange(pColor01^.rgbRed - pColor02^.rgbRed + 128, 0, 255);
+// pColor01^.rgbGreen := EnsureRange(pColor01^.rgbGreen - pColor02^.rgbGreen + 128, 0, 255);
+// pColor01^.rgbBlue  := EnsureRange(pColor01^.rgbBlue - pColor02^.rgbBlue + 128, 0, 255);
+// Inc(pColor01);
 // end;
 // end;
 // end;
@@ -105,20 +113,20 @@ end;
 procedure Engrave(bmp: TBitmap);
 var
   X, Y      : Integer;
-  SrcRow    : PRGBQuad;
+  pColor01  : PRGBQuad;
   SrcNextRow: PRGBQuad;
 begin
   for Y := 0 to bmp.Height - 2 do
   begin
-    SrcRow     := bmp.ScanLine[Y + 0];
+    pColor01   := bmp.ScanLine[Y + 0];
     SrcNextRow := bmp.ScanLine[Y + 1];
     for X      := 0 to bmp.Width - 1 do
     begin
       Inc(SrcNextRow);
-      SrcRow^.rgbRed   := EnsureRange(SrcNextRow^.rgbRed - SrcRow^.rgbRed + 128, 0, 255);
-      SrcRow^.rgbGreen := EnsureRange(SrcNextRow^.rgbGreen - SrcRow^.rgbGreen + 128, 0, 255);
-      SrcRow^.rgbBlue  := EnsureRange(SrcNextRow^.rgbBlue - SrcRow^.rgbBlue + 128, 0, 255);
-      Inc(SrcRow);
+      pColor01^.rgbRed   := EnsureRange(SrcNextRow^.rgbRed - pColor01^.rgbRed + 128, 0, 255);
+      pColor01^.rgbGreen := EnsureRange(SrcNextRow^.rgbGreen - pColor01^.rgbGreen + 128, 0, 255);
+      pColor01^.rgbBlue  := EnsureRange(SrcNextRow^.rgbBlue - pColor01^.rgbBlue + 128, 0, 255);
+      Inc(pColor01);
     end;
   end;
 end;
@@ -166,6 +174,61 @@ begin
       Dec(pColorTwo);
     end;
   end;
+end;
+
+{ Èñ»¯ }
+procedure Sharpen(bmp: TBitmap);
+var
+  StartScanLine: Integer;
+  bmpWidthBytes: Integer;
+begin
+  StartScanLine := Integer(bmp.ScanLine[0]);
+  bmpWidthBytes := Integer(bmp.ScanLine[1]) - Integer(bmp.ScanLine[0]);
+
+  TParallel.For(1, bmp.Height - 2,
+    procedure(Y: Integer)
+    var
+      X: Integer;
+      pColor01: PRGBQuad;
+      pColor02: PRGBQuad;
+    begin
+      pColor01 := PRGBQuad(StartScanLine + (Y - 0) * bmpWidthBytes);
+      pColor02 := PRGBQuad(StartScanLine + (Y - 1) * bmpWidthBytes);
+      for X := 0 to bmp.Width - 1 do
+      begin
+        Dec(pColor02);
+        pColor01^.rgbRed := EnsureRange(pColor01^.rgbRed + (pColor01^.rgbRed - pColor02^.rgbRed) div 2, 0, 255);
+        pColor01^.rgbGreen := EnsureRange(pColor01^.rgbGreen + (pColor01^.rgbGreen - pColor02^.rgbGreen) div 2, 0, 255);
+        pColor01^.rgbBlue := EnsureRange(pColor01^.rgbBlue + (pColor01^.rgbBlue - pColor02^.rgbBlue) div 2, 0, 255);
+        Inc(pColor01);
+        Inc(pColor02, 2);
+      end;
+    end);
+end;
+
+type
+  pRGBArray  = ^TRGBArray;
+  PbyteArray = ^TByteArray;
+  TRGBArray  = array [0 .. 32768 - 1] of TRGBQuad;
+  TByteArray = array [0 .. 16777215] of Byte;
+
+  { ÓÍ»­ }
+procedure Sponge(ABmp: TBitmap);
+var
+  I, J, X, Y, R: Integer;
+begin
+  for I   := 0 to ABmp.Height - 1 do
+    for J := 0 to ABmp.Width - 1 do
+    begin
+      Application.ProcessMessages;
+      Randomize;
+      R                                       := Random(128);
+      X                                       := EnsureRange(J + (R - Random(R * 2)), 0, ABmp.Width - 1);
+      Y                                       := EnsureRange(I + (R - Random(R * 2)), 0, ABmp.Height - 1);
+      PbyteArray(ABmp.ScanLine[I])[J * 4 + 0] := PbyteArray(ABmp.ScanLine[Y])[X * 4 + 0];
+      PbyteArray(ABmp.ScanLine[I])[J * 4 + 1] := PbyteArray(ABmp.ScanLine[Y])[X * 4 + 1];
+      PbyteArray(ABmp.ScanLine[I])[J * 4 + 2] := PbyteArray(ABmp.ScanLine[Y])[X * 4 + 2];
+    end;
 end;
 
 end.
