@@ -14,9 +14,9 @@ interface
 uses Winapi.Windows, Winapi.GDIPAPI, System.Classes, System.SysUtils, System.UITypes, System.Math, Vcl.Forms, Vcl.StdCtrls, Vcl.Graphics, Vcl.ComCtrls;
 
 const
-  c_intMinMaxValue: array [0 .. 3, 0 .. 1] of Integer = ((-255, 255), (-128, 127), (-255, 255), (0, 360));
-  c_strShowTips: array [0 .. 3, 0 .. 1] of String     = (('调节亮度：', '亮度：'), ('调节对比度：', '对比度：'), ('调节饱和度：', '饱和度：'), ('调节图片色彩：', '色彩：'));
-  c_strShowTime: array [0 .. 3] of String             = ('调节亮度用时：%d 毫秒', '调节对比度用时：%d 毫秒', '调节饱和度用时：%d 毫秒', '调节图片色彩用时：%d 毫秒');
+  c_intMinMaxValue: array [0 .. 4, 0 .. 1] of Integer = ((-255, 255), (-128, 127), (-255, 255), (0, 360), (0, 255));
+  c_strShowTips: array [0 .. 4, 0 .. 1] of String     = (('调节亮度：', '亮度：'), ('调节对比度：', '对比度：'), ('调节饱和度：', '饱和度：'), ('调节图片色彩：', '色彩：'), ('调节透明度：', '透明：'));
+  c_strShowTime: array [0 .. 4] of String             = ('调节亮度用时：%d 毫秒', '调节对比度用时：%d 毫秒', '调节饱和度用时：%d 毫秒', '调节图片色彩用时：%d 毫秒', '调节透明度用时：%d 毫秒');
 
   c_GrayR77: array [0 .. 255] of DWORD = (                                                                          //
     0, 77, 154, 231, 308, 385, 462, 539, 616, 693, 770, 847, 924, 1001, 1078, 1155,                                 //
@@ -113,7 +113,7 @@ type
   TTwoLight255 = array [0 .. 255, -255 .. 255] of Byte;
   TGrayTable   = array [0 .. 1785] of Integer;
   TLightTable  = TTwoLight255;
-  TColorChange = (ccLight, ccContrast, ccSaturation, ccColorMode);
+  TColorChange = (ccLight, ccContrast, ccSaturation, ccColorMode, ccTranslate);
   TAlpha       = array [0 .. 255] of Integer;
   TGrays       = array [0 .. 767] of Integer;
   TVec4i       = array [0 .. 3] of Integer;

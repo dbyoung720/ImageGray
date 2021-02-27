@@ -42,6 +42,7 @@ type
     mniGeometryVMirror: TMenuItem;
     mniGeometryRotate: TMenuItem;
     mniGeometryHVMirror: TMenuItem;
+    mniColorTrans: TMenuItem;
     procedure mniFileOepnClick(Sender: TObject);
     procedure mniColorGrayClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -58,6 +59,7 @@ type
   private
     FstrBackFileName : string;
     FbmpBackup       : TBitmap;
+    FbmpTrans        : TBitmap;
     FTrackColorChange: TTrackBar;
     FlblLightValue   : TLabel;
     procedure BackupBmp;
@@ -104,6 +106,15 @@ begin
   Action := caFree;
 end;
 
+procedure LoadImageTran(var bmp: TBitmap);
+var
+  strFileName: String;
+begin
+  strFileName := ExtractFilePath(ParamStr(0)) + 'tran.jpg';
+  if FileExists(strFileName) then
+    LoadImage(strFileName, bmp);
+end;
+
 procedure TForm1.FormCreate(Sender: TObject);
 begin
   FstrBackFileName := ExtractFilePath(ParamStr(0)) + 'test.jpg';
@@ -115,6 +126,8 @@ begin
 
   FbmpBackup             := TBitmap.Create;
   FbmpBackup.PixelFormat := pf32bit;
+  FbmpTrans              := TBitmap.Create;
+  FbmpTrans.PixelFormat  := pf32bit;
 
   mniSizeActual.Checked  := False;
   mniSizeStrecth.Checked := True;
@@ -123,6 +136,7 @@ begin
   imgShow.Width          := Width - 20;
   imgShow.Height         := Height - 82;
   LoadImageProc(FstrBackFileName, imgShow);
+  LoadImageTran(FbmpTrans);
 
   PostMessage(Handle, WM_SYSCOMMAND, SC_MAXIMIZE, 0);
 end;
@@ -130,6 +144,7 @@ end;
 procedure TForm1.FormDestroy(Sender: TObject);
 begin
   FbmpBackup.free;
+  FbmpTrans.free;
 end;
 
 procedure TForm1.mniFileOepnClick(Sender: TObject);
@@ -191,7 +206,7 @@ procedure TForm1.mniColorInvertClick(Sender: TObject);
 begin
   with TStopwatch.StartNew do
   begin
-    Invert(imgShow.Picture.Bitmap, itAVX1);
+    Invert(imgShow.Picture.Bitmap, itDelphi);
     statTip.Panels[0].Text := Format('反色用时：%d 毫秒', [ElapsedMilliseconds]);
   end;
   imgShow.Invalidate;
@@ -199,37 +214,39 @@ end;
 
 procedure TForm1.OnColorChange(Sender: TObject);
 var
-  bmp     : TBitmap;
+  bmpTemp : TBitmap;
   ccChange: TColorChange;
 begin
   FTrackColorChange      := TTrackBar(Sender);
   ccChange               := TColorChange(FTrackColorChange.Tag);
   FlblLightValue.Caption := InttoStr(FTrackColorChange.Position);
 
-  bmp := TBitmap.Create;
+  bmpTemp := TBitmap.Create;
   try
-    bmp.PixelFormat := pf32bit;
-    bmp.Width       := FbmpBackup.Width;
-    bmp.Height      := FbmpBackup.Height;
-    bmp.Canvas.Draw(0, 0, FbmpBackup);
+    bmpTemp.PixelFormat := pf32bit;
+    bmpTemp.Width       := FbmpBackup.Width;
+    bmpTemp.Height      := FbmpBackup.Height;
+    bmpTemp.Canvas.Draw(0, 0, FbmpBackup);
 
     with TStopwatch.StartNew do
     begin
       if ccChange = ccLight then
-        Light(bmp, FTrackColorChange.Position, ltSSEParallel)            // 调节亮度
-      else if ccChange = ccContrast then                                 //
-        Contrast(bmp, FTrackColorChange.Position + 128, ctSSEParallel)   // 调节对比度
-      else if ccChange = ccSaturation then                               //
-        Saturation(bmp, FTrackColorChange.Position + 255, stSSEParallel) // 调节饱和度
-      else if ccChange = ccColorMode then                                //
-        ColorMap(bmp, FTrackColorChange.Position, cmtParallel);          // 调节色彩
+        Light(bmpTemp, FTrackColorChange.Position, ltSSEParallel)                // 调节亮度
+      else if ccChange = ccContrast then                                         //
+        Contrast(bmpTemp, FTrackColorChange.Position + 128, ctSSEParallel)       // 调节对比度
+      else if ccChange = ccSaturation then                                       //
+        Saturation(bmpTemp, FTrackColorChange.Position + 255, stSSEParallel)     // 调节饱和度
+      else if ccChange = ccColorMode then                                        //
+        ColorMap(bmpTemp, FTrackColorChange.Position, cmtParallel)               // 调节色彩
+      else if ccChange = ccTranslate then                                        //
+        ColorTrans(bmpTemp, FbmpTrans, FTrackColorChange.Position, cttParallel); // 调节透明度
 
       statTip.Panels[0].Text := Format(c_strShowTime[Integer(ccChange)], [ElapsedMilliseconds]);
     end;
 
-    imgShow.Picture.Bitmap.Assign(bmp);
+    imgShow.Picture.Bitmap.Assign(bmpTemp);
   finally
-    bmp.free;
+    bmpTemp.free;
   end;
 end;
 

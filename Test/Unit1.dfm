@@ -101,6 +101,11 @@ object Form1: TForm1
         Caption = #33394#24425'...'
         OnClick = mniColorLightClick
       end
+      object mniColorTrans: TMenuItem
+        Tag = 4
+        Caption = #36879#26126'...'
+        OnClick = mniColorLightClick
+      end
     end
     object mniEffect: TMenuItem
       Caption = #25928#26524

@@ -1,6 +1,6 @@
 unit db.Image.Load;
 {
-  Func: 图像加载，统一解码为 32位位图格式
+  Func: 图像加载，统一解码为32位位图格式
   Name: dbyoung@sina.com
   Date: 2020-10-01
   Ver : Delphi 10.3.2
@@ -15,39 +15,33 @@ uses Winapi.Windows, Winapi.GDIPOBJ, System.Classes, System.SysUtils, {$IFDEF WI
 type
   TJpegDecType = (jdtGDI, jdtGDIPLUS, jdtSSE);
 
-procedure LoadImage(const strFileName: string; img: TImage; const JpegDecType: TJpegDecType = jdtGDIPLUS);
+procedure LoadImage(const strFileName: string; var bmp: TBitmap; const JpegDecType: TJpegDecType = jdtGDIPLUS); overload;
+procedure LoadImage(const strFileName: string; imgShow_: TImage; const JpegDecType: TJpegDecType = jdtGDIPLUS); overload;
 
 implementation
 
-function LoadJpeg_GDI(const strFileName: String; img: TImage): Boolean;
+function LoadJpeg_GDI(const strFileName: String; var bmp: TBitmap): Boolean;
 begin
   Result := False;
 end;
 
-function LoadJpeg_GDIPLUS(const strFileName: String; img: TImage): Boolean;
+function LoadJpeg_GDIPLUS(const strFileName: String; var bmp: TBitmap): Boolean;
 var
   jpg: TGPImage;
   gp : TGPGraphics;
-  bmp: TBitmap;
 begin
   Result := True;
 
   jpg := TGPImage.Create(strFileName);
   try
     try
-      bmp := TBitmap.Create;
+      bmp.PixelFormat := pf32bit;
+      bmp.SetSize(jpg.GetWidth, jpg.GetHeight);
+      gp := TGPGraphics.Create(bmp.Canvas.Handle);
       try
-        bmp.PixelFormat := pf32bit;
-        bmp.SetSize(jpg.GetWidth, jpg.GetHeight);
-        gp := TGPGraphics.Create(bmp.Canvas.Handle);
-        try
-          gp.DrawImage(jpg, 0, 0, bmp.Width, bmp.Height);
-          img.Picture.Bitmap.Assign(bmp);
-        finally
-          gp.Free;
-        end;
+        gp.DrawImage(jpg, 0, 0, bmp.Width, bmp.Height);
       finally
-        bmp.Free;
+        gp.Free;
       end;
     except
       Result := False;
@@ -57,11 +51,7 @@ begin
   end;
 end;
 
-function LoadJpeg_SSE(const strFileName: String; img: TImage): Boolean;
-{$IFDEF  WIN32}
-var
-  bmp: TBitmap;
-{$IFEND}
+function LoadJpeg_SSE(const strFileName: String; var bmp: TBitmap): Boolean;
 begin
   Result := False;
 {$IFDEF  WIN32}
@@ -72,13 +62,8 @@ begin
       bmp := JpegDecode(Memory, Size);
       if bmp <> nil then
       begin
-        try
-          Result          := True;
-          bmp.PixelFormat := pf32bit;
-          img.Picture.Bitmap.Assign(bmp);
-        finally
-          bmp.Free;
-        end;
+        Result          := True;
+        bmp.PixelFormat := pf32bit;
       end;
     finally
       Free;
@@ -87,7 +72,7 @@ begin
 {$IFEND}
 end;
 
-function CheckJpeg(const strFileName: String; img: TImage; const JpegDecType: TJpegDecType = jdtGDIPLUS): Boolean;
+function CheckJpeg(const strFileName: String; var bmp: TBitmap; const JpegDecType: TJpegDecType = jdtGDIPLUS): Boolean;
 var
   hFile : THandle;
   Buffer: array [0 .. 15] of AnsiChar;
@@ -105,35 +90,40 @@ begin
 
   case JpegDecType of
     jdtGDI:
-      Result := LoadJpeg_GDI(strFileName, img);
+      Result := LoadJpeg_GDI(strFileName, bmp);
     jdtGDIPLUS:
-      Result := LoadJpeg_GDIPLUS(strFileName, img);
+      Result := LoadJpeg_GDIPLUS(strFileName, bmp);
     jdtSSE:
-      Result := LoadJpeg_SSE(strFileName, img);
+      Result := LoadJpeg_SSE(strFileName, bmp);
   end;
 end;
 
-procedure LoadImage(const strFileName: string; img: TImage; const JpegDecType: TJpegDecType = jdtGDIPLUS);
-var
-  bmp: TBitmap;
+procedure LoadImage(const strFileName: string; var bmp: TBitmap; const JpegDecType: TJpegDecType = jdtGDIPLUS);
 begin
-  if CheckJpeg(strFileName, img, JpegDecType) then
+  if CheckJpeg(strFileName, bmp, JpegDecType) then
     Exit;
 
   with TPicture.Create do
   begin
     LoadFromFile(strFileName);
-    bmp := TBitmap.Create;
-    try
-      bmp.PixelFormat := pf32bit;
-      bmp.Width       := Width;
-      bmp.Height      := Height;
-      bmp.Canvas.Draw(0, 0, Graphic);
-      img.Picture.Bitmap.Assign(bmp);
-    finally
-      bmp.Free;
-    end;
+    bmp.PixelFormat := pf32bit;
+    bmp.Width       := Width;
+    bmp.Height      := Height;
+    bmp.Canvas.Draw(0, 0, Graphic);
     Free;
+  end;
+end;
+
+procedure LoadImage(const strFileName: string; imgShow_: TImage; const JpegDecType: TJpegDecType = jdtGDIPLUS);
+var
+  bmp: TBitmap;
+begin
+  bmp := TBitmap.Create;
+  try
+    LoadImage(strFileName, bmp, JpegDecType);
+    imgShow_.Picture.Bitmap.Assign(bmp);
+  finally
+    bmp.Free;
   end;
 end;
 

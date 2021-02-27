@@ -14,9 +14,11 @@ interface
 uses Winapi.Windows, System.Threading, System.Math, Vcl.Graphics, db.Image.Common;
 
 type
-  TColorMapType = (cmtScanline, cmtParallel, cmtSSEParallel, cmtSSE2, cmtSSE4, cmtAVX1, cmtAVX2, cmtAVX512knl, cmtAVX512skx);
+  TColorMapType   = (cmtScanline, cmtParallel, cmtSSEParallel, cmtSSE2, cmtSSE4, cmtAVX1, cmtAVX2, cmtAVX512knl, cmtAVX512skx);
+  TColorTransType = (cttScanline, cttParallel, cttSSEParallel, cttSSE2, cttSSE4, cttAVX1, cttAVX2, cttAVX512knl, cttAVX512skx);
 
 procedure ColorMap(bmp: TBitmap; const intColorMapValue: Integer; const cmt: TColorMapType = cmtSSEParallel);
+procedure ColorTrans(bmpDst, bmpSrc: TBitmap; const intTransValue: Integer; const ctt: TColorTransType = cttSSEParallel);
 
 implementation
 
@@ -161,7 +163,6 @@ begin
     R := pColor^.rgbRed;
     RGBToHSV(R, G, B, H, S, V);
     H := EnsureRange(H + intValue, 0, 360);
-    // S := EnsureRange(S + intValue, 0, 255);  // 调节饱和度 (范围在 -225 --- 255 之间)
     if S = 0 then
       H := 0;
 
@@ -273,6 +274,110 @@ begin
     cmtAVX512knl:
       ;
     cmtAVX512skx:
+      ;
+  end;
+end;
+
+procedure ColorTrans_Scanline(bmpDst, bmpSrc: TBitmap; const intTransValue: Integer);
+var
+  X, Y       : Integer;
+  iLeft, iTop: Integer;
+  pColorDst  : PRGBQuad;
+  pColorSrc  : PRGBQuad;
+  K          : Integer;
+begin
+  if bmpSrc.Width > bmpDst.Width then
+    Exit;
+
+  if bmpSrc.Height > bmpDst.Height then
+    Exit;
+
+  iTop  := (bmpDst.Height - bmpSrc.Height) div 2;
+  iLeft := (bmpDst.Width - bmpSrc.Width) div 2;
+  K     := (intTransValue + 1) * 256;
+
+  for Y := iTop to iTop + bmpSrc.Height - 1 do
+  begin
+    pColorDst := bmpDst.ScanLine[Y];
+    pColorSrc := bmpSrc.ScanLine[Y - iTop];
+    Inc(pColorDst, iLeft);
+    for X := 0 to bmpSrc.Width - 1 do
+    begin
+      pColorDst^.rgbRed   := (pColorDst^.rgbRed * (65536 - K) + pColorSrc^.rgbRed * K) shr 16;
+      pColorDst^.rgbGreen := (pColorDst^.rgbGreen * (65536 - K) + pColorSrc^.rgbGreen * K) shr 16;
+      pColorDst^.rgbBlue  := (pColorDst^.rgbBlue * (65536 - K) + pColorSrc^.rgbBlue * K) shr 16;
+      Inc(pColorDst);
+      Inc(pColorSrc);
+    end;
+  end;
+end;
+
+{ 5 ms  需要脱离 IDE 执行 / ScanLine 不能用于 TParallel.For 中 }
+procedure ColorTrans_Parallel(bmpDst, bmpSrc: TBitmap; const intTransValue: Integer);
+var
+  iLeft, iTop     : Integer;
+  K               : Integer;
+  bmpWidthBytesSrc: Integer;
+  bmpWidthBytesDst: Integer;
+  StartScanLineDst: Integer;
+  StartScanLineSrc: Integer;
+begin
+  if bmpSrc.Width > bmpDst.Width then
+    Exit;
+
+  if bmpSrc.Height > bmpDst.Height then
+    Exit;
+
+  iTop  := (bmpDst.Height - bmpSrc.Height) div 2;
+  iLeft := (bmpDst.Width - bmpSrc.Width) div 2;
+  K     := (intTransValue + 1) * 256;
+
+  StartScanLineSrc := Integer(bmpSrc.ScanLine[0]);
+  StartScanLineDst := Integer(bmpDst.ScanLine[iTop]);
+  bmpWidthBytesSrc := Integer(bmpSrc.ScanLine[1]) - Integer(bmpSrc.ScanLine[0]);
+  bmpWidthBytesDst := Integer(bmpDst.ScanLine[1]) - Integer(bmpDst.ScanLine[0]);
+
+  TParallel.For(0, bmpSrc.Height - 1,
+    procedure(Y: Integer)
+    var
+      X: Integer;
+      pColorDst: PRGBQuad;
+      pColorSrc: PRGBQuad;
+    begin
+      pColorDst := PRGBQuad(StartScanLineDst + Y * bmpWidthBytesDst);
+      pColorSrc := PRGBQuad(StartScanLineSrc + Y * bmpWidthBytesSrc);
+      Inc(pColorDst, iLeft);
+      for X := 0 to bmpSrc.Width - 1 do
+      begin
+        pColorDst^.rgbRed := (pColorDst^.rgbRed * (65536 - K) + pColorSrc^.rgbRed * K) shr 16;
+        pColorDst^.rgbGreen := (pColorDst^.rgbGreen * (65536 - K) + pColorSrc^.rgbGreen * K) shr 16;
+        pColorDst^.rgbBlue := (pColorDst^.rgbBlue * (65536 - K) + pColorSrc^.rgbBlue * K) shr 16;
+        Inc(pColorDst);
+        Inc(pColorSrc);
+      end;
+    end);
+end;
+
+procedure ColorTrans(bmpDst, bmpSrc: TBitmap; const intTransValue: Integer; const ctt: TColorTransType = cttSSEParallel);
+begin
+  case ctt of
+    cttScanline:
+      ColorTrans_Scanline(bmpDst, bmpSrc, intTransValue);
+    cttParallel:
+      ColorTrans_Parallel(bmpDst, bmpSrc, intTransValue);
+    cttSSEParallel:
+      ;
+    cttSSE2:
+      ;
+    cttSSE4:
+      ;
+    cttAVX1:
+      ;
+    cttAVX2:
+      ;
+    cttAVX512knl:
+      ;
+    cttAVX512skx:
       ;
   end;
 end;

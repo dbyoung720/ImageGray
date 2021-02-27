@@ -26,14 +26,26 @@ procedure Invert(bmp: TBitmap; const gt: TInvertType = itAVX1);
 
 implementation
 
-{ 48 ms }
+{ 9 ms }
 procedure Invert_Delphi(bmp: TBitmap);
+// var
+// pColor  : PDWORD;
+// I, count: Integer;
+// begin
+// pColor := GetBitsPointer(bmp);
+// count  := bmp.width * bmp.height;
+// for I  := 0 to count - 1 do
+// begin
+// pColor^ := not pColor^;
+// Inc(pColor);
+// end;
+// end;
 var
-  pColor  : PDWORD;
+  pColor  : PUInt64;
   I, count: Integer;
 begin
   pColor := GetBitsPointer(bmp);
-  count  := bmp.width * bmp.height;
+  count  := bmp.width * bmp.height div 2;
   for I  := 0 to count - 1 do
   begin
     pColor^ := not pColor^;
