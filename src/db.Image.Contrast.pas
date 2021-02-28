@@ -14,9 +14,9 @@ interface
 uses Winapi.Windows, System.Threading, System.Math, Vcl.Graphics, db.Image.Common;
 
 type
-  TContrastType = (ctScanline, ctDelphi, ctTable, ctTableParallel, ctParallel, ctSSEParallel, ctSSE2, ctSSE4, ctAVX1, ctAVX2, ctAVX512knl, ctAVX512skx);
+  TContrastType = (ctScanline, ctDelphi, ctParallel, ctSSEParallel, ctSSE2, ctSSE4, ctAVX1, ctAVX2, ctAVX512knl, ctAVX512skx);
 
-procedure Contrast(bmp: TBitmap; const intContrastValue: Integer; const ct: TContrastType = ctTableParallel);
+procedure Contrast(bmp: TBitmap; const intContrastValue: Integer; const ct: TContrastType = ctParallel);
 
 implementation
 
@@ -24,15 +24,17 @@ procedure Contrast_ScanLine(bmp: TBitmap; const intContrastValue: Integer);
 var
   X, Y  : Integer;
   pColor: PRGBQuad;
+  kValue: Integer;
 begin
-  for Y := 0 to bmp.Height - 1 do
+  kValue := IfThen(intContrastValue < 0, 255, 128);
+  for Y  := 0 to bmp.Height - 1 do
   begin
     pColor := bmp.ScanLine[Y];
     for X  := 0 to bmp.Width - 1 do
     begin
-      pColor^.rgbRed   := EnsureRange(((pColor^.rgbRed - 128) * intContrastValue + 12800) div 100, 0, 255);
-      pColor^.rgbGreen := EnsureRange(((pColor^.rgbGreen - 128) * intContrastValue + 12800) div 100, 0, 255);
-      pColor^.rgbBlue  := EnsureRange(((pColor^.rgbBlue - 128) * intContrastValue + 12800) div 100, 0, 255);
+      pColor^.rgbRed   := EnsureRange(pColor^.rgbRed + Round(((pColor^.rgbRed - 128) * intContrastValue) / kValue), 0, 255);
+      pColor^.rgbGreen := EnsureRange(pColor^.rgbGreen + Round(((pColor^.rgbGreen - 128) * intContrastValue) / kValue), 0, 255);
+      pColor^.rgbBlue  := EnsureRange(pColor^.rgbBlue + Round(((pColor^.rgbBlue - 128) * intContrastValue) / kValue), 0, 255);
       Inc(pColor);
     end;
   end;
@@ -42,63 +44,18 @@ procedure Contrast_Delphi(bmp: TBitmap; const intContrastValue: Integer);
 var
   I, Count: Integer;
   pColor  : PRGBQuad;
+  kValue  : Integer;
 begin
   Count  := bmp.Width * bmp.Height;
   pColor := GetBitsPointer(bmp);
+  kValue := IfThen(intContrastValue < 0, 255, 128);
   for I  := 0 to Count - 1 do
   begin
-    pColor^.rgbRed   := EnsureRange(((pColor^.rgbRed - 128) * intContrastValue div 100 + 128), 0, 255);
-    pColor^.rgbGreen := EnsureRange(((pColor^.rgbGreen - 128) * intContrastValue div 100 + 128), 0, 255);
-    pColor^.rgbBlue  := EnsureRange(((pColor^.rgbBlue - 128) * intContrastValue div 100 + 128), 0, 255);
+    pColor^.rgbRed   := EnsureRange(pColor^.rgbRed + Round(((pColor^.rgbRed - 128) * intContrastValue) / kValue), 0, 255);
+    pColor^.rgbGreen := EnsureRange(pColor^.rgbGreen + Round(((pColor^.rgbGreen - 128) * intContrastValue) / kValue), 0, 255);
+    pColor^.rgbBlue  := EnsureRange(pColor^.rgbBlue + Round(((pColor^.rgbBlue - 128) * intContrastValue) / kValue), 0, 255);
     Inc(pColor);
   end;
-end;
-
-procedure Contrast_Table(bmp: TBitmap; const intContrastValue: Integer);
-var
-  I, Count: Integer;
-  pColor  : PRGBQuad;
-begin
-  Count  := bmp.Width * bmp.Height;
-  pColor := GetBitsPointer(bmp);
-  for I  := 0 to Count - 1 do
-  begin
-    pColor^.rgbRed   := g_ContrastTable[pColor^.rgbRed, intContrastValue];
-    pColor^.rgbGreen := g_ContrastTable[pColor^.rgbGreen, intContrastValue];
-    pColor^.rgbBlue  := g_ContrastTable[pColor^.rgbBlue, intContrastValue];
-    Inc(pColor);
-  end;
-end;
-
-procedure Contrast_Table_Parallel_Proc(pColor: PRGBQuad; const intContrastValue, bmpWidth: Integer);
-var
-  X: Integer;
-begin
-  for X := 0 to bmpWidth - 1 do
-  begin
-    pColor^.rgbRed   := g_ContrastTable[pColor^.rgbRed, intContrastValue];
-    pColor^.rgbGreen := g_ContrastTable[pColor^.rgbGreen, intContrastValue];
-    pColor^.rgbBlue  := g_ContrastTable[pColor^.rgbBlue, intContrastValue];
-    Inc(pColor);
-  end;
-end;
-
-procedure Contrast_TableParallel(bmp: TBitmap; const intContrastValue: Integer);
-var
-  StartScanLine: Integer;
-  bmpWidthBytes: Integer;
-begin
-  StartScanLine := Integer(bmp.ScanLine[0]);
-  bmpWidthBytes := Integer(bmp.ScanLine[1]) - Integer(bmp.ScanLine[0]);
-
-  TParallel.For(0, bmp.Height - 1,
-    procedure(Y: Integer)
-    var
-      pColor: PRGBQuad;
-    begin
-      pColor := PRGBQuad(StartScanLine + Y * bmpWidthBytes);
-      Contrast_Table_Parallel_Proc(pColor, intContrastValue, bmp.Width);
-    end);
 end;
 
 procedure Contrast_Parallel(bmp: TBitmap; const intContrastValue: Integer);
@@ -114,13 +71,15 @@ begin
     var
       X: Integer;
       pColor: PRGBQuad;
+      kValue: Integer;
     begin
       pColor := PRGBQuad(StartScanLine + Y * bmpWidthBytes);
+      kValue := IfThen(intContrastValue < 0, 255, 128);
       for X := 0 to bmp.Width - 1 do
       begin
-        pColor^.rgbRed := EnsureRange(((pColor^.rgbRed - 128) * intContrastValue div 100 + 128), 0, 255);
-        pColor^.rgbGreen := EnsureRange(((pColor^.rgbGreen - 128) * intContrastValue div 100 + 128), 0, 255);
-        pColor^.rgbBlue := EnsureRange(((pColor^.rgbBlue - 128) * intContrastValue div 100 + 128), 0, 255);
+        pColor^.rgbRed := EnsureRange(pColor^.rgbRed + Round(((pColor^.rgbRed - 128) * intContrastValue) / kValue), 0, 255);
+        pColor^.rgbGreen := EnsureRange(pColor^.rgbGreen + Round(((pColor^.rgbGreen - 128) * intContrastValue) / kValue), 0, 255);
+        pColor^.rgbBlue := EnsureRange(pColor^.rgbBlue + Round(((pColor^.rgbBlue - 128) * intContrastValue) / kValue), 0, 255);
         Inc(pColor);
       end;
     end);
@@ -136,7 +95,6 @@ asm
   SHUFPS  XMM1, XMM1, 0                     // XMM1 = |00000080|00000080|00000080|00000080
   SHUFPS  XMM2, XMM2, 0                     // XMM2 = |intContrastValue|intContrastValue|intContrastValue|intContrastValue
   SHUFPS  XMM3, XMM3, 0                     // XMM3 = |0000000A|0000000A|0000000A|0000000A
-  PXOR    XMM4, XMM4
 
 @LOOP:
   MOVUPS  XMM5, [EAX]                       // XMM5 = |A3R3G3B3|A2R2G2B2|A1R1G1B1|A0R0G0B0|
@@ -155,27 +113,71 @@ asm
   ANDPS   XMM7, XMM0                        // XMM7 = |000000R3|000000R2|000000R1|000000R0|
 
   // 计算对比度
-  PSUBD   XMM5, XMM1                        // XMM5 = (pColor^.rgbBlue - 128)
-  PMULLD  XMM5, XMM2                        // XMM5 = (pColor^.rgbBlue - 128) * intContrastValue
-  PMULLD  XMM5, XMM3                        // XMM5 = (pColor^.rgbBlue - 128) * intContrastValue * 655
-  PSRAD   XMM5, 16                          // XMM5 = (pColor^.rgbBlue - 128) * intContrastValue * 655 / 65536  =  (pColor^.rgbBlue - 128) * intContrastValue / 100
-  PADDD   XMM5, XMM1                        // XMM5 = (pColor^.rgbBlue - 128) * intContrastValue / 100 + 128
-  PADDUSB XMM5, XMM4                        // 饱和加法，控制在 0---255 直接
+  CMP  EDX, 0
+  JG   @Large
+  MOVAPS    XMM4, XMM5                      // XMM4 = XMM5
+  PSUBW     XMM5, XMM1                      // XMM5 = pColor^.rgbRed - 128
+  PMULLW    XMM5, XMM2                      // XMM5 = (pColor^.rgbRed - 128) * intContrastValue
+  DIVPS     XMM5, XMM0                      // XMM5 = (pColor^.rgbRed - 128) * intContrastValue / 255
+  CVTTPS2DQ XMM5, XMM5                      // XMM5 = Round((pColor^.rgbRed - 128) * intContrastValue / 255)
+  PADDB     XMM5, XMM4                      // XMM5 = pColor^.rgbRed + Round((pColor^.rgbRed - 128) * intContrastValue / 255);
 
-  PSUBD   XMM6, XMM1                        // XMM6 = (pColor^.rgbGreen - 128)
-  PMULLD  XMM6, XMM2                        // XMM6 = (pColor^.rgbGreen - 128) * intContrastValue
-  PMULLD  XMM6, XMM3                        // XMM6 = (pColor^.rgbGreen - 128) * intContrastValue * 655
-  PSRAD   XMM6, 16                          // XMM6 = (pColor^.rgbGreen - 128) * intContrastValue * 655 / 65536  =  (pColor^.rgbGreen - 128) * intContrastValue / 100
-  PADDD   XMM6, XMM1                        // XMM6 = (pColor^.rgbGreen - 128) * intContrastValue / 100 + 128
-  PADDUSB XMM6, XMM4
+  MOVAPS    XMM4, XMM6
+  PSUBW     XMM6, XMM1                      // XMM6 = pColor^.rgbGreen - 128
+  PMULLW    XMM6, XMM2                      // XMM6 = (pColor^.rgbGreen - 128) * intContrastValue
+  DIVPS     XMM6, XMM0                      // XMM6 = (pColor^.rgbGreen - 128) * intContrastValue / 255
+  CVTTPS2DQ XMM6, XMM6                      // XMM6 = Round((pColor^.rgbGreen - 128) * intContrastValue / 255)
+  PADDB     XMM6, XMM4                      // XMM6 = pColor^.rgbGreen + Round((pColor^.rgbGreen - 128) * intContrastValue / 255);
 
-  PSUBD   XMM7, XMM1                        // XMM7 = (pColor^.rgbRed - 128)
-  PMULLD  XMM7, XMM2                        // XMM7 = (pColor^.rgbRed - 128) * intContrastValue
-  PMULLD  XMM7, XMM3                        // XMM7 = (pColor^.rgbRed - 128) * intContrastValue * 655
-  PSRLD   XMM7, 16                          // XMM7 = (pColor^.rgbRed - 128) * intContrastValue * 655 / 65536  =  (pColor^.rgbRed - 128) * intContrastValue / 100
-  PADDD   XMM7, XMM1                        // XMM7 = (pColor^.rgbRed - 128) * intContrastValue / 100 + 128
-  PADDUSB XMM7, XMM4
+  MOVAPS    XMM4, XMM7
+  PSUBW     XMM7, XMM1                      // XMM7 = pColor^.rgbBlue - 128
+  PMULLW    XMM7, XMM2                      // XMM7 = (pColor^.rgbBlue - 128) * intContrastValue
+  DIVPS     XMM7, XMM0                      // XMM7 = (pColor^.rgbBlue - 128) * intContrastValue / 255
+  CVTTPS2DQ XMM7, XMM7                      // XMM7 = Round((pColor^.rgbBlue - 128) * intContrastValue / 255)
+  PADDB     XMM7, XMM4                      // XMM7 = pColor^.rgbBlue + Round((pColor^.rgbBlue - 128) * intContrastValue / 255);
+  JMP       @Result
 
+@Large:
+  MOVAPS    XMM4, XMM5                      // XMM4 = XMM5
+  PSUBD     XMM5, XMM1                      // XMM5 = pColor^.rgbRed - 128
+  PMULLD    XMM5, XMM2                      // XMM5 = (pColor^.rgbRed - 128) * intContrastValue
+  CMP       EDX,  0
+  JG        @LargeR
+  DIVPS     XMM5, XMM0                      // XMM5 = (pColor^.rgbRed - 128) * intContrastValue / 255
+  JMP       @ResultR
+@LargeR:
+  DIVPS     XMM5, XMM1                      // XMM5 = (pColor^.rgbRed - 128) * intContrastValue / 128
+@ResultR:
+  CVTTPS2DQ XMM5, XMM5                      // XMM5 = Round((pColor^.rgbRed - 128) * intContrastValue / kValue)
+  PADDUSB   XMM5, XMM4                      // XMM5 = pColor^.rgbRed + Round((pColor^.rgbRed - 128) * intContrastValue / kValue);
+
+  MOVAPS    XMM4, XMM6                      // XMM4 = XMM6
+  PSUBD     XMM6, XMM1                      // XMM6 = pColor^.rgbGreen - 128
+  PMULLD    XMM6, XMM2                      // XMM6 = (pColor^.rgbGreen - 128) * intContrastValue
+  CMP       EDX,  0
+  JG        @LargeG
+  DIVPS     XMM6, XMM0                      // XMM6 = (pColor^.rgbGreen - 128) * intContrastValue / 255
+  JMP       @ResultG
+@LargeG:
+  DIVPS     XMM6, XMM1                      // XMM6 = (pColor^.rgbGreen - 128) * intContrastValue / 128
+@ResultG:
+  CVTTPS2DQ XMM6, XMM6                      // XMM6 = Round((pColor^.rgbGreen - 128) * intContrastValue / kValue)
+  PADDUSB   XMM6, XMM4                      // XMM6 = pColor^.rgbGreen + Round((pColor^.rgbGreen - 128) * intContrastValue / kValue);
+
+  MOVAPS    XMM4, XMM7                      // XMM4 = XMM7
+  PSUBD     XMM7, XMM1                      // XMM7 = pColor^.rgbBlue - 128
+  PMULLD    XMM7, XMM2                      // XMM7 = (pColor^.rgbBlue - 128) * intContrastValue
+  CMP       EDX,  0
+  JG        @LargeB
+  DIVPS     XMM7, XMM0                      // XMM7 = (pColor^.rgbBlue - 128) * intContrastValue / 255
+  JMP       @ResultB
+@LargeB:
+  DIVPS     XMM7, XMM1                      // XMM7 = (pColor^.rgbBlue - 128) * intContrastValue / 128
+@ResultB:
+  CVTTPS2DQ XMM7, XMM7                      // XMM7 = Round((pColor^.rgbBlue - 128) * intContrastValue / kValue)
+  PADDUSB   XMM7, XMM4                      // XMM7 = pColor^.rgbBlue + Round((pColor^.rgbBlue - 128) * intContrastValue / kValue);
+
+@Result:
   // 返回结果
   PSLLD   XMM6,  8                          // XMM6  = |0000Y300|0000Y200|0000Y100|0000Y000|
   PSLLD   XMM7,  16                         // XMM7  = |00Y30000|00Y20000|00Y10000|00Y00000|
@@ -206,7 +208,7 @@ begin
     end);
 end;
 
-procedure Contrast(bmp: TBitmap; const intContrastValue: Integer; const ct: TContrastType = ctTableParallel);
+procedure Contrast(bmp: TBitmap; const intContrastValue: Integer; const ct: TContrastType = ctParallel);
 var
   pColor: PByte;
   pContr: PDWORD;
@@ -216,15 +218,11 @@ begin
 
   case ct of
     ctScanline:
-      Contrast_ScanLine(bmp, intContrastValue);      // 105 ms
-    ctDelphi:                                        //
-      Contrast_Delphi(bmp, intContrastValue);        // 100 ms
-    ctTable:                                         //
-      Contrast_Table(bmp, intContrastValue);         //
-    ctTableParallel:                                 //
-      Contrast_TableParallel(bmp, intContrastValue); //
-    ctParallel:                                      //
-      Contrast_Parallel(bmp, intContrastValue);      //
+      Contrast_ScanLine(bmp, intContrastValue); // 105 ms
+    ctDelphi:                                   //
+      Contrast_Delphi(bmp, intContrastValue);   // 100 ms
+    ctParallel:                                 //
+      Contrast_Parallel(bmp, intContrastValue); //
     ctSSEParallel:
       Contrast_SSEParallel(bmp, intContrastValue);                                     //
     ctSSE2:                                                                            //
