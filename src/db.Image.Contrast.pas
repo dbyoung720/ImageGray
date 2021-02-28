@@ -141,39 +141,21 @@ asm
   MOVAPS    XMM4, XMM5                      // XMM4 = XMM5
   PSUBD     XMM5, XMM1                      // XMM5 = pColor^.rgbRed - 128
   PMULLD    XMM5, XMM2                      // XMM5 = (pColor^.rgbRed - 128) * intContrastValue
-  CMP       EDX,  0
-  JG        @LargeR
-  DIVPS     XMM5, XMM0                      // XMM5 = (pColor^.rgbRed - 128) * intContrastValue / 255
-  JMP       @ResultR
-@LargeR:
   DIVPS     XMM5, XMM1                      // XMM5 = (pColor^.rgbRed - 128) * intContrastValue / 128
-@ResultR:
   CVTTPS2DQ XMM5, XMM5                      // XMM5 = Round((pColor^.rgbRed - 128) * intContrastValue / kValue)
   PADDUSB   XMM5, XMM4                      // XMM5 = pColor^.rgbRed + Round((pColor^.rgbRed - 128) * intContrastValue / kValue);
 
   MOVAPS    XMM4, XMM6                      // XMM4 = XMM6
   PSUBD     XMM6, XMM1                      // XMM6 = pColor^.rgbGreen - 128
   PMULLD    XMM6, XMM2                      // XMM6 = (pColor^.rgbGreen - 128) * intContrastValue
-  CMP       EDX,  0
-  JG        @LargeG
-  DIVPS     XMM6, XMM0                      // XMM6 = (pColor^.rgbGreen - 128) * intContrastValue / 255
-  JMP       @ResultG
-@LargeG:
   DIVPS     XMM6, XMM1                      // XMM6 = (pColor^.rgbGreen - 128) * intContrastValue / 128
-@ResultG:
   CVTTPS2DQ XMM6, XMM6                      // XMM6 = Round((pColor^.rgbGreen - 128) * intContrastValue / kValue)
   PADDUSB   XMM6, XMM4                      // XMM6 = pColor^.rgbGreen + Round((pColor^.rgbGreen - 128) * intContrastValue / kValue);
 
   MOVAPS    XMM4, XMM7                      // XMM4 = XMM7
   PSUBD     XMM7, XMM1                      // XMM7 = pColor^.rgbBlue - 128
   PMULLD    XMM7, XMM2                      // XMM7 = (pColor^.rgbBlue - 128) * intContrastValue
-  CMP       EDX,  0
-  JG        @LargeB
-  DIVPS     XMM7, XMM0                      // XMM7 = (pColor^.rgbBlue - 128) * intContrastValue / 255
-  JMP       @ResultB
-@LargeB:
   DIVPS     XMM7, XMM1                      // XMM7 = (pColor^.rgbBlue - 128) * intContrastValue / 128
-@ResultB:
   CVTTPS2DQ XMM7, XMM7                      // XMM7 = Round((pColor^.rgbBlue - 128) * intContrastValue / kValue)
   PADDUSB   XMM7, XMM4                      // XMM7 = pColor^.rgbBlue + Round((pColor^.rgbBlue - 128) * intContrastValue / kValue);
 
