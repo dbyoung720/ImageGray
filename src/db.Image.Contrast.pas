@@ -90,11 +90,9 @@ asm
   MOVSS   XMM0, [c_PixBGRAMask]             // XMM0 = |00000000|00000000|00000000|000000FF
   MOVSS   XMM1, [c_ContSSEMask]             // XMM1 = |00000000|00000000|00000000|00000080
   MOVD    XMM2, EDX                         // XMM2 = |00000000|00000000|00000000|intContrastValue
-  MOVSS   XMM3, [c_ContSSETENX]             // XMM3 = |00000000|00000000|00000000|0000000A
   SHUFPS  XMM0, XMM0, 0                     // XMM0 = |000000FF|000000FF|000000FF|000000FF
   SHUFPS  XMM1, XMM1, 0                     // XMM1 = |00000080|00000080|00000080|00000080
   SHUFPS  XMM2, XMM2, 0                     // XMM2 = |intContrastValue|intContrastValue|intContrastValue|intContrastValue
-  SHUFPS  XMM3, XMM3, 0                     // XMM3 = |0000000A|0000000A|0000000A|0000000A
 
 @LOOP:
   MOVUPS  XMM5, [EAX]                       // XMM5 = |A3R3G3B3|A2R2G2B2|A1R1G1B1|A0R0G0B0|

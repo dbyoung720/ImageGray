@@ -134,6 +134,8 @@ asm
   ANDPS   XMM7, XMM2                        // XMM7 = |000000R3|000000R2|000000R1|000000R0|
 
   // 计算饱和值                             // Gray = I - alpha[I] = I - (I * intSaturationValue) shr 8
+  CMP     EDX,  255
+  JGE     @Large
   MOVAPS  XMM3, XMM5                        // XMM3  = XMM5
   PADDD   XMM5, XMM6                        // XMM5  = G+B
   PADDD   XMM5, XMM7                        // XMM5  = G+B+R
@@ -160,8 +162,38 @@ asm
   PSRLD   XMM7, 8                           // XMM7 = (pColor^.rgbRed * intSaturationValue) >> 8 = alpha[pColor^.rgbRed]
   PADDW   XMM7, XMM4                        // XMM7 = Gray + alpha[pColor^.rgbRed]
   PADDUSB XMM7, XMM3                        // XMM7 控制在 0 --- 255 之间
+  JMP     @Result
+
+@Large:
+  MOVAPS  XMM3, XMM5                        // XMM3  = XMM5
+  PADDD   XMM5, XMM6                        // XMM5  = G+B
+  PADDD   XMM5, XMM7                        // XMM5  = G+B+R
+  PMULLW  XMM5, XMM0                        // XMM5  = (G+B+R)*85
+  PSRLD   XMM5,  8                          // XMM5  = I = (G+B+R)*85/256 = (G+B+R) / 3
+  MOVAPS  XMM4, XMM5                        // XMM4  = I = (G+B+R)*85/256 = (G+B+R) / 3
+  PMULLW  XMM5, XMM1                        // XMM5  = I * intSaturationValue
+  PSRLD   XMM5,  8                          // XMM5  = I * intSaturationValue >> 8
+  PSUBW   XMM4, XMM5                        // XMM4  = Gray = I - alpha[I]
+
+  PMULLW  XMM3, XMM1                        // XMM3 = pColor^.rgbBlue * intSaturationValue
+  PSRLD   XMM3, 8                           // XMM3 = (pColor^.rgbBlue * intSaturationValue) >> 8 = alpha[pColor^.rgbBlue]
+  PADDW   XMM3, XMM4                        // XMM3 = Gray + alpha[pColor^.rgbBlue]
+  MOVAPS  XMM5, XMM3                        // XMM5 = Gray + alpha[pColor^.rgbBlue]
+  PXOR    XMM3, XMM3                        // XMM3 = |00000000|00000000|00000000|00000000|
+  PADDUSB XMM5, XMM3                        // XMM5 控制在 0 --- 255 之间
+
+  PMULLW  XMM6, XMM1                        // XMM6 = pColor^.rgbGreen * intSaturationValue
+  PSRLD   XMM6, 8                           // XMM6 = (pColor^.rgbGreen * intSaturationValue) >> 8 = alpha[pColor^.rgbGreen]
+  PADDW   XMM6, XMM4                        // XMM6 = Gray + alpha[pColor^.rgbGreen]
+  PADDB   XMM6, XMM3                        // XMM6 控制在 0 --- 255 之间
+
+  PMULLW  XMM7, XMM1                        // XMM7 = pColor^.rgbRed * intSaturationValue
+  PSRLD   XMM7, 8                           // XMM7 = (pColor^.rgbRed * intSaturationValue) >> 8 = alpha[pColor^.rgbRed]
+  PADDW   XMM7, XMM4                        // XMM7 = Gray + alpha[pColor^.rgbRed]
+  PADDB   XMM7, XMM3                        // XMM7 控制在 0 --- 255 之间
 
   // 返回结果
+@Result:
   PSLLD   XMM6,  8                          // XMM6  = |0000Y300|0000Y200|0000Y100|0000Y000|
   PSLLD   XMM7,  16                         // XMM7  = |00Y30000|00Y20000|00Y10000|00Y00000|
   ORPS    XMM5,  XMM6                       // XMM5  = |0000Y3Y3|0000Y2Y2|0000Y1Y1|0000Y0Y0|
