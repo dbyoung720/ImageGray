@@ -63,9 +63,9 @@ end;
 procedure VertiMirror(bmp: TBitmap);
 var
   Count, Y: Integer;
-  pColor01: PByte;
-  pColor02: PByte;
-  tmpColor: PByte;
+  pColor01: Pointer;
+  pColor02: Pointer;
+  tmpColor: Pointer;
 begin
   Count    := Integer(bmp.ScanLine[0]) - Integer(bmp.ScanLine[1]);
   tmpColor := AllocMem(Count);
@@ -77,6 +77,9 @@ begin
       Move(pColor01^, tmpColor^, Count);
       Move(pColor02^, pColor01^, Count);
       Move(tmpColor^, pColor02^, Count);
+      // apex_memcpy(tmpColor, pColor01, Count);
+      // apex_memcpy(pColor01, pColor02, Count);
+      // apex_memcpy(pColor02, tmpColor, Count);
     end;
   finally
     FreeMem(tmpColor);

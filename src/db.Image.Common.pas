@@ -11,7 +11,7 @@ unit db.Image.Common;
 
 interface
 
-uses Winapi.Windows, Winapi.GDIPAPI, System.Classes, System.SysUtils, System.UITypes, System.Math, Vcl.Forms, Vcl.StdCtrls, Vcl.Graphics, Vcl.ComCtrls;
+uses Winapi.Windows, Winapi.GDIPAPI, System.Classes, System.SysUtils, System.UITypes, System.Math, System.Win.Crtl, Vcl.Forms, Vcl.StdCtrls, Vcl.Graphics, Vcl.ComCtrls;
 
 const
   c_intMinMaxValue: array [0 .. 4, 0 .. 1] of Integer = ((-255, 255), (-255, 255), (-255, 255), (0, 360), (0, 255));
@@ -120,14 +120,13 @@ type
   PVec4i       = ^TVec4i;
   PVec4f       = ^TVec4f;
 
-function GetBmpWidthBytes(bmp: TBitmap):DWORD;
+function GetBmpWidthBytes(bmp: TBitmap): DWORD;
 function GetBitsPointer(bmp: TBitmap): Pointer;
 function GetPixelGray(const r, g, b: Byte): TRGBQuad; inline;
 function CheckValue(const intValue, intRange: Integer): Byte; inline;
 procedure ShowColorChange(frmMain: TForm; cc: TColorChange; OnChangeLight, OnLightResetClick, OnLightCancelClick, OnLightOKClick: TNotifyEvent; var lblValueShow: TLabel; const intMinValue, intMaxValue: Integer; const strCaption, strTip: string);
 
 function CRC32_Calculate(Buffer: PChar; len: Cardinal): Cardinal; cdecl; external name {$IFDEF win32} '_sse42_calculate'; {$ELSE} 'sse42_calculate'; {$ENDIF}
-
 procedure bgraGray_sse2(src: PByte; dst: PDWORD; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraGray_sse2' {$ELSE} name 'bgraGray_sse2' {$IFEND};
 procedure bgraGray_sse4(src: PByte; dst: PDWORD; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraGray_sse4' {$ELSE} name 'bgraGray_sse4' {$IFEND};
 procedure bgraGray_avx1(src: PByte; dst: PDWORD; width, height: Integer); cdecl; external {$IFDEF WIN32}name '_bgraGray_avx' {$ELSE} name 'bgraGray_avx' {$IFEND};
@@ -163,6 +162,9 @@ procedure bgraSaturation_avx2(src: PByte; dst: PDWORD; width, height, keyValue: 
 procedure bgraSaturation_avx512skx(src: PByte; dst: PDWORD; width, height, keyValue: Integer; alpha: TAlpha; grays: TGrays); cdecl; external {$IFDEF WIN32}name '_bgraSaturation_avx512skx' {$ELSE} name 'bgraSaturation_avx512skx' {$IFEND};
 procedure bgraSaturation_avx512knl(src: PByte; dst: PDWORD; width, height, keyValue: Integer; alpha: TAlpha; grays: TGrays); cdecl; external {$IFDEF WIN32}name '_bgraSaturation_avx512knl' {$ELSE} name 'bgraSaturation_avx512knl' {$IFEND};
 
+function apex_memcpy(var dst; const src; Count: NativeInt): Pointer; cdecl; external {$IFDEF WIN32}name '_apex_memcpy'{$ELSE} name 'apex_memcpy' {$IFEND};
+function apex_memmove(var dst; const src; Count: NativeInt): Pointer; cdecl; external {$IFDEF WIN32}name '_apex_memmove'{$ELSE} name 'apex_memmove' {$IFEND};
+
 procedure _abort; cdecl; external 'msvcrt.dll' name 'abort';
 procedure abort; cdecl; external 'msvcrt.dll' name 'abort';
 function __alldiv(a, b: Int64): Int64; stdcall; external 'ntdll.dll' name '_alldiv';
@@ -182,6 +184,7 @@ var
 implementation
 
 {$IFDEF WIN32}
+{$LINK obj\apex_memmove_x86.obj}
 {$LINK obj\crc32_x86.obj}
 {$LINK obj\DAVX_X86.obj}
 {$LINK obj\DAVX_X86_sse2.obj}
@@ -191,6 +194,7 @@ implementation
 {$LINK obj\DAVX_X86_avx512knl.obj}
 {$LINK obj\DAVX_X86_avx512skx.obj}
 {$ELSE}
+{$LINK obj\apex_memmove_x64.obj}
 {$LINK obj\crc32_x64.obj}
 {$LINK obj\DAVX_X64.obj}
 {$LINK obj\DAVX_X64_sse2.obj}
@@ -206,7 +210,7 @@ type
   TBMPAccess         = class(TBitmap);
   TBitmapImageAccess = class(TBitmapImage);
 
-function GetBmpWidthBytes(bmp: TBitmap):DWORD;
+function GetBmpWidthBytes(bmp: TBitmap): DWORD;
 {$IF CompilerVersion < 24.0}
 var
   FImage: PDWORD;
@@ -376,4 +380,3 @@ initialization
   InitContrastTable;
 
 end.
-
