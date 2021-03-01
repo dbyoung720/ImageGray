@@ -50,7 +50,7 @@ begin
   end;
 end;
 
-procedure HSVtoRGB(H, S, V: Integer; var R, G, B: Byte);
+procedure HSVToRGB(H, S, V: Integer; var R, G, B: Byte);
 var
   f, I, p, q, t, VS: Integer;
 begin
@@ -118,6 +118,149 @@ begin
   end;
 end;
 
+procedure RGBToYUV(R, G, B: Byte; var Y, U, V: Byte);
+begin
+  Y := EnsureRange(Round(0.257 * R + 0.504 * G + 0.098 * B) + 16, 0, 255);
+  V := EnsureRange(Round(0.439 * R - 0.368 * G - 0.071 * B) + 128, 0, 255);
+  U := EnsureRange(Round(-0.148 * R - 0.291 * G + 0.439 * B) + 128, 0, 255);
+end;
+
+procedure YUVToRGB(Y, U, V: Byte; var R, G, B: Byte);
+var
+  CY, CU, CV: LongInt;
+begin
+  CY := Y - 16;
+  CU := U - 128;
+  CV := V - 128;
+  R  := EnsureRange(Round(1.164 * CY - 0.002 * CU + 1.596 * CV), 0, 255);
+  G  := EnsureRange(Round(1.164 * CY - 0.391 * CU - 0.813 * CV), 0, 255);
+  B  := EnsureRange(Round(1.164 * CY + 2.018 * CU - 0.001 * CV), 0, 255);
+end;
+
+procedure RGBToYCbCr(R, G, B: Byte; var Y, Cb, Cr: Byte);
+begin
+  Y  := EnsureRange(Round(0.29900 * R + 0.58700 * G + 0.11400 * B), 0, 255);
+  Cb := EnsureRange(Round(-0.16874 * R - 0.33126 * G + 0.50000 * B + 128), 0, 255);
+  Cr := EnsureRange(Round(0.50000 * R - 0.41869 * G - 0.08131 * B + 128), 0, 255);
+end;
+
+procedure YCbCrToRGB(Y, Cb, Cr: Byte; var R, G, B: Byte);
+begin
+  R := EnsureRange(Round(Y + 1.40200 * (Cr - 128)), 0, 255);
+  G := EnsureRange(Round(Y - 0.34414 * (Cb - 128) - 0.71414 * (Cr - 128)), 0, 255);
+  B := EnsureRange(Round(Y + 1.77200 * (Cb - 128)), 0, 255);
+end;
+
+procedure RGBToYCbCr16(R, G, B: Word; var Y, Cb, Cr: Word);
+begin
+  Y  := EnsureRange(Round(0.29900 * R + 0.58700 * G + 0.11400 * B), 0, 65535);
+  Cb := EnsureRange(Round(-0.16874 * R - 0.33126 * G + 0.50000 * B + 32768), 0, 65535);
+  Cr := EnsureRange(Round(0.50000 * R - 0.41869 * G - 0.08131 * B + 32768), 0, 65535);
+end;
+
+procedure YCbCrToRGB16(Y, Cb, Cr: Word; var R, G, B: Word);
+begin
+  R := EnsureRange(Round(Y + 1.40200 * (Cr - 32768)), 0, 65535);
+  G := EnsureRange(Round(Y - 0.34414 * (Cb - 32768) - 0.71414 * (Cr - 32768)), 0, 65535);
+  B := EnsureRange(Round(Y + 1.77200 * (Cb - 32768)), 0, 65535);
+end;
+
+procedure RGBToCMY(R, G, B: Byte; var C, M, Y: Byte);
+begin
+  C := 255 - R;
+  M := 255 - G;
+  Y := 255 - B;
+end;
+
+procedure CMYToRGB(C, M, Y: Byte; var R, G, B: Byte);
+begin
+  R := 255 - C;
+  G := 255 - M;
+  B := 255 - Y;
+end;
+
+procedure RGBToCMY16(R, G, B: Word; var C, M, Y: Word);
+begin
+  C := 65535 - R;
+  M := 65535 - G;
+  Y := 65535 - B;
+end;
+
+procedure CMYToRGB16(C, M, Y: Word; var R, G, B: Word);
+begin
+  R := 65535 - C;
+  G := 65535 - M;
+  B := 65535 - Y;
+end;
+
+procedure RGBToCMYK(R, G, B: Byte; var C, M, Y, K: Byte);
+begin
+  RGBToCMY(R, G, B, C, M, Y);
+  K := Min(C, Min(M, Y));
+  if K = 255 then
+  begin
+    C := 0;
+    M := 0;
+    Y := 0;
+  end
+  else
+  begin
+    C := EnsureRange(Round((C - K) / (255 - K) * 255), 0, 255);
+    M := EnsureRange(Round((M - K) / (255 - K) * 255), 0, 255);
+    Y := EnsureRange(Round((Y - K) / (255 - K) * 255), 0, 255);
+  end;
+end;
+
+procedure CMYKToRGB(C, M, Y, K: Byte; var R, G, B: Byte);
+begin
+  R := (255 - (C - MulDiv(C, K, 255) + K));
+  G := (255 - (M - MulDiv(M, K, 255) + K));
+  B := (255 - (Y - MulDiv(Y, K, 255) + K));
+end;
+
+procedure RGBToCMYK16(R, G, B: Word; var C, M, Y, K: Word);
+begin
+  RGBToCMY16(R, G, B, C, M, Y);
+  K := Min(C, Min(M, Y));
+  if K = 65535 then
+  begin
+    C := 0;
+    M := 0;
+    Y := 0;
+  end
+  else
+  begin
+    C := EnsureRange(Round((C - K) / (65535 - K) * 65535), 0, 65535);
+    M := EnsureRange(Round((M - K) / (65535 - K) * 65535), 0, 65535);
+    Y := EnsureRange(Round((Y - K) / (65535 - K) * 65535), 0, 65535);
+  end;
+end;
+
+procedure CMYKToRGB16(C, M, Y, K: Word; var R, G, B: Word);
+begin
+  R := 65535 - (C - MulDiv(C, K, 65535) + K);
+  G := 65535 - (M - MulDiv(M, K, 65535) + K);
+  B := 65535 - (Y - MulDiv(Y, K, 65535) + K);
+end;
+
+procedure RGBToYCoCg(R, G, B: Byte; var Y, Co, Cg: Byte);
+begin
+  Y  := EnsureRange((R + G shl 1 + B + 2) div 4, 0, 255);
+  Co := EnsureRange((R shl 1 - B shl 1 + 2) div 4 + 128, 0, 255);
+  Cg := EnsureRange((-R + G shl 1 - B + 2) div 4 + 128, 0, 255);
+end;
+
+procedure YCoCgToRGB(Y, Co, Cg: Byte; var R, G, B: Byte);
+var
+  CoInt, CgInt: Integer;
+begin
+  CoInt := Co - 128;
+  CgInt := Cg - 128;
+  R     := EnsureRange(Y + CoInt - CgInt, 0, 255);
+  G     := EnsureRange(Y + CgInt, 0, 255);
+  B     := EnsureRange(Y - CoInt - CgInt, 0, 255);
+end;
+
 procedure ColorMap_Scanline(bmp: TBitmap; const intValue: Integer);
 var
   pColor : PRGBQuad;
@@ -141,7 +284,7 @@ begin
       if S = 0.0 then
         H := 0;
 
-      HSVtoRGB(H, S, V, R, G, B);
+      HSVToRGB(H, S, V, R, G, B);
       pColor^.rgbRed   := R;
       pColor^.rgbGreen := G;
       pColor^.rgbBlue  := B;
@@ -166,7 +309,7 @@ begin
     if S = 0 then
       H := 0;
 
-    HSVtoRGB(H, S, V, R, G, B);
+    HSVToRGB(H, S, V, R, G, B);
     pColor^.rgbRed   := R;
     pColor^.rgbGreen := G;
     pColor^.rgbBlue  := B;

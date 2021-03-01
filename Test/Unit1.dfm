@@ -167,6 +167,7 @@ object Form1: TForm1
       end
       object mniGeometryRotate: TMenuItem
         Caption = #26059#36716
+        OnClick = mniGeometryRotateClick
       end
     end
     object mniSize: TMenuItem

@@ -56,6 +56,7 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure mniEffectExposureClick(Sender: TObject);
     procedure mniGeometryHVMirrorClick(Sender: TObject);
+    procedure mniGeometryRotateClick(Sender: TObject);
   private
     FstrBackFileName : string;
     FbmpBackup       : TBitmap;
@@ -325,6 +326,35 @@ begin
       GeometricTrans(VertiMirror, '垂直翻转用时：%d 毫秒');
     2:
       GeometricTrans(HAndVMirror, '水平+垂直翻转用时：%d 毫秒');
+  end;
+end;
+
+var
+  I: Integer = 5;
+
+procedure TForm1.mniGeometryRotateClick(Sender: TObject);
+var
+  bmpTemp: TBitmap;
+  bmpDst : TBitmap;
+begin
+  bmpTemp := TBitmap.Create;
+  bmpDst  := TBitmap.Create;
+  try
+    with TStopwatch.StartNew do
+    begin
+      bmpTemp.PixelFormat := pf32bit;
+      bmpTemp.Width       := FbmpBackup.Width;
+      bmpTemp.Height      := FbmpBackup.Height;
+      bmpTemp.Canvas.Draw(0, 0, FbmpBackup);
+      Rotate_Parallel(bmpTemp, bmpDst, I);
+      Inc(I, 5);
+      statTip.Panels[0].Text := Format('旋转用时：%d 毫秒', [ElapsedMilliseconds]);
+    end;
+    imgShow.Picture.Bitmap.Assign(bmpDst);
+    imgShow.Invalidate;
+  finally
+    bmpTemp.free;
+    bmpDst.free;
   end;
 end;
 
