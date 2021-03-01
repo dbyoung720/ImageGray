@@ -28,7 +28,7 @@ end;
 function LoadJpeg_GDIPLUS(const strFileName: String; var bmp: TBitmap): Boolean;
 var
   jpg: TGPImage;
-  gp : TGPGraphics;
+  gpg: TGPGraphics;
 begin
   Result := True;
 
@@ -37,11 +37,11 @@ begin
     try
       bmp.PixelFormat := pf32bit;
       bmp.SetSize(jpg.GetWidth, jpg.GetHeight);
-      gp := TGPGraphics.Create(bmp.Canvas.Handle);
+      gpg:= TGPGraphics.Create(bmp.Canvas.Handle);
       try
-        gp.DrawImage(jpg, 0, 0, bmp.Width, bmp.Height);
+        gpg.DrawImage(jpg, 0, 0, bmp.Width, bmp.Height);
       finally
-        gp.Free;
+        gpg.Free;
       end;
     except
       Result := False;
