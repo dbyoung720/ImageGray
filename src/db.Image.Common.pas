@@ -162,8 +162,7 @@ procedure bgraSaturation_avx2(src: PByte; dst: PDWORD; width, height, keyValue: 
 procedure bgraSaturation_avx512skx(src: PByte; dst: PDWORD; width, height, keyValue: Integer; alpha: TAlpha; grays: TGrays); cdecl; external {$IFDEF WIN32}name '_bgraSaturation_avx512skx' {$ELSE} name 'bgraSaturation_avx512skx' {$IFEND};
 procedure bgraSaturation_avx512knl(src: PByte; dst: PDWORD; width, height, keyValue: Integer; alpha: TAlpha; grays: TGrays); cdecl; external {$IFDEF WIN32}name '_bgraSaturation_avx512knl' {$ELSE} name 'bgraSaturation_avx512knl' {$IFEND};
 
-function apex_memcpy(var dst; const src; Count: NativeInt): Pointer; cdecl; external {$IFDEF WIN32}name '_apex_memcpy'{$ELSE} name 'apex_memcpy' {$IFEND};
-function apex_memmove(var dst; const src; Count: NativeInt): Pointer; cdecl; external {$IFDEF WIN32}name '_apex_memmove'{$ELSE} name 'apex_memmove' {$IFEND};
+function apex_memcpy(dst:Pointer; const src:Pointer; Count: NativeInt): Pointer; cdecl; external {$IFDEF WIN32}name '_apex_memmove_dispatcher'{$ELSE} name 'apex_memmove_dispatcher' {$IFEND};
 
 procedure _abort; cdecl; external 'msvcrt.dll' name 'abort';
 procedure abort; cdecl; external 'msvcrt.dll' name 'abort';
