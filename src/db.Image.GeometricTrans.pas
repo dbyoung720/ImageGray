@@ -93,6 +93,22 @@ begin
   VertiMirror(bmp);
 end;
 
+{
+  假设对图片上任意点(x,y)，绕一个坐标点(rx0,ry0)逆时针旋转RotaryAngle角度后的新的坐标设为(x', y')，有公式：
+  x'= (x - rx0)*cos(RotaryAngle) + (y - ry0)*sin(RotaryAngle) + rx0 ;
+  y'=-(x - rx0)*sin(RotaryAngle) + (y - ry0)*cos(RotaryAngle) + ry0 ;
+
+  那么，根据新的坐标点求源坐标点的公式为：
+  x=(x'- rx0)*cos(RotaryAngle) - (y'- ry0)*sin(RotaryAngle) + rx0 ;
+  y=(x'- rx0)*sin(RotaryAngle) + (y'- ry0)*cos(RotaryAngle) + ry0 ;
+
+看看这个循环，影响效率的问题有如下三个：
+  1、有浮点运算；          可优化为整数运算
+  2、只是单个像素点运算；  可优化为整行运算
+  3、- CenterX - MoveX) * cos(RotaryAngle)、- CenterY - MoveY) * sin(RotaryAngle)、- CenterX - MoveX) * sin(RotaryAngle)、- CenterY - MoveY) * cos(RotaryAngle) 可以拿到循环上一层；
+  4、[SrcX, SrcY] 在原图上不见得存在；
+}
+
 procedure Rotate_Point(const bmpSrc: TBitmap; var bmpDst: TBitmap; iAngle: Integer);
 var
   CenterX, CenterY: double;
