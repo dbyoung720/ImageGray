@@ -64,16 +64,16 @@ unit db.Memory.Move;
 interface
 
 { 未按 16 字节对齐 }
-procedure Move_Byte(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
-procedure Move_WORD(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
-procedure Move_DWORD(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
-procedure Move_UINT64(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
-procedure Move_SSE2_16U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
-procedure Move_SSE2_32U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
-procedure Move_SSE2_48U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
-procedure Move_SSE2_64U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
-procedure Move_SSE2_80U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
-procedure Move_SSE2_96U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move______Byte(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move______WORD(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_____DWORD(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move____UINT64(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_SSE2_016U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_SSE2_032U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_SSE2_048U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_SSE2_064U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_SSE2_080U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_SSE2_096U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 procedure Move_SSE2_112U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 procedure Move_SSE2_128U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 procedure Move_SSE2_144U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
@@ -84,9 +84,9 @@ procedure Move_SSE2_208U(const src: Pointer; dst: Pointer; const len: NativeInt)
 procedure Move_SSE2_224U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 procedure Move_SSE2_240U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 procedure Move_SSE2_256U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
-procedure Move_AVX1_32U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
-procedure Move_AVX1_64U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
-procedure Move_AVX1_96U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_AVX1_032U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_AVX1_064U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_AVX1_096U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 procedure Move_AVX1_128U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 procedure Move_AVX1_160U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 procedure Move_AVX1_192U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
@@ -102,23 +102,23 @@ procedure Move_AVX1_480U(const src: Pointer; dst: Pointer; const len: NativeInt)
 procedure Move_AVX1_512U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 
 { 按 16(SSE) / 32(AVX) 字节对齐 }
-procedure Move_SSE2_16A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
-procedure Move_SSE2_32A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
-procedure Move_SSE2_64A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_SSE2_016A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_SSE2_032A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_SSE2_064A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 procedure Move_SSE2_128A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 procedure Move_SSE2_256A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
-procedure Move_SSE4_16A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
-procedure Move_SSE4_32A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
-procedure Move_SSE4_64A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_SSE4_016A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_SSE4_032A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_SSE4_064A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 procedure Move_SSE4_128A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 procedure Move_SSE4_256A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
-procedure Move_AVX1_32A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
-procedure Move_AVX1_64A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_AVX1_032A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_AVX1_064A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 procedure Move_AVX1_128A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 procedure Move_AVX1_256A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 procedure Move_AVX1_512A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
-procedure Move_AVX2_32A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
-procedure Move_AVX2_64A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_AVX2_032A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_AVX2_064A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 procedure Move_AVX2_128A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 procedure Move_AVX2_256A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 procedure Move_AVX2_512A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
@@ -134,7 +134,7 @@ type
   PDWORD = ^DWORD;
 
   { 每一次复制 1 个字节 <Byte> }
-procedure Move_Byte(const src: Pointer; dst: Pointer; const len: NativeInt);
+procedure Move______Byte(const src: Pointer; dst: Pointer; const len: NativeInt);
 var
   pSrc: PByte;
   pDst: PByte;
@@ -151,7 +151,7 @@ begin
 end;
 
 { 每一次复制 2 个字节 <WORD> <长度必须是 2 的倍数> }
-procedure Move_WORD(const src: Pointer; dst: Pointer; const len: NativeInt);
+procedure Move______WORD(const src: Pointer; dst: Pointer; const len: NativeInt);
 var
   pSrc: PWORD;
   pDst: PWORD;
@@ -168,7 +168,7 @@ begin
 end;
 
 { 每一次复制 4 个字节 <DWORD> <长度必须是 4 的倍数> }
-procedure Move_DWORD(const src: Pointer; dst: Pointer; const len: NativeInt);
+procedure Move_____DWORD(const src: Pointer; dst: Pointer; const len: NativeInt);
 var
   pSrc: PDWORD;
   pDst: PDWORD;
@@ -185,7 +185,7 @@ begin
 end;
 
 { 每一次复制 8 个字节 <UINT64> <长度必须是 8 的倍数> }
-procedure Move_UINT64(const src: Pointer; dst: Pointer; const len: NativeInt);
+procedure Move____UINT64(const src: Pointer; dst: Pointer; const len: NativeInt);
 var
   pSrc: PUInt64;
   pDst: PUInt64;
@@ -202,7 +202,7 @@ begin
 end;
 
 { 每一次复制 16 个字节 <128 位> <长度必须是 16 的倍数> }
-procedure Move_SSE2_16U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_SSE2_016U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 asm
   {$IFDEF WIN64}
   XCHG  RAX, RCX
@@ -218,7 +218,7 @@ asm
 end;
 
 { 每一次复制 32 个字节 <256 位> <长度必须是 32 的倍数> }
-procedure Move_SSE2_32U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_SSE2_032U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 asm
   {$IFDEF WIN64}
   XCHG  RAX, RCX
@@ -236,7 +236,7 @@ asm
 end;
 
 { 每一次复制 48 个字节 <512 位> <长度必须是 48 的倍数> }
-procedure Move_SSE2_48U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_SSE2_048U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 asm
   {$IFDEF WIN64}
   XCHG  RAX, RCX
@@ -256,7 +256,7 @@ asm
 end;
 
 { 每一次复制 64 个字节 <512 位> <长度必须是 64 的倍数> }
-procedure Move_SSE2_64U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_SSE2_064U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 asm
   {$IFDEF WIN64}
   XCHG  RAX, RCX
@@ -278,7 +278,7 @@ asm
 end;
 
 { 每一次复制 80 个字节 <640 位> <长度必须是 80 的倍数> }
-procedure Move_SSE2_80U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_SSE2_080U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 asm
   {$IFDEF WIN64}
   XCHG  RAX, RCX
@@ -302,7 +302,7 @@ asm
 end;
 
 { 每一次复制 96 个字节 <768 位> <长度必须是 96 的倍数> }
-procedure Move_SSE2_96U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_SSE2_096U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 asm
   {$IFDEF WIN64}
   XCHG  RAX, RCX
@@ -930,7 +930,7 @@ asm
 end;
 
 { 每一次复制 32 个字节 <256 位> <长度必须是 32 的倍数> }
-procedure Move_AVX1_32U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_AVX1_032U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 asm
   {$IFDEF WIN64}
   XCHG  RAX, RCX
@@ -956,7 +956,7 @@ asm
 end;
 
 { 每一次复制 64 个字节 <512 位> <长度必须是 64 的倍数> }
-procedure Move_AVX1_64U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_AVX1_064U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 asm
   {$IFDEF WIN64}
   XCHG  RAX, RCX
@@ -988,7 +988,7 @@ asm
 end;
 
 { 每一次复制 96 个字节 <768 位> <长度必须是 96 的倍数> }
-procedure Move_AVX1_96U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_AVX1_096U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 asm
   {$IFDEF WIN64}
   XCHG  RAX, RCX
@@ -2294,7 +2294,7 @@ end;
 { ---------------------------------------------------------------------------------------------------------------------------------------- }
 
 { 每一次复制 16 个字节 <128 位> <长度必须是 16 的倍数> }
-procedure Move_SSE2_16A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_SSE2_016A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 asm
   {$IFDEF WIN64}
   XCHG  RAX, RCX
@@ -2310,7 +2310,7 @@ asm
 end;
 
 { 每一次复制 32 个字节 <256 位> <长度必须是 32 的倍数> }
-procedure Move_SSE2_32A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_SSE2_032A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 asm
   {$IFDEF WIN64}
   XCHG  RAX, RCX
@@ -2328,7 +2328,7 @@ asm
 end;
 
 { 每一次复制 64 个字节 <512 位> <长度必须是 64 的倍数> }
-procedure Move_SSE2_64A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_SSE2_064A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 asm
   {$IFDEF WIN64}
   XCHG  RAX, RCX
@@ -2462,7 +2462,7 @@ asm
 end;
 
 { 每一次复制 16 个字节 <128 位> <长度必须是 16 的倍数> }
-procedure Move_SSE4_16A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_SSE4_016A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 asm
   {$IFDEF WIN64}
   XCHG  RAX, RCX
@@ -2479,7 +2479,7 @@ asm
 end;
 
 { 每一次复制 32 个字节 <256 位> <长度必须是 32 的倍数> }
-procedure Move_SSE4_32A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_SSE4_032A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 asm
   {$IFDEF WIN64}
   XCHG  RAX, RCX
@@ -2498,7 +2498,7 @@ asm
 end;
 
 { 每一次复制 64 个字节 <512 位> <长度必须是 64 的倍数> }
-procedure Move_SSE4_64A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_SSE4_064A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 asm
   {$IFDEF WIN64}
   XCHG  RAX, RCX
@@ -2633,7 +2633,7 @@ asm
 end;
 
 { 每一次复制 32 个字节 <256 位> <长度必须是 32 的倍数> }
-procedure Move_AVX1_32A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_AVX1_032A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 asm
   {$IFDEF WIN64}
   XCHG  RAX, RCX
@@ -2659,7 +2659,7 @@ asm
 end;
 
 { 每一次复制 64 个字节 <512 位> <长度必须是 64 的倍数> }
-procedure Move_AVX1_64A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_AVX1_064A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 asm
   {$IFDEF WIN64}
   XCHG  RAX, RCX
@@ -2954,7 +2954,7 @@ asm
 end;
 
 { 每一次复制 32 个字节 <256 位> <长度必须是 32 的倍数> }
-procedure Move_AVX2_32A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_AVX2_032A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 asm
   {$IFDEF WIN64}
   XCHG  RAX, RCX
@@ -2981,7 +2981,7 @@ asm
 end;
 
 { 每一次复制 64 个字节 <512 位> <长度必须是 64 的倍数> }
-procedure Move_AVX2_64A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_AVX2_064A(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 asm
   {$IFDEF WIN64}
   XCHG  RAX, RCX
