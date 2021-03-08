@@ -70,13 +70,35 @@ procedure Move_DWORD(const src: Pointer; dst: Pointer; const len: NativeInt); as
 procedure Move_UINT64(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 procedure Move_SSE2_16U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 procedure Move_SSE2_32U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_SSE2_48U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 procedure Move_SSE2_64U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_SSE2_80U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_SSE2_96U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_SSE2_112U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 procedure Move_SSE2_128U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_SSE2_144U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_SSE2_160U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_SSE2_176U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_SSE2_192U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_SSE2_208U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_SSE2_224U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_SSE2_240U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 procedure Move_SSE2_256U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 procedure Move_AVX1_32U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 procedure Move_AVX1_64U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_AVX1_96U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 procedure Move_AVX1_128U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_AVX1_160U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_AVX1_192U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_AVX1_224U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 procedure Move_AVX1_256U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_AVX1_288U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_AVX1_320U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_AVX1_352U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_AVX1_384U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_AVX1_416U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_AVX1_448U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+procedure Move_AVX1_480U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 procedure Move_AVX1_512U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 
 { 按 16(SSE) / 32(AVX) 字节对齐 }
@@ -111,7 +133,7 @@ type
   DWORD  = FixedUInt;
   PDWORD = ^DWORD;
 
-{ 每一次复制 1 个字节 <Byte> }
+  { 每一次复制 1 个字节 <Byte> }
 procedure Move_Byte(const src: Pointer; dst: Pointer; const len: NativeInt);
 var
   pSrc: PByte;
@@ -213,6 +235,26 @@ asm
   JNZ    @LOOP
 end;
 
+{ 每一次复制 48 个字节 <512 位> <长度必须是 48 的倍数> }
+procedure Move_SSE2_48U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+asm
+  {$IFDEF WIN64}
+  XCHG  RAX, RCX
+  {$ENDIF}
+@LOOP:
+  LDDQU   XMM0, [EAX+00]
+  LDDQU   XMM1, [EAX+16]
+  LDDQU   XMM2, [EAX+32]
+  MOVDQU  [EDX+00], XMM0
+  MOVDQU  [EDX+16], XMM1
+  MOVDQU  [EDX+32], XMM2
+
+  ADD    EAX, 48
+  ADD    EDX, 48
+  SUB    ECX, 48
+  JNZ    @LOOP
+end;
+
 { 每一次复制 64 个字节 <512 位> <长度必须是 64 的倍数> }
 procedure Move_SSE2_64U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 asm
@@ -232,6 +274,84 @@ asm
   ADD    EAX, 64
   ADD    EDX, 64
   SUB    ECX, 64
+  JNZ    @LOOP
+end;
+
+{ 每一次复制 80 个字节 <640 位> <长度必须是 80 的倍数> }
+procedure Move_SSE2_80U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+asm
+  {$IFDEF WIN64}
+  XCHG  RAX, RCX
+  {$ENDIF}
+@LOOP:
+  LDDQU   XMM0, [EAX+00]
+  LDDQU   XMM1, [EAX+16]
+  LDDQU   XMM2, [EAX+32]
+  LDDQU   XMM3, [EAX+48]
+  LDDQU   XMM4, [EAX+64]
+  MOVDQU  [EDX+00], XMM0
+  MOVDQU  [EDX+16], XMM1
+  MOVDQU  [EDX+32], XMM2
+  MOVDQU  [EDX+48], XMM3
+  MOVDQU  [EDX+64], XMM4
+
+  ADD    EAX, 80
+  ADD    EDX, 80
+  SUB    ECX, 80
+  JNZ    @LOOP
+end;
+
+{ 每一次复制 96 个字节 <768 位> <长度必须是 96 的倍数> }
+procedure Move_SSE2_96U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+asm
+  {$IFDEF WIN64}
+  XCHG  RAX, RCX
+  {$ENDIF}
+@LOOP:
+  LDDQU   XMM0, [EAX+00]
+  LDDQU   XMM1, [EAX+16]
+  LDDQU   XMM2, [EAX+32]
+  LDDQU   XMM3, [EAX+48]
+  LDDQU   XMM4, [EAX+64]
+  LDDQU   XMM5, [EAX+80]
+  MOVDQU  [EDX+00], XMM0
+  MOVDQU  [EDX+16], XMM1
+  MOVDQU  [EDX+32], XMM2
+  MOVDQU  [EDX+48], XMM3
+  MOVDQU  [EDX+64], XMM4
+  MOVDQU  [EDX+80], XMM5
+
+  ADD    EAX, 96
+  ADD    EDX, 96
+  SUB    ECX, 96
+  JNZ    @LOOP
+end;
+
+{ 每一次复制 112 个字节 <896 位> <长度必须是 112 的倍数> }
+procedure Move_SSE2_112U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+asm
+  {$IFDEF WIN64}
+  XCHG  RAX, RCX
+  {$ENDIF}
+@LOOP:
+  LDDQU   XMM0, [EAX+000]
+  LDDQU   XMM1, [EAX+016]
+  LDDQU   XMM2, [EAX+032]
+  LDDQU   XMM3, [EAX+048]
+  LDDQU   XMM4, [EAX+064]
+  LDDQU   XMM5, [EAX+080]
+  LDDQU   XMM6, [EAX+096]
+  MOVDQU  [EDX+000], XMM0
+  MOVDQU  [EDX+016], XMM1
+  MOVDQU  [EDX+032], XMM2
+  MOVDQU  [EDX+048], XMM3
+  MOVDQU  [EDX+064], XMM4
+  MOVDQU  [EDX+080], XMM5
+  MOVDQU  [EDX+096], XMM6
+
+  ADD    EAX, 112
+  ADD    EDX, 112
+  SUB    ECX, 112
   JNZ    @LOOP
 end;
 
@@ -262,6 +382,468 @@ asm
   ADD    EAX, 128
   ADD    EDX, 128
   SUB    ECX, 128
+  JNZ    @LOOP
+end;
+
+{ 每一次复制 144 个字节 <1152 位> <长度必须是 144 的倍数> }
+procedure Move_SSE2_144U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+asm
+  {$IFDEF WIN64}
+  XCHG  RAX, RCX
+@LOOP:
+  LDDQU   XMM0,  [EAX+000]
+  LDDQU   XMM1,  [EAX+016]
+  LDDQU   XMM2,  [EAX+032]
+  LDDQU   XMM3,  [EAX+048]
+  LDDQU   XMM4,  [EAX+064]
+  LDDQU   XMM5,  [EAX+080]
+  LDDQU   XMM6,  [EAX+096]
+  LDDQU   XMM7,  [EAX+112]
+  LDDQU   XMM8,  [EAX+128]
+
+  MOVDQU  [EDX+000],  XMM0
+  MOVDQU  [EDX+016],  XMM1
+  MOVDQU  [EDX+032],  XMM2
+  MOVDQU  [EDX+048],  XMM3
+  MOVDQU  [EDX+064],  XMM4
+  MOVDQU  [EDX+080],  XMM5
+  MOVDQU  [EDX+096],  XMM6
+  MOVDQU  [EDX+112],  XMM7
+  MOVDQU  [EDX+128],  XMM8
+  {$ELSE}
+@LOOP:
+  LDDQU   XMM0,  [EAX+000]
+  LDDQU   XMM1,  [EAX+016]
+  LDDQU   XMM2,  [EAX+032]
+  LDDQU   XMM3,  [EAX+048]
+  LDDQU   XMM4,  [EAX+064]
+  LDDQU   XMM5,  [EAX+080]
+  LDDQU   XMM6,  [EAX+096]
+  LDDQU   XMM7,  [EAX+112]
+  MOVDQU [EDX+000],  XMM0
+  MOVDQU [EDX+016],  XMM1
+  MOVDQU [EDX+032],  XMM2
+  MOVDQU [EDX+048],  XMM3
+  MOVDQU [EDX+064],  XMM4
+  MOVDQU [EDX+080],  XMM5
+  MOVDQU [EDX+096],  XMM6
+  MOVDQU [EDX+112],  XMM7
+
+  LDDQU   XMM0,  [EAX+128]
+  MOVDQU  [EDX+128],  XMM0
+  {$ENDIF}
+
+  ADD    EAX, 144
+  ADD    EDX, 144
+  SUB    ECX, 144
+  JNZ    @LOOP
+end;
+
+{ 每一次复制 160 个字节 <1280 位> <长度必须是 160 的倍数> }
+procedure Move_SSE2_160U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+asm
+  {$IFDEF WIN64}
+  XCHG  RAX, RCX
+@LOOP:
+  LDDQU   XMM0,  [EAX+000]
+  LDDQU   XMM1,  [EAX+016]
+  LDDQU   XMM2,  [EAX+032]
+  LDDQU   XMM3,  [EAX+048]
+  LDDQU   XMM4,  [EAX+064]
+  LDDQU   XMM5,  [EAX+080]
+  LDDQU   XMM6,  [EAX+096]
+  LDDQU   XMM7,  [EAX+112]
+  LDDQU   XMM8,  [EAX+128]
+  LDDQU   XMM9,  [EAX+144]
+
+  MOVDQU  [EDX+000],  XMM0
+  MOVDQU  [EDX+016],  XMM1
+  MOVDQU  [EDX+032],  XMM2
+  MOVDQU  [EDX+048],  XMM3
+  MOVDQU  [EDX+064],  XMM4
+  MOVDQU  [EDX+080],  XMM5
+  MOVDQU  [EDX+096],  XMM6
+  MOVDQU  [EDX+112],  XMM7
+  MOVDQU  [EDX+128],  XMM8
+  MOVDQU  [EDX+144],  XMM9
+  {$ELSE}
+@LOOP:
+  LDDQU   XMM0,  [EAX+000]
+  LDDQU   XMM1,  [EAX+016]
+  LDDQU   XMM2,  [EAX+032]
+  LDDQU   XMM3,  [EAX+048]
+  LDDQU   XMM4,  [EAX+064]
+  LDDQU   XMM5,  [EAX+080]
+  LDDQU   XMM6,  [EAX+096]
+  LDDQU   XMM7,  [EAX+112]
+  MOVDQU [EDX+000],  XMM0
+  MOVDQU [EDX+016],  XMM1
+  MOVDQU [EDX+032],  XMM2
+  MOVDQU [EDX+048],  XMM3
+  MOVDQU [EDX+064],  XMM4
+  MOVDQU [EDX+080],  XMM5
+  MOVDQU [EDX+096],  XMM6
+  MOVDQU [EDX+112],  XMM7
+
+  LDDQU   XMM0,  [EAX+128]
+  LDDQU   XMM1,  [EAX+144]
+  MOVDQU  [EDX+128],  XMM0
+  MOVDQU  [EDX+144],  XMM1
+  {$ENDIF}
+
+  ADD    EAX, 160
+  ADD    EDX, 160
+  SUB    ECX, 160
+  JNZ    @LOOP
+end;
+
+{ 每一次复制 176 个字节 <1408 位> <长度必须是 176 的倍数> }
+procedure Move_SSE2_176U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+asm
+  {$IFDEF WIN64}
+  XCHG  RAX, RCX
+@LOOP:
+  LDDQU   XMM0,  [EAX+000]
+  LDDQU   XMM1,  [EAX+016]
+  LDDQU   XMM2,  [EAX+032]
+  LDDQU   XMM3,  [EAX+048]
+  LDDQU   XMM4,  [EAX+064]
+  LDDQU   XMM5,  [EAX+080]
+  LDDQU   XMM6,  [EAX+096]
+  LDDQU   XMM7,  [EAX+112]
+  LDDQU   XMM8,  [EAX+128]
+  LDDQU   XMM9,  [EAX+144]
+  LDDQU   XMM10, [EAX+160]
+
+  MOVDQU  [EDX+000],  XMM0
+  MOVDQU  [EDX+016],  XMM1
+  MOVDQU  [EDX+032],  XMM2
+  MOVDQU  [EDX+048],  XMM3
+  MOVDQU  [EDX+064],  XMM4
+  MOVDQU  [EDX+080],  XMM5
+  MOVDQU  [EDX+096],  XMM6
+  MOVDQU  [EDX+112],  XMM7
+  MOVDQU  [EDX+128],  XMM8
+  MOVDQU  [EDX+144],  XMM9
+  MOVDQU  [EDX+160], XMM10
+  {$ELSE}
+@LOOP:
+  LDDQU   XMM0,  [EAX+000]
+  LDDQU   XMM1,  [EAX+016]
+  LDDQU   XMM2,  [EAX+032]
+  LDDQU   XMM3,  [EAX+048]
+  LDDQU   XMM4,  [EAX+064]
+  LDDQU   XMM5,  [EAX+080]
+  LDDQU   XMM6,  [EAX+096]
+  LDDQU   XMM7,  [EAX+112]
+  MOVDQU [EDX+000],  XMM0
+  MOVDQU [EDX+016],  XMM1
+  MOVDQU [EDX+032],  XMM2
+  MOVDQU [EDX+048],  XMM3
+  MOVDQU [EDX+064],  XMM4
+  MOVDQU [EDX+080],  XMM5
+  MOVDQU [EDX+096],  XMM6
+  MOVDQU [EDX+112],  XMM7
+
+  LDDQU   XMM0,  [EAX+128]
+  LDDQU   XMM1,  [EAX+144]
+  LDDQU   XMM2,  [EAX+160]
+  MOVDQU  [EDX+128],  XMM0
+  MOVDQU  [EDX+144],  XMM1
+  MOVDQU  [EDX+160],  XMM2
+  {$ENDIF}
+
+  ADD    EAX, 176
+  ADD    EDX, 176
+  SUB    ECX, 176
+  JNZ    @LOOP
+end;
+
+{ 每一次复制 192 个字节 <1536 位> <长度必须是 192 的倍数> }
+procedure Move_SSE2_192U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+asm
+  {$IFDEF WIN64}
+  XCHG  RAX, RCX
+@LOOP:
+  LDDQU   XMM0,  [EAX+000]
+  LDDQU   XMM1,  [EAX+016]
+  LDDQU   XMM2,  [EAX+032]
+  LDDQU   XMM3,  [EAX+048]
+  LDDQU   XMM4,  [EAX+064]
+  LDDQU   XMM5,  [EAX+080]
+  LDDQU   XMM6,  [EAX+096]
+  LDDQU   XMM7,  [EAX+112]
+  LDDQU   XMM8,  [EAX+128]
+  LDDQU   XMM9,  [EAX+144]
+  LDDQU   XMM10, [EAX+160]
+  LDDQU   XMM11, [EAX+176]
+
+  MOVDQU  [EDX+000],  XMM0
+  MOVDQU  [EDX+016],  XMM1
+  MOVDQU  [EDX+032],  XMM2
+  MOVDQU  [EDX+048],  XMM3
+  MOVDQU  [EDX+064],  XMM4
+  MOVDQU  [EDX+080],  XMM5
+  MOVDQU  [EDX+096],  XMM6
+  MOVDQU  [EDX+112],  XMM7
+  MOVDQU  [EDX+128],  XMM8
+  MOVDQU  [EDX+144],  XMM9
+  MOVDQU  [EDX+160], XMM10
+  MOVDQU  [EDX+176], XMM11
+  {$ELSE}
+@LOOP:
+  LDDQU   XMM0,  [EAX+000]
+  LDDQU   XMM1,  [EAX+016]
+  LDDQU   XMM2,  [EAX+032]
+  LDDQU   XMM3,  [EAX+048]
+  LDDQU   XMM4,  [EAX+064]
+  LDDQU   XMM5,  [EAX+080]
+  LDDQU   XMM6,  [EAX+096]
+  LDDQU   XMM7,  [EAX+112]
+  MOVDQU [EDX+000],  XMM0
+  MOVDQU [EDX+016],  XMM1
+  MOVDQU [EDX+032],  XMM2
+  MOVDQU [EDX+048],  XMM3
+  MOVDQU [EDX+064],  XMM4
+  MOVDQU [EDX+080],  XMM5
+  MOVDQU [EDX+096],  XMM6
+  MOVDQU [EDX+112],  XMM7
+
+  LDDQU   XMM0,  [EAX+128]
+  LDDQU   XMM1,  [EAX+144]
+  LDDQU   XMM2,  [EAX+160]
+  LDDQU   XMM3,  [EAX+176]
+  MOVDQU  [EDX+128],  XMM0
+  MOVDQU  [EDX+144],  XMM1
+  MOVDQU  [EDX+160],  XMM2
+  MOVDQU  [EDX+176],  XMM3
+  {$ENDIF}
+
+  ADD    EAX, 192
+  ADD    EDX, 192
+  SUB    ECX, 192
+  JNZ    @LOOP
+end;
+
+{ 每一次复制 208 个字节 <1664 位> <长度必须是 208 的倍数> }
+procedure Move_SSE2_208U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+asm
+  {$IFDEF WIN64}
+  XCHG  RAX, RCX
+@LOOP:
+  LDDQU   XMM0,  [EAX+000]
+  LDDQU   XMM1,  [EAX+016]
+  LDDQU   XMM2,  [EAX+032]
+  LDDQU   XMM3,  [EAX+048]
+  LDDQU   XMM4,  [EAX+064]
+  LDDQU   XMM5,  [EAX+080]
+  LDDQU   XMM6,  [EAX+096]
+  LDDQU   XMM7,  [EAX+112]
+  LDDQU   XMM8,  [EAX+128]
+  LDDQU   XMM9,  [EAX+144]
+  LDDQU   XMM10, [EAX+160]
+  LDDQU   XMM11, [EAX+176]
+  LDDQU   XMM12, [EAX+192]
+
+  MOVDQU  [EDX+000],  XMM0
+  MOVDQU  [EDX+016],  XMM1
+  MOVDQU  [EDX+032],  XMM2
+  MOVDQU  [EDX+048],  XMM3
+  MOVDQU  [EDX+064],  XMM4
+  MOVDQU  [EDX+080],  XMM5
+  MOVDQU  [EDX+096],  XMM6
+  MOVDQU  [EDX+112],  XMM7
+  MOVDQU  [EDX+128],  XMM8
+  MOVDQU  [EDX+144],  XMM9
+  MOVDQU  [EDX+160], XMM10
+  MOVDQU  [EDX+176], XMM11
+  MOVDQU  [EDX+192], XMM12
+  {$ELSE}
+@LOOP:
+  LDDQU   XMM0,  [EAX+000]
+  LDDQU   XMM1,  [EAX+016]
+  LDDQU   XMM2,  [EAX+032]
+  LDDQU   XMM3,  [EAX+048]
+  LDDQU   XMM4,  [EAX+064]
+  LDDQU   XMM5,  [EAX+080]
+  LDDQU   XMM6,  [EAX+096]
+  LDDQU   XMM7,  [EAX+112]
+  MOVDQU [EDX+000],  XMM0
+  MOVDQU [EDX+016],  XMM1
+  MOVDQU [EDX+032],  XMM2
+  MOVDQU [EDX+048],  XMM3
+  MOVDQU [EDX+064],  XMM4
+  MOVDQU [EDX+080],  XMM5
+  MOVDQU [EDX+096],  XMM6
+  MOVDQU [EDX+112],  XMM7
+
+  LDDQU   XMM0,  [EAX+128]
+  LDDQU   XMM1,  [EAX+144]
+  LDDQU   XMM2,  [EAX+160]
+  LDDQU   XMM3,  [EAX+176]
+  LDDQU   XMM4,  [EAX+192]
+  MOVDQU  [EDX+128],  XMM0
+  MOVDQU  [EDX+144],  XMM1
+  MOVDQU  [EDX+160],  XMM2
+  MOVDQU  [EDX+176],  XMM3
+  MOVDQU  [EDX+192],  XMM4
+  {$ENDIF}
+
+  ADD    EAX, 208
+  ADD    EDX, 208
+  SUB    ECX, 208
+  JNZ    @LOOP
+end;
+
+{ 每一次复制 224 个字节 <1792 位> <长度必须是 224 的倍数> }
+procedure Move_SSE2_224U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+asm
+  {$IFDEF WIN64}
+  XCHG  RAX, RCX
+@LOOP:
+  LDDQU   XMM0,  [EAX+000]
+  LDDQU   XMM1,  [EAX+016]
+  LDDQU   XMM2,  [EAX+032]
+  LDDQU   XMM3,  [EAX+048]
+  LDDQU   XMM4,  [EAX+064]
+  LDDQU   XMM5,  [EAX+080]
+  LDDQU   XMM6,  [EAX+096]
+  LDDQU   XMM7,  [EAX+112]
+  LDDQU   XMM8,  [EAX+128]
+  LDDQU   XMM9,  [EAX+144]
+  LDDQU   XMM10, [EAX+160]
+  LDDQU   XMM11, [EAX+176]
+  LDDQU   XMM12, [EAX+192]
+  LDDQU   XMM13, [EAX+208]
+
+  MOVDQU  [EDX+000],  XMM0
+  MOVDQU  [EDX+016],  XMM1
+  MOVDQU  [EDX+032],  XMM2
+  MOVDQU  [EDX+048],  XMM3
+  MOVDQU  [EDX+064],  XMM4
+  MOVDQU  [EDX+080],  XMM5
+  MOVDQU  [EDX+096],  XMM6
+  MOVDQU  [EDX+112],  XMM7
+  MOVDQU  [EDX+128],  XMM8
+  MOVDQU  [EDX+144],  XMM9
+  MOVDQU  [EDX+160], XMM10
+  MOVDQU  [EDX+176], XMM11
+  MOVDQU  [EDX+192], XMM12
+  MOVDQU  [EDX+208], XMM13
+  {$ELSE}
+@LOOP:
+  LDDQU   XMM0,  [EAX+000]
+  LDDQU   XMM1,  [EAX+016]
+  LDDQU   XMM2,  [EAX+032]
+  LDDQU   XMM3,  [EAX+048]
+  LDDQU   XMM4,  [EAX+064]
+  LDDQU   XMM5,  [EAX+080]
+  LDDQU   XMM6,  [EAX+096]
+  LDDQU   XMM7,  [EAX+112]
+  MOVDQU [EDX+000],  XMM0
+  MOVDQU [EDX+016],  XMM1
+  MOVDQU [EDX+032],  XMM2
+  MOVDQU [EDX+048],  XMM3
+  MOVDQU [EDX+064],  XMM4
+  MOVDQU [EDX+080],  XMM5
+  MOVDQU [EDX+096],  XMM6
+  MOVDQU [EDX+112],  XMM7
+
+  LDDQU   XMM0,  [EAX+128]
+  LDDQU   XMM1,  [EAX+144]
+  LDDQU   XMM2,  [EAX+160]
+  LDDQU   XMM3,  [EAX+176]
+  LDDQU   XMM4,  [EAX+192]
+  LDDQU   XMM5,  [EAX+208]
+  MOVDQU  [EDX+128],  XMM0
+  MOVDQU  [EDX+144],  XMM1
+  MOVDQU  [EDX+160],  XMM2
+  MOVDQU  [EDX+176],  XMM3
+  MOVDQU  [EDX+192],  XMM4
+  MOVDQU  [EDX+208],  XMM5
+  {$ENDIF}
+
+  ADD    EAX, 224
+  ADD    EDX, 224
+  SUB    ECX, 224
+  JNZ    @LOOP
+end;
+
+{ 每一次复制 240 个字节 <1920 位> <长度必须是 240 的倍数> }
+procedure Move_SSE2_240U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+asm
+  {$IFDEF WIN64}
+  XCHG  RAX, RCX
+@LOOP:
+  LDDQU   XMM0,  [EAX+000]
+  LDDQU   XMM1,  [EAX+016]
+  LDDQU   XMM2,  [EAX+032]
+  LDDQU   XMM3,  [EAX+048]
+  LDDQU   XMM4,  [EAX+064]
+  LDDQU   XMM5,  [EAX+080]
+  LDDQU   XMM6,  [EAX+096]
+  LDDQU   XMM7,  [EAX+112]
+  LDDQU   XMM8,  [EAX+128]
+  LDDQU   XMM9,  [EAX+144]
+  LDDQU   XMM10, [EAX+160]
+  LDDQU   XMM11, [EAX+176]
+  LDDQU   XMM12, [EAX+192]
+  LDDQU   XMM13, [EAX+208]
+  LDDQU   XMM14, [EAX+224]
+
+  MOVDQU  [EDX+000],  XMM0
+  MOVDQU  [EDX+016],  XMM1
+  MOVDQU  [EDX+032],  XMM2
+  MOVDQU  [EDX+048],  XMM3
+  MOVDQU  [EDX+064],  XMM4
+  MOVDQU  [EDX+080],  XMM5
+  MOVDQU  [EDX+096],  XMM6
+  MOVDQU  [EDX+112],  XMM7
+  MOVDQU  [EDX+128],  XMM8
+  MOVDQU  [EDX+144],  XMM9
+  MOVDQU  [EDX+160], XMM10
+  MOVDQU  [EDX+176], XMM11
+  MOVDQU  [EDX+192], XMM12
+  MOVDQU  [EDX+208], XMM13
+  MOVDQU  [EDX+224], XMM14
+  {$ELSE}
+@LOOP:
+  LDDQU   XMM0,  [EAX+000]
+  LDDQU   XMM1,  [EAX+016]
+  LDDQU   XMM2,  [EAX+032]
+  LDDQU   XMM3,  [EAX+048]
+  LDDQU   XMM4,  [EAX+064]
+  LDDQU   XMM5,  [EAX+080]
+  LDDQU   XMM6,  [EAX+096]
+  LDDQU   XMM7,  [EAX+112]
+  MOVDQU [EDX+000],  XMM0
+  MOVDQU [EDX+016],  XMM1
+  MOVDQU [EDX+032],  XMM2
+  MOVDQU [EDX+048],  XMM3
+  MOVDQU [EDX+064],  XMM4
+  MOVDQU [EDX+080],  XMM5
+  MOVDQU [EDX+096],  XMM6
+  MOVDQU [EDX+112],  XMM7
+
+  LDDQU   XMM0,  [EAX+128]
+  LDDQU   XMM1,  [EAX+144]
+  LDDQU   XMM2,  [EAX+160]
+  LDDQU   XMM3,  [EAX+176]
+  LDDQU   XMM4,  [EAX+192]
+  LDDQU   XMM5,  [EAX+208]
+  LDDQU   XMM6,  [EAX+224]
+  MOVDQU  [EDX+128],  XMM0
+  MOVDQU  [EDX+144],  XMM1
+  MOVDQU  [EDX+160],  XMM2
+  MOVDQU  [EDX+176],  XMM3
+  MOVDQU  [EDX+192],  XMM4
+  MOVDQU  [EDX+208],  XMM5
+  MOVDQU  [EDX+224],  XMM6
+  {$ENDIF}
+
+  ADD    EAX, 256
+  ADD    EDX, 256
+  SUB    ECX, 256
   JNZ    @LOOP
 end;
 
@@ -405,6 +987,44 @@ asm
   JNZ    @LOOP
 end;
 
+{ 每一次复制 96 个字节 <768 位> <长度必须是 96 的倍数> }
+procedure Move_AVX1_96U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+asm
+  {$IFDEF WIN64}
+  XCHG  RAX, RCX
+  {$ENDIF}
+@LOOP:
+  {$IFDEF FPC}
+  VLDDQU   YMM0, [EAX+00]
+  VLDDQU   YMM1, [EAX+32]
+  VLDDQU   YMM2, [EAX+64]
+  VMOVDQU  [EDX+00], YMM0
+  VMOVDQU  [EDX+32], YMM1
+  VMOVDQU  [EDX+64], YMM2
+  {$ENDIF}
+
+  {$IFDEF WIN64}
+  DB $67, $C5, $FF, $F0, $00
+  DB $67, $C5, $FF, $F0, $48, $20
+  DB $67, $C5, $FF, $F0, $50, $40
+  DB $67, $C5, $FE, $7F, $02
+  DB $67, $C5, $FE, $7F, $4A, $20
+  DB $67, $C5, $FE, $7F, $52, $40
+  {$ELSE}
+  DB $C5, $FF, $F0, $00
+  DB $C5, $FF, $F0, $48, $20
+  DB $C5, $FF, $F0, $50, $40
+  DB $C5, $FE, $7F, $02
+  DB $C5, $FE, $7F, $4A, $20
+  DB $C5, $FE, $7F, $52, $40
+  {$ENDIF}
+
+  ADD    EAX, 96
+  ADD    EDX, 96
+  SUB    ECX, 96
+  JNZ    @LOOP
+end;
+
 { 每一次复制 128 个字节 <1024 位> <长度必须是 128 的倍数> }
 procedure Move_AVX1_128U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
 asm
@@ -446,6 +1066,174 @@ asm
   ADD    EAX, 128
   ADD    EDX, 128
   SUB    ECX, 128
+  JNZ    @LOOP
+end;
+
+{ 每一次复制 160 个字节 <1280 位> <长度必须是 160 的倍数> }
+procedure Move_AVX1_160U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+asm
+  {$IFDEF WIN64}
+  XCHG  RAX, RCX
+  {$ENDIF}
+@LOOP:
+  {$IFDEF FPC}
+  VLDDQU   YMM0,  [EAX+000]
+  VLDDQU   YMM1,  [EAX+032]
+  VLDDQU   YMM2,  [EAX+064]
+  VLDDQU   YMM3,  [EAX+096]
+  VLDDQU   YMM4,  [EAX+128]
+  VMOVDQU  [EDX+000],  YMM0
+  VMOVDQU  [EDX+032],  YMM1
+  VMOVDQU  [EDX+064],  YMM2
+  VMOVDQU  [EDX+096],  YMM3
+  VMOVDQU  [EDX+128],  YMM4
+  {$ENDIF}
+
+  {$IFDEF WIN64}
+  DB $67, $C5, $FF, $F0, $00
+  DB $67, $C5, $FF, $F0, $48, $20
+  DB $67, $C5, $FF, $F0, $50, $40
+  DB $67, $C5, $FF, $F0, $58, $60
+  DB $67, $C5, $FF, $F0, $A0, $80, $00, $00, $00
+  DB $67, $C5, $FE, $7F, $02
+  DB $67, $C5, $FE, $7F, $4A, $20
+  DB $67, $C5, $FE, $7F, $52, $40
+  DB $67, $C5, $FE, $7F, $5A, $60
+  DB $67, $C5, $FE, $7F, $A2, $80, $00, $00, $00
+  {$ELSE}
+  DB $C5, $FF, $F0, $00
+  DB $C5, $FF, $F0, $48, $20
+  DB $C5, $FF, $F0, $50, $40
+  DB $C5, $FF, $F0, $58, $60
+  DB $C5, $FF, $F0, $A0, $80, $00, $00, $00
+  DB $C5, $FE, $7F, $02
+  DB $C5, $FE, $7F, $4A, $20
+  DB $C5, $FE, $7F, $52, $40
+  DB $C5, $FE, $7F, $5A, $60
+  DB $C5, $FE, $7F, $A2, $80, $00, $00, $00
+  {$ENDIF}
+
+  ADD    EAX, 160
+  ADD    EDX, 160
+  SUB    ECX, 160
+  JNZ    @LOOP
+end;
+
+{ 每一次复制 192 个字节 <1536 位> <长度必须是 192 的倍数> }
+procedure Move_AVX1_192U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+asm
+  {$IFDEF WIN64}
+  XCHG  RAX, RCX
+  {$ENDIF}
+@LOOP:
+  {$IFDEF FPC}
+  VLDDQU   YMM0,  [EAX+000]
+  VLDDQU   YMM1,  [EAX+032]
+  VLDDQU   YMM2,  [EAX+064]
+  VLDDQU   YMM3,  [EAX+096]
+  VLDDQU   YMM4,  [EAX+128]
+  VLDDQU   YMM5,  [EAX+160]
+  VMOVDQU  [EDX+000],  YMM0
+  VMOVDQU  [EDX+032],  YMM1
+  VMOVDQU  [EDX+064],  YMM2
+  VMOVDQU  [EDX+096],  YMM3
+  VMOVDQU  [EDX+128],  YMM4
+  VMOVDQU  [EDX+160],  YMM5
+  {$ENDIF}
+
+  {$IFDEF WIN64}
+  DB $67, $C5, $FF, $F0, $00
+  DB $67, $C5, $FF, $F0, $48, $20
+  DB $67, $C5, $FF, $F0, $50, $40
+  DB $67, $C5, $FF, $F0, $58, $60
+  DB $67, $C5, $FF, $F0, $A0, $80, $00, $00, $00
+  DB $67, $C5, $FF, $F0, $A8, $A0, $00, $00, $00
+  DB $67, $C5, $FE, $7F, $02
+  DB $67, $C5, $FE, $7F, $4A, $20
+  DB $67, $C5, $FE, $7F, $52, $40
+  DB $67, $C5, $FE, $7F, $5A, $60
+  DB $67, $C5, $FE, $7F, $A2, $80, $00, $00, $00
+  DB $67, $C5, $FE, $7F, $AA, $A0, $00, $00, $00
+  {$ELSE}
+  DB $C5, $FF, $F0, $00
+  DB $C5, $FF, $F0, $48, $20
+  DB $C5, $FF, $F0, $50, $40
+  DB $C5, $FF, $F0, $58, $60
+  DB $C5, $FF, $F0, $A0, $80, $00, $00, $00
+  DB $C5, $FF, $F0, $A8, $A0, $00, $00, $00
+  DB $C5, $FE, $7F, $02
+  DB $C5, $FE, $7F, $4A, $20
+  DB $C5, $FE, $7F, $52, $40
+  DB $C5, $FE, $7F, $5A, $60
+  DB $C5, $FE, $7F, $A2, $80, $00, $00, $00
+  DB $C5, $FE, $7F, $AA, $A0, $00, $00, $00
+  {$ENDIF}
+
+  ADD    EAX, 192
+  ADD    EDX, 192
+  SUB    ECX, 192
+  JNZ    @LOOP
+end;
+
+{ 每一次复制 224 个字节 <1792 位> <长度必须是 224 的倍数> }
+procedure Move_AVX1_224U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+asm
+  {$IFDEF WIN64}
+  XCHG  RAX, RCX
+  {$ENDIF}
+@LOOP:
+  {$IFDEF FPC}
+  VLDDQU   YMM0,  [EAX+000]
+  VLDDQU   YMM1,  [EAX+032]
+  VLDDQU   YMM2,  [EAX+064]
+  VLDDQU   YMM3,  [EAX+096]
+  VLDDQU   YMM4,  [EAX+128]
+  VLDDQU   YMM5,  [EAX+160]
+  VLDDQU   YMM6,  [EAX+192]
+  VMOVDQU  [EDX+000],  YMM0
+  VMOVDQU  [EDX+032],  YMM1
+  VMOVDQU  [EDX+064],  YMM2
+  VMOVDQU  [EDX+096],  YMM3
+  VMOVDQU  [EDX+128],  YMM4
+  VMOVDQU  [EDX+160],  YMM5
+  VMOVDQU  [EDX+192],  YMM6
+  {$ENDIF}
+
+  {$IFDEF WIN64}
+  DB $67, $C5, $FF, $F0, $00
+  DB $67, $C5, $FF, $F0, $48, $20
+  DB $67, $C5, $FF, $F0, $50, $40
+  DB $67, $C5, $FF, $F0, $58, $60
+  DB $67, $C5, $FF, $F0, $A0, $80, $00, $00, $00
+  DB $67, $C5, $FF, $F0, $A8, $A0, $00, $00, $00
+  DB $67, $C5, $FF, $F0, $B0, $C0, $00, $00, $00
+  DB $67, $C5, $FE, $7F, $02
+  DB $67, $C5, $FE, $7F, $4A, $20
+  DB $67, $C5, $FE, $7F, $52, $40
+  DB $67, $C5, $FE, $7F, $5A, $60
+  DB $67, $C5, $FE, $7F, $A2, $80, $00, $00, $00
+  DB $67, $C5, $FE, $7F, $AA, $A0, $00, $00, $00
+  DB $67, $C5, $FE, $7F, $B2, $C0, $00, $00, $00
+  {$ELSE}
+  DB $C5, $FF, $F0, $00
+  DB $C5, $FF, $F0, $48, $20
+  DB $C5, $FF, $F0, $50, $40
+  DB $C5, $FF, $F0, $58, $60
+  DB $C5, $FF, $F0, $A0, $80, $00, $00, $00
+  DB $C5, $FF, $F0, $A8, $A0, $00, $00, $00
+  DB $C5, $FF, $F0, $B0, $C0, $00, $00, $00
+  DB $C5, $FE, $7F, $02
+  DB $C5, $FE, $7F, $4A, $20
+  DB $C5, $FE, $7F, $52, $40
+  DB $C5, $FE, $7F, $5A, $60
+  DB $C5, $FE, $7F, $A2, $80, $00, $00, $00
+  DB $C5, $FE, $7F, $AA, $A0, $00, $00, $00
+  DB $C5, $FE, $7F, $B2, $C0, $00, $00, $00
+  {$ENDIF}
+
+  ADD    EAX, 224
+  ADD    EDX, 224
+  SUB    ECX, 224
   JNZ    @LOOP
 end;
 
@@ -514,6 +1302,839 @@ asm
   ADD    EAX, 256
   ADD    EDX, 256
   SUB    ECX, 256
+  JNZ    @LOOP
+end;
+
+{ 每一次复制 288 个字节 <2304 位> <长度必须是 288 的倍数> }
+procedure Move_AVX1_288U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+asm
+  {$IFDEF WIN64}
+  XCHG  RAX, RCX
+  {$ENDIF}
+@LOOP:
+  {$IFDEF FPC}
+  {$IFDEF WIN64}
+  VLDDQU   YMM0,  [EAX+000]
+  VLDDQU   YMM1,  [EAX+032]
+  VLDDQU   YMM2,  [EAX+064]
+  VLDDQU   YMM3,  [EAX+096]
+  VLDDQU   YMM4,  [EAX+128]
+  VLDDQU   YMM5,  [EAX+160]
+  VLDDQU   YMM6,  [EAX+192]
+  VLDDQU   YMM7,  [EAX+224]
+  VLDDQU   YMM8,  [EAX+256]
+  VMOVDQU  [EDX+000],  YMM0
+  VMOVDQU  [EDX+032],  YMM1
+  VMOVDQU  [EDX+064],  YMM2
+  VMOVDQU  [EDX+096],  YMM3
+  VMOVDQU  [EDX+128],  YMM4
+  VMOVDQU  [EDX+160],  YMM5
+  VMOVDQU  [EDX+192],  YMM6
+  VMOVDQU  [EDX+224],  YMM7
+  VMOVDQU  [EDX+256],  YMM8
+  {$ELSE}
+  VLDDQU   YMM0,  [EAX+000]
+  VLDDQU   YMM1,  [EAX+032]
+  VLDDQU   YMM2,  [EAX+064]
+  VLDDQU   YMM3,  [EAX+096]
+  VLDDQU   YMM4,  [EAX+128]
+  VLDDQU   YMM5,  [EAX+160]
+  VLDDQU   YMM6,  [EAX+192]
+  VLDDQU   YMM7,  [EAX+224]
+  VMOVDQU  [EDX+000],  YMM0
+  VMOVDQU  [EDX+032],  YMM1
+  VMOVDQU  [EDX+064],  YMM2
+  VMOVDQU  [EDX+096],  YMM3
+  VMOVDQU  [EDX+128],  YMM4
+  VMOVDQU  [EDX+160],  YMM5
+  VMOVDQU  [EDX+192],  YMM6
+  VMOVDQU  [EDX+224],  YMM7
+  VLDDQU   YMM0,  [EAX+256]
+  VMOVDQU  [EDX+256],  YMM0
+  {$ENDIF}
+  {$ENDIF}
+
+  {$IFDEF WIN64}
+  DB $67, $C5, $FF, $F0, $00
+  DB $67, $C5, $FF, $F0, $48, $20
+  DB $67, $C5, $FF, $F0, $50, $40
+  DB $67, $C5, $FF, $F0, $58, $60
+  DB $67, $C5, $FF, $F0, $A0, $80, $00, $00, $00
+  DB $67, $C5, $FF, $F0, $A8, $A0, $00, $00, $00
+  DB $67, $C5, $FF, $F0, $B0, $C0, $00, $00, $00
+  DB $67, $C5, $FF, $F0, $B8, $E0, $00, $00, $00
+  DB $67, $C5, $7F, $F0, $80, $00, $01, $00, $00
+  DB $67, $C5, $FE, $7F, $02
+  DB $67, $C5, $FE, $7F, $4A, $20
+  DB $67, $C5, $FE, $7F, $52, $40
+  DB $67, $C5, $FE, $7F, $5A, $60
+  DB $67, $C5, $FE, $7F, $A2, $80, $00, $00, $00
+  DB $67, $C5, $FE, $7F, $AA, $A0, $00, $00, $00
+  DB $67, $C5, $FE, $7F, $B2, $C0, $00, $00, $00
+  DB $67, $C5, $FE, $7F, $BA, $E0, $00, $00, $00
+  DB $67, $C5, $7E, $7F, $82, $00, $01, $00, $00
+  {$ELSE}
+  DB $C5, $FF, $F0, $00
+  DB $C5, $FF, $F0, $48, $20
+  DB $C5, $FF, $F0, $50, $40
+  DB $C5, $FF, $F0, $58, $60
+  DB $C5, $FF, $F0, $A0, $80, $00, $00, $00
+  DB $C5, $FF, $F0, $A8, $A0, $00, $00, $00
+  DB $C5, $FF, $F0, $B0, $C0, $00, $00, $00
+  DB $C5, $FF, $F0, $B8, $E0, $00, $00, $00
+  DB $C5, $FE, $7F, $02
+  DB $C5, $FE, $7F, $4A, $20
+  DB $C5, $FE, $7F, $52, $40
+  DB $C5, $FE, $7F, $5A, $60
+  DB $C5, $FE, $7F, $A2, $80, $00, $00, $00
+  DB $C5, $FE, $7F, $AA, $A0, $00, $00, $00
+  DB $C5, $FE, $7F, $B2, $C0, $00, $00, $00
+  DB $C5, $FE, $7F, $BA, $E0, $00, $00, $00
+  DB $C5, $FF, $F0, $80, $00, $01, $00, $00
+  DB $C5, $FE, $7F, $82, $00, $01, $00, $00
+  {$ENDIF}
+
+  ADD    EAX, 288
+  ADD    EDX, 288
+  SUB    ECX, 288
+  JNZ    @LOOP
+end;
+
+{ 每一次复制 320 个字节 <2560 位> <长度必须是 320 的倍数> }
+procedure Move_AVX1_320U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+asm
+  {$IFDEF WIN64}
+  XCHG  RAX, RCX
+  {$ENDIF}
+@LOOP:
+  {$IFDEF FPC}
+  {$IFDEF WIN64}
+  VLDDQU   YMM0,  [EAX+000]
+  VLDDQU   YMM1,  [EAX+032]
+  VLDDQU   YMM2,  [EAX+064]
+  VLDDQU   YMM3,  [EAX+096]
+  VLDDQU   YMM4,  [EAX+128]
+  VLDDQU   YMM5,  [EAX+160]
+  VLDDQU   YMM6,  [EAX+192]
+  VLDDQU   YMM7,  [EAX+224]
+  VLDDQU   YMM8,  [EAX+256]
+  VLDDQU   YMM9,  [EAX+288]
+  VMOVDQU  [EDX+000],  YMM0
+  VMOVDQU  [EDX+032],  YMM1
+  VMOVDQU  [EDX+064],  YMM2
+  VMOVDQU  [EDX+096],  YMM3
+  VMOVDQU  [EDX+128],  YMM4
+  VMOVDQU  [EDX+160],  YMM5
+  VMOVDQU  [EDX+192],  YMM6
+  VMOVDQU  [EDX+224],  YMM7
+  VMOVDQU  [EDX+256],  YMM8
+  VMOVDQU  [EDX+288],  YMM9
+  {$ELSE}
+  VLDDQU   YMM0,  [EAX+000]
+  VLDDQU   YMM1,  [EAX+032]
+  VLDDQU   YMM2,  [EAX+064]
+  VLDDQU   YMM3,  [EAX+096]
+  VLDDQU   YMM4,  [EAX+128]
+  VLDDQU   YMM5,  [EAX+160]
+  VLDDQU   YMM6,  [EAX+192]
+  VLDDQU   YMM7,  [EAX+224]
+  VMOVDQU  [EDX+000],  YMM0
+  VMOVDQU  [EDX+032],  YMM1
+  VMOVDQU  [EDX+064],  YMM2
+  VMOVDQU  [EDX+096],  YMM3
+  VMOVDQU  [EDX+128],  YMM4
+  VMOVDQU  [EDX+160],  YMM5
+  VMOVDQU  [EDX+192],  YMM6
+  VMOVDQU  [EDX+224],  YMM7
+  VLDDQU   YMM0, [EAX+256]
+  VLDDQU   YMM1, [EAX+288]
+  VMOVDQU  [EDX+256], YMM0
+  VMOVDQU  [EDX+288], YMM1
+  {$ENDIF}
+  {$ENDIF}
+
+  {$IFDEF WIN64}
+  DB $67, $C5, $FF, $F0, $00
+  DB $67, $C5, $FF, $F0, $48, $20
+  DB $67, $C5, $FF, $F0, $50, $40
+  DB $67, $C5, $FF, $F0, $58, $60
+  DB $67, $C5, $FF, $F0, $A0, $80, $00, $00, $00
+  DB $67, $C5, $FF, $F0, $A8, $A0, $00, $00, $00
+  DB $67, $C5, $FF, $F0, $B0, $C0, $00, $00, $00
+  DB $67, $C5, $FF, $F0, $B8, $E0, $00, $00, $00
+  DB $67, $C5, $7F, $F0, $80, $00, $01, $00, $00
+  DB $67, $C5, $7F, $F0, $88, $20, $01, $00, $00
+  DB $67, $C5, $FE, $7F, $02
+  DB $67, $C5, $FE, $7F, $4A, $20
+  DB $67, $C5, $FE, $7F, $52, $40
+  DB $67, $C5, $FE, $7F, $5A, $60
+  DB $67, $C5, $FE, $7F, $A2, $80, $00, $00, $00
+  DB $67, $C5, $FE, $7F, $AA, $A0, $00, $00, $00
+  DB $67, $C5, $FE, $7F, $B2, $C0, $00, $00, $00
+  DB $67, $C5, $FE, $7F, $BA, $E0, $00, $00, $00
+  DB $67, $C5, $7E, $7F, $82, $00, $01, $00, $00
+  DB $67, $C5, $7E, $7F, $8A, $20, $01, $00, $00
+  {$ELSE}
+  DB $C5, $FF, $F0, $00
+  DB $C5, $FF, $F0, $48, $20
+  DB $C5, $FF, $F0, $50, $40
+  DB $C5, $FF, $F0, $58, $60
+  DB $C5, $FF, $F0, $A0, $80, $00, $00, $00
+  DB $C5, $FF, $F0, $A8, $A0, $00, $00, $00
+  DB $C5, $FF, $F0, $B0, $C0, $00, $00, $00
+  DB $C5, $FF, $F0, $B8, $E0, $00, $00, $00
+  DB $C5, $FE, $7F, $02
+  DB $C5, $FE, $7F, $4A, $20
+  DB $C5, $FE, $7F, $52, $40
+  DB $C5, $FE, $7F, $5A, $60
+  DB $C5, $FE, $7F, $A2, $80, $00, $00, $00
+  DB $C5, $FE, $7F, $AA, $A0, $00, $00, $00
+  DB $C5, $FE, $7F, $B2, $C0, $00, $00, $00
+  DB $C5, $FE, $7F, $BA, $E0, $00, $00, $00
+  DB $C5, $FF, $F0, $80, $00, $01, $00, $00
+  DB $C5, $FF, $F0, $88, $20, $01, $00, $00
+  DB $C5, $FE, $7F, $82, $00, $01, $00, $00
+  DB $C5, $FE, $7F, $8A, $20, $01, $00, $00
+  {$ENDIF}
+
+  ADD    EAX, 320
+  ADD    EDX, 320
+  SUB    ECX, 320
+  JNZ    @LOOP
+end;
+
+{ 每一次复制 352 个字节 <2816 位> <长度必须是 352 的倍数> }
+procedure Move_AVX1_352U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+asm
+  {$IFDEF WIN64}
+  XCHG  RAX, RCX
+  {$ENDIF}
+@LOOP:
+  {$IFDEF FPC}
+  {$IFDEF WIN64}
+  VLDDQU   YMM0,  [EAX+000]
+  VLDDQU   YMM1,  [EAX+032]
+  VLDDQU   YMM2,  [EAX+064]
+  VLDDQU   YMM3,  [EAX+096]
+  VLDDQU   YMM4,  [EAX+128]
+  VLDDQU   YMM5,  [EAX+160]
+  VLDDQU   YMM6,  [EAX+192]
+  VLDDQU   YMM7,  [EAX+224]
+  VLDDQU   YMM8,  [EAX+256]
+  VLDDQU   YMM9,  [EAX+288]
+  VLDDQU   YMM10, [EAX+320]
+  VMOVDQU  [EDX+000],  YMM0
+  VMOVDQU  [EDX+032],  YMM1
+  VMOVDQU  [EDX+064],  YMM2
+  VMOVDQU  [EDX+096],  YMM3
+  VMOVDQU  [EDX+128],  YMM4
+  VMOVDQU  [EDX+160],  YMM5
+  VMOVDQU  [EDX+192],  YMM6
+  VMOVDQU  [EDX+224],  YMM7
+  VMOVDQU  [EDX+256],  YMM8
+  VMOVDQU  [EDX+288],  YMM9
+  VMOVDQU  [EDX+320], YMM10
+  {$ELSE}
+  VLDDQU   YMM0,  [EAX+000]
+  VLDDQU   YMM1,  [EAX+032]
+  VLDDQU   YMM2,  [EAX+064]
+  VLDDQU   YMM3,  [EAX+096]
+  VLDDQU   YMM4,  [EAX+128]
+  VLDDQU   YMM5,  [EAX+160]
+  VLDDQU   YMM6,  [EAX+192]
+  VLDDQU   YMM7,  [EAX+224]
+  VMOVDQU  [EDX+000],  YMM0
+  VMOVDQU  [EDX+032],  YMM1
+  VMOVDQU  [EDX+064],  YMM2
+  VMOVDQU  [EDX+096],  YMM3
+  VMOVDQU  [EDX+128],  YMM4
+  VMOVDQU  [EDX+160],  YMM5
+  VMOVDQU  [EDX+192],  YMM6
+  VMOVDQU  [EDX+224],  YMM7
+  VLDDQU   YMM0, [EAX+256]
+  VLDDQU   YMM1, [EAX+288]
+  VLDDQU   YMM2, [EAX+320]
+  VMOVDQU  [EDX+256], YMM0
+  VMOVDQU  [EDX+288], YMM1
+  VMOVDQU  [EDX+320], YMM2
+  {$ENDIF}
+  {$ENDIF}
+
+  {$IFDEF WIN64}
+  DB $67, $C5, $FF, $F0, $00
+  DB $67, $C5, $FF, $F0, $48, $20
+  DB $67, $C5, $FF, $F0, $50, $40
+  DB $67, $C5, $FF, $F0, $58, $60
+  DB $67, $C5, $FF, $F0, $A0, $80, $00, $00, $00
+  DB $67, $C5, $FF, $F0, $A8, $A0, $00, $00, $00
+  DB $67, $C5, $FF, $F0, $B0, $C0, $00, $00, $00
+  DB $67, $C5, $FF, $F0, $B8, $E0, $00, $00, $00
+  DB $67, $C5, $7F, $F0, $80, $00, $01, $00, $00
+  DB $67, $C5, $7F, $F0, $88, $20, $01, $00, $00
+  DB $67, $C5, $7F, $F0, $90, $40, $01, $00, $00
+  DB $67, $C5, $FE, $7F, $02
+  DB $67, $C5, $FE, $7F, $4A, $20
+  DB $67, $C5, $FE, $7F, $52, $40
+  DB $67, $C5, $FE, $7F, $5A, $60
+  DB $67, $C5, $FE, $7F, $A2, $80, $00, $00, $00
+  DB $67, $C5, $FE, $7F, $AA, $A0, $00, $00, $00
+  DB $67, $C5, $FE, $7F, $B2, $C0, $00, $00, $00
+  DB $67, $C5, $FE, $7F, $BA, $E0, $00, $00, $00
+  DB $67, $C5, $7E, $7F, $82, $00, $01, $00, $00
+  DB $67, $C5, $7E, $7F, $8A, $20, $01, $00, $00
+  DB $67, $C5, $7E, $7F, $92, $40, $01, $00, $00
+  {$ELSE}
+  DB $C5, $FF, $F0, $00
+  DB $C5, $FF, $F0, $48, $20
+  DB $C5, $FF, $F0, $50, $40
+  DB $C5, $FF, $F0, $58, $60
+  DB $C5, $FF, $F0, $A0, $80, $00, $00, $00
+  DB $C5, $FF, $F0, $A8, $A0, $00, $00, $00
+  DB $C5, $FF, $F0, $B0, $C0, $00, $00, $00
+  DB $C5, $FF, $F0, $B8, $E0, $00, $00, $00
+  DB $C5, $FE, $7F, $02
+  DB $C5, $FE, $7F, $4A, $20
+  DB $C5, $FE, $7F, $52, $40
+  DB $C5, $FE, $7F, $5A, $60
+  DB $C5, $FE, $7F, $A2, $80, $00, $00, $00
+  DB $C5, $FE, $7F, $AA, $A0, $00, $00, $00
+  DB $C5, $FE, $7F, $B2, $C0, $00, $00, $00
+  DB $C5, $FE, $7F, $BA, $E0, $00, $00, $00
+  DB $C5, $FF, $F0, $80, $00, $01, $00, $00
+  DB $C5, $FF, $F0, $88, $20, $01, $00, $00
+  DB $C5, $FF, $F0, $90, $40, $01, $00, $00
+  DB $C5, $FE, $7F, $82, $00, $01, $00, $00
+  DB $C5, $FE, $7F, $8A, $20, $01, $00, $00
+  DB $C5, $FE, $7F, $92, $40, $01, $00, $00
+  {$ENDIF}
+
+  ADD    EAX, 352
+  ADD    EDX, 352
+  SUB    ECX, 352
+  JNZ    @LOOP
+end;
+
+{ 每一次复制 384 个字节 <3072 位> <长度必须是 384 的倍数> }
+procedure Move_AVX1_384U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+asm
+  {$IFDEF WIN64}
+  XCHG  RAX, RCX
+  {$ENDIF}
+@LOOP:
+  {$IFDEF FPC}
+  {$IFDEF WIN64}
+  VLDDQU   YMM0,  [EAX+000]
+  VLDDQU   YMM1,  [EAX+032]
+  VLDDQU   YMM2,  [EAX+064]
+  VLDDQU   YMM3,  [EAX+096]
+  VLDDQU   YMM4,  [EAX+128]
+  VLDDQU   YMM5,  [EAX+160]
+  VLDDQU   YMM6,  [EAX+192]
+  VLDDQU   YMM7,  [EAX+224]
+  VLDDQU   YMM8,  [EAX+256]
+  VLDDQU   YMM9,  [EAX+288]
+  VLDDQU   YMM10, [EAX+320]
+  VLDDQU   YMM11, [EAX+352]
+  VMOVDQU  [EDX+000],  YMM0
+  VMOVDQU  [EDX+032],  YMM1
+  VMOVDQU  [EDX+064],  YMM2
+  VMOVDQU  [EDX+096],  YMM3
+  VMOVDQU  [EDX+128],  YMM4
+  VMOVDQU  [EDX+160],  YMM5
+  VMOVDQU  [EDX+192],  YMM6
+  VMOVDQU  [EDX+224],  YMM7
+  VMOVDQU  [EDX+256],  YMM8
+  VMOVDQU  [EDX+288],  YMM9
+  VMOVDQU  [EDX+320], YMM10
+  VMOVDQU  [EDX+352], YMM11
+  {$ELSE}
+  VLDDQU   YMM0,  [EAX+000]
+  VLDDQU   YMM1,  [EAX+032]
+  VLDDQU   YMM2,  [EAX+064]
+  VLDDQU   YMM3,  [EAX+096]
+  VLDDQU   YMM4,  [EAX+128]
+  VLDDQU   YMM5,  [EAX+160]
+  VLDDQU   YMM6,  [EAX+192]
+  VLDDQU   YMM7,  [EAX+224]
+  VMOVDQU  [EDX+000],  YMM0
+  VMOVDQU  [EDX+032],  YMM1
+  VMOVDQU  [EDX+064],  YMM2
+  VMOVDQU  [EDX+096],  YMM3
+  VMOVDQU  [EDX+128],  YMM4
+  VMOVDQU  [EDX+160],  YMM5
+  VMOVDQU  [EDX+192],  YMM6
+  VMOVDQU  [EDX+224],  YMM7
+  VLDDQU   YMM0, [EAX+256]
+  VLDDQU   YMM1, [EAX+288]
+  VLDDQU   YMM2, [EAX+320]
+  VLDDQU   YMM3, [EAX+352]
+  VMOVDQU  [EDX+256], YMM0
+  VMOVDQU  [EDX+288], YMM1
+  VMOVDQU  [EDX+320], YMM2
+  VMOVDQU  [EDX+352], YMM3
+  {$ENDIF}
+  {$ENDIF}
+
+  {$IFDEF WIN64}
+  DB $67, $C5, $FF, $F0, $00
+  DB $67, $C5, $FF, $F0, $48, $20
+  DB $67, $C5, $FF, $F0, $50, $40
+  DB $67, $C5, $FF, $F0, $58, $60
+  DB $67, $C5, $FF, $F0, $A0, $80, $00, $00, $00
+  DB $67, $C5, $FF, $F0, $A8, $A0, $00, $00, $00
+  DB $67, $C5, $FF, $F0, $B0, $C0, $00, $00, $00
+  DB $67, $C5, $FF, $F0, $B8, $E0, $00, $00, $00
+  DB $67, $C5, $7F, $F0, $80, $00, $01, $00, $00
+  DB $67, $C5, $7F, $F0, $88, $20, $01, $00, $00
+  DB $67, $C5, $7F, $F0, $90, $40, $01, $00, $00
+  DB $67, $C5, $7F, $F0, $98, $60, $01, $00, $00
+  DB $67, $C5, $FE, $7F, $02
+  DB $67, $C5, $FE, $7F, $4A, $20
+  DB $67, $C5, $FE, $7F, $52, $40
+  DB $67, $C5, $FE, $7F, $5A, $60
+  DB $67, $C5, $FE, $7F, $A2, $80, $00, $00, $00
+  DB $67, $C5, $FE, $7F, $AA, $A0, $00, $00, $00
+  DB $67, $C5, $FE, $7F, $B2, $C0, $00, $00, $00
+  DB $67, $C5, $FE, $7F, $BA, $E0, $00, $00, $00
+  DB $67, $C5, $7E, $7F, $82, $00, $01, $00, $00
+  DB $67, $C5, $7E, $7F, $8A, $20, $01, $00, $00
+  DB $67, $C5, $7E, $7F, $92, $40, $01, $00, $00
+  DB $67, $C5, $7E, $7F, $9A, $60, $01, $00, $00
+  {$ELSE}
+  DB $C5, $FF, $F0, $00
+  DB $C5, $FF, $F0, $48, $20
+  DB $C5, $FF, $F0, $50, $40
+  DB $C5, $FF, $F0, $58, $60
+  DB $C5, $FF, $F0, $A0, $80, $00, $00, $00
+  DB $C5, $FF, $F0, $A8, $A0, $00, $00, $00
+  DB $C5, $FF, $F0, $B0, $C0, $00, $00, $00
+  DB $C5, $FF, $F0, $B8, $E0, $00, $00, $00
+  DB $C5, $FE, $7F, $02
+  DB $C5, $FE, $7F, $4A, $20
+  DB $C5, $FE, $7F, $52, $40
+  DB $C5, $FE, $7F, $5A, $60
+  DB $C5, $FE, $7F, $A2, $80, $00, $00, $00
+  DB $C5, $FE, $7F, $AA, $A0, $00, $00, $00
+  DB $C5, $FE, $7F, $B2, $C0, $00, $00, $00
+  DB $C5, $FE, $7F, $BA, $E0, $00, $00, $00
+  DB $C5, $FF, $F0, $80, $00, $01, $00, $00
+  DB $C5, $FF, $F0, $88, $20, $01, $00, $00
+  DB $C5, $FF, $F0, $90, $40, $01, $00, $00
+  DB $C5, $FF, $F0, $98, $60, $01, $00, $00
+  DB $C5, $FE, $7F, $82, $00, $01, $00, $00
+  DB $C5, $FE, $7F, $8A, $20, $01, $00, $00
+  DB $C5, $FE, $7F, $92, $40, $01, $00, $00
+  DB $C5, $FE, $7F, $9A, $60, $01, $00, $00
+  {$ENDIF}
+
+  ADD    EAX, 384
+  ADD    EDX, 384
+  SUB    ECX, 384
+  JNZ    @LOOP
+end;
+
+{ 每一次复制 416 个字节 <3328 位> <长度必须是 416 的倍数> }
+procedure Move_AVX1_416U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+asm
+  {$IFDEF WIN64}
+  XCHG  RAX, RCX
+  {$ENDIF}
+@LOOP:
+  {$IFDEF FPC}
+  {$IFDEF WIN64}
+  VLDDQU   YMM0,  [EAX+000]
+  VLDDQU   YMM1,  [EAX+032]
+  VLDDQU   YMM2,  [EAX+064]
+  VLDDQU   YMM3,  [EAX+096]
+  VLDDQU   YMM4,  [EAX+128]
+  VLDDQU   YMM5,  [EAX+160]
+  VLDDQU   YMM6,  [EAX+192]
+  VLDDQU   YMM7,  [EAX+224]
+  VLDDQU   YMM8,  [EAX+256]
+  VLDDQU   YMM9,  [EAX+288]
+  VLDDQU   YMM10, [EAX+320]
+  VLDDQU   YMM11, [EAX+352]
+  VLDDQU   YMM12, [EAX+384]
+  VMOVDQU  [EDX+000],  YMM0
+  VMOVDQU  [EDX+032],  YMM1
+  VMOVDQU  [EDX+064],  YMM2
+  VMOVDQU  [EDX+096],  YMM3
+  VMOVDQU  [EDX+128],  YMM4
+  VMOVDQU  [EDX+160],  YMM5
+  VMOVDQU  [EDX+192],  YMM6
+  VMOVDQU  [EDX+224],  YMM7
+  VMOVDQU  [EDX+256],  YMM8
+  VMOVDQU  [EDX+288],  YMM9
+  VMOVDQU  [EDX+320], YMM10
+  VMOVDQU  [EDX+352], YMM11
+  VMOVDQU  [EDX+384], YMM12
+  {$ELSE}
+  VLDDQU   YMM0,  [EAX+000]
+  VLDDQU   YMM1,  [EAX+032]
+  VLDDQU   YMM2,  [EAX+064]
+  VLDDQU   YMM3,  [EAX+096]
+  VLDDQU   YMM4,  [EAX+128]
+  VLDDQU   YMM5,  [EAX+160]
+  VLDDQU   YMM6,  [EAX+192]
+  VLDDQU   YMM7,  [EAX+224]
+  VMOVDQU  [EDX+000],  YMM0
+  VMOVDQU  [EDX+032],  YMM1
+  VMOVDQU  [EDX+064],  YMM2
+  VMOVDQU  [EDX+096],  YMM3
+  VMOVDQU  [EDX+128],  YMM4
+  VMOVDQU  [EDX+160],  YMM5
+  VMOVDQU  [EDX+192],  YMM6
+  VMOVDQU  [EDX+224],  YMM7
+  VLDDQU   YMM0, [EAX+256]
+  VLDDQU   YMM1, [EAX+288]
+  VLDDQU   YMM2, [EAX+320]
+  VLDDQU   YMM3, [EAX+352]
+  VLDDQU   YMM4, [EAX+384]
+  VMOVDQU  [EDX+256], YMM0
+  VMOVDQU  [EDX+288], YMM1
+  VMOVDQU  [EDX+320], YMM2
+  VMOVDQU  [EDX+352], YMM3
+  VMOVDQU  [EDX+384], YMM4
+  {$ENDIF}
+  {$ENDIF}
+
+  {$IFDEF WIN64}
+  DB $67, $C5, $FF, $F0, $00
+  DB $67, $C5, $FF, $F0, $48, $20
+  DB $67, $C5, $FF, $F0, $50, $40
+  DB $67, $C5, $FF, $F0, $58, $60
+  DB $67, $C5, $FF, $F0, $A0, $80, $00, $00, $00
+  DB $67, $C5, $FF, $F0, $A8, $A0, $00, $00, $00
+  DB $67, $C5, $FF, $F0, $B0, $C0, $00, $00, $00
+  DB $67, $C5, $FF, $F0, $B8, $E0, $00, $00, $00
+  DB $67, $C5, $7F, $F0, $80, $00, $01, $00, $00
+  DB $67, $C5, $7F, $F0, $88, $20, $01, $00, $00
+  DB $67, $C5, $7F, $F0, $90, $40, $01, $00, $00
+  DB $67, $C5, $7F, $F0, $98, $60, $01, $00, $00
+  DB $67, $C5, $7F, $F0, $A0, $80, $01, $00, $00
+  DB $67, $C5, $FE, $7F, $02
+  DB $67, $C5, $FE, $7F, $4A, $20
+  DB $67, $C5, $FE, $7F, $52, $40
+  DB $67, $C5, $FE, $7F, $5A, $60
+  DB $67, $C5, $FE, $7F, $A2, $80, $00, $00, $00
+  DB $67, $C5, $FE, $7F, $AA, $A0, $00, $00, $00
+  DB $67, $C5, $FE, $7F, $B2, $C0, $00, $00, $00
+  DB $67, $C5, $FE, $7F, $BA, $E0, $00, $00, $00
+  DB $67, $C5, $7E, $7F, $82, $00, $01, $00, $00
+  DB $67, $C5, $7E, $7F, $8A, $20, $01, $00, $00
+  DB $67, $C5, $7E, $7F, $92, $40, $01, $00, $00
+  DB $67, $C5, $7E, $7F, $9A, $60, $01, $00, $00
+  DB $67, $C5, $7E, $7F, $A2, $80, $01, $00, $00
+  {$ELSE}
+  DB $C5, $FF, $F0, $00
+  DB $C5, $FF, $F0, $48, $20
+  DB $C5, $FF, $F0, $50, $40
+  DB $C5, $FF, $F0, $58, $60
+  DB $C5, $FF, $F0, $A0, $80, $00, $00, $00
+  DB $C5, $FF, $F0, $A8, $A0, $00, $00, $00
+  DB $C5, $FF, $F0, $B0, $C0, $00, $00, $00
+  DB $C5, $FF, $F0, $B8, $E0, $00, $00, $00
+  DB $C5, $FE, $7F, $02
+  DB $C5, $FE, $7F, $4A, $20
+  DB $C5, $FE, $7F, $52, $40
+  DB $C5, $FE, $7F, $5A, $60
+  DB $C5, $FE, $7F, $A2, $80, $00, $00, $00
+  DB $C5, $FE, $7F, $AA, $A0, $00, $00, $00
+  DB $C5, $FE, $7F, $B2, $C0, $00, $00, $00
+  DB $C5, $FE, $7F, $BA, $E0, $00, $00, $00
+  DB $C5, $FF, $F0, $80, $00, $01, $00, $00
+  DB $C5, $FF, $F0, $88, $20, $01, $00, $00
+  DB $C5, $FF, $F0, $90, $40, $01, $00, $00
+  DB $C5, $FF, $F0, $98, $60, $01, $00, $00
+  DB $C5, $FF, $F0, $A0, $80, $01, $00, $00
+  DB $C5, $FE, $7F, $82, $00, $01, $00, $00
+  DB $C5, $FE, $7F, $8A, $20, $01, $00, $00
+  DB $C5, $FE, $7F, $92, $40, $01, $00, $00
+  DB $C5, $FE, $7F, $9A, $60, $01, $00, $00
+  DB $C5, $FE, $7F, $A2, $80, $01, $00, $00
+  {$ENDIF}
+
+  ADD    EAX, 416
+  ADD    EDX, 416
+  SUB    ECX, 416
+  JNZ    @LOOP
+end;
+
+{ 每一次复制 448 个字节 <3584 位> <长度必须是 448 的倍数> }
+procedure Move_AVX1_448U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+asm
+  {$IFDEF WIN64}
+  XCHG  RAX, RCX
+  {$ENDIF}
+@LOOP:
+  {$IFDEF FPC}
+  {$IFDEF WIN64}
+  VLDDQU   YMM0,  [EAX+000]
+  VLDDQU   YMM1,  [EAX+032]
+  VLDDQU   YMM2,  [EAX+064]
+  VLDDQU   YMM3,  [EAX+096]
+  VLDDQU   YMM4,  [EAX+128]
+  VLDDQU   YMM5,  [EAX+160]
+  VLDDQU   YMM6,  [EAX+192]
+  VLDDQU   YMM7,  [EAX+224]
+  VLDDQU   YMM8,  [EAX+256]
+  VLDDQU   YMM9,  [EAX+288]
+  VLDDQU   YMM10, [EAX+320]
+  VLDDQU   YMM11, [EAX+352]
+  VLDDQU   YMM12, [EAX+384]
+  VLDDQU   YMM13, [EAX+416]
+  VMOVDQU  [EDX+000],  YMM0
+  VMOVDQU  [EDX+032],  YMM1
+  VMOVDQU  [EDX+064],  YMM2
+  VMOVDQU  [EDX+096],  YMM3
+  VMOVDQU  [EDX+128],  YMM4
+  VMOVDQU  [EDX+160],  YMM5
+  VMOVDQU  [EDX+192],  YMM6
+  VMOVDQU  [EDX+224],  YMM7
+  VMOVDQU  [EDX+256],  YMM8
+  VMOVDQU  [EDX+288],  YMM9
+  VMOVDQU  [EDX+320], YMM10
+  VMOVDQU  [EDX+352], YMM11
+  VMOVDQU  [EDX+384], YMM12
+  VMOVDQU  [EDX+416], YMM13
+  {$ELSE}
+  VLDDQU   YMM0,  [EAX+000]
+  VLDDQU   YMM1,  [EAX+032]
+  VLDDQU   YMM2,  [EAX+064]
+  VLDDQU   YMM3,  [EAX+096]
+  VLDDQU   YMM4,  [EAX+128]
+  VLDDQU   YMM5,  [EAX+160]
+  VLDDQU   YMM6,  [EAX+192]
+  VLDDQU   YMM7,  [EAX+224]
+  VMOVDQU  [EDX+000],  YMM0
+  VMOVDQU  [EDX+032],  YMM1
+  VMOVDQU  [EDX+064],  YMM2
+  VMOVDQU  [EDX+096],  YMM3
+  VMOVDQU  [EDX+128],  YMM4
+  VMOVDQU  [EDX+160],  YMM5
+  VMOVDQU  [EDX+192],  YMM6
+  VMOVDQU  [EDX+224],  YMM7
+  VLDDQU   YMM0, [EAX+256]
+  VLDDQU   YMM1, [EAX+288]
+  VLDDQU   YMM2, [EAX+320]
+  VLDDQU   YMM3, [EAX+352]
+  VLDDQU   YMM4, [EAX+384]
+  VLDDQU   YMM5, [EAX+416]
+  VMOVDQU  [EDX+256], YMM0
+  VMOVDQU  [EDX+288], YMM1
+  VMOVDQU  [EDX+320], YMM2
+  VMOVDQU  [EDX+352], YMM3
+  VMOVDQU  [EDX+384], YMM4
+  VMOVDQU  [EDX+416], YMM5
+  {$ENDIF}
+  {$ENDIF}
+
+  {$IFDEF WIN64}
+  DB $67, $C5, $FF, $F0, $00
+  DB $67, $C5, $FF, $F0, $48, $20
+  DB $67, $C5, $FF, $F0, $50, $40
+  DB $67, $C5, $FF, $F0, $58, $60
+  DB $67, $C5, $FF, $F0, $A0, $80, $00, $00, $00
+  DB $67, $C5, $FF, $F0, $A8, $A0, $00, $00, $00
+  DB $67, $C5, $FF, $F0, $B0, $C0, $00, $00, $00
+  DB $67, $C5, $FF, $F0, $B8, $E0, $00, $00, $00
+  DB $67, $C5, $7F, $F0, $80, $00, $01, $00, $00
+  DB $67, $C5, $7F, $F0, $88, $20, $01, $00, $00
+  DB $67, $C5, $7F, $F0, $90, $40, $01, $00, $00
+  DB $67, $C5, $7F, $F0, $98, $60, $01, $00, $00
+  DB $67, $C5, $7F, $F0, $A0, $80, $01, $00, $00
+  DB $67, $C5, $7F, $F0, $A8, $A0, $01, $00, $00
+  DB $67, $C5, $FE, $7F, $02
+  DB $67, $C5, $FE, $7F, $4A, $20
+  DB $67, $C5, $FE, $7F, $52, $40
+  DB $67, $C5, $FE, $7F, $5A, $60
+  DB $67, $C5, $FE, $7F, $A2, $80, $00, $00, $00
+  DB $67, $C5, $FE, $7F, $AA, $A0, $00, $00, $00
+  DB $67, $C5, $FE, $7F, $B2, $C0, $00, $00, $00
+  DB $67, $C5, $FE, $7F, $BA, $E0, $00, $00, $00
+  DB $67, $C5, $7E, $7F, $82, $00, $01, $00, $00
+  DB $67, $C5, $7E, $7F, $8A, $20, $01, $00, $00
+  DB $67, $C5, $7E, $7F, $92, $40, $01, $00, $00
+  DB $67, $C5, $7E, $7F, $9A, $60, $01, $00, $00
+  DB $67, $C5, $7E, $7F, $A2, $80, $01, $00, $00
+  DB $67, $C5, $7E, $7F, $AA, $A0, $01, $00, $00
+  {$ELSE}
+  DB $C5, $FF, $F0, $00
+  DB $C5, $FF, $F0, $48, $20
+  DB $C5, $FF, $F0, $50, $40
+  DB $C5, $FF, $F0, $58, $60
+  DB $C5, $FF, $F0, $A0, $80, $00, $00, $00
+  DB $C5, $FF, $F0, $A8, $A0, $00, $00, $00
+  DB $C5, $FF, $F0, $B0, $C0, $00, $00, $00
+  DB $C5, $FF, $F0, $B8, $E0, $00, $00, $00
+  DB $C5, $FE, $7F, $02
+  DB $C5, $FE, $7F, $4A, $20
+  DB $C5, $FE, $7F, $52, $40
+  DB $C5, $FE, $7F, $5A, $60
+  DB $C5, $FE, $7F, $A2, $80, $00, $00, $00
+  DB $C5, $FE, $7F, $AA, $A0, $00, $00, $00
+  DB $C5, $FE, $7F, $B2, $C0, $00, $00, $00
+  DB $C5, $FE, $7F, $BA, $E0, $00, $00, $00
+  DB $C5, $FF, $F0, $80, $00, $01, $00, $00
+  DB $C5, $FF, $F0, $88, $20, $01, $00, $00
+  DB $C5, $FF, $F0, $90, $40, $01, $00, $00
+  DB $C5, $FF, $F0, $98, $60, $01, $00, $00
+  DB $C5, $FF, $F0, $A0, $80, $01, $00, $00
+  DB $C5, $FF, $F0, $A8, $A0, $01, $00, $00
+  DB $C5, $FE, $7F, $82, $00, $01, $00, $00
+  DB $C5, $FE, $7F, $8A, $20, $01, $00, $00
+  DB $C5, $FE, $7F, $92, $40, $01, $00, $00
+  DB $C5, $FE, $7F, $9A, $60, $01, $00, $00
+  DB $C5, $FE, $7F, $A2, $80, $01, $00, $00
+  DB $C5, $FE, $7F, $AA, $A0, $01, $00, $00
+  {$ENDIF}
+
+  ADD    EAX, 448
+  ADD    EDX, 448
+  SUB    ECX, 448
+  JNZ    @LOOP
+end;
+
+{ 每一次复制 480 个字节 <3840 位> <长度必须是 480 的倍数> }
+procedure Move_AVX1_480U(const src: Pointer; dst: Pointer; const len: NativeInt); assembler; register;
+asm
+  {$IFDEF WIN64}
+  XCHG  RAX, RCX
+  {$ENDIF}
+@LOOP:
+  {$IFDEF FPC}
+  {$IFDEF WIN64}
+  VLDDQU   YMM0,  [EAX+000]
+  VLDDQU   YMM1,  [EAX+032]
+  VLDDQU   YMM2,  [EAX+064]
+  VLDDQU   YMM3,  [EAX+096]
+  VLDDQU   YMM4,  [EAX+128]
+  VLDDQU   YMM5,  [EAX+160]
+  VLDDQU   YMM6,  [EAX+192]
+  VLDDQU   YMM7,  [EAX+224]
+  VLDDQU   YMM8,  [EAX+256]
+  VLDDQU   YMM9,  [EAX+288]
+  VLDDQU   YMM10, [EAX+320]
+  VLDDQU   YMM11, [EAX+352]
+  VLDDQU   YMM12, [EAX+384]
+  VLDDQU   YMM13, [EAX+416]
+  VLDDQU   YMM14, [EAX+448]
+  VMOVDQU  [EDX+000],  YMM0
+  VMOVDQU  [EDX+032],  YMM1
+  VMOVDQU  [EDX+064],  YMM2
+  VMOVDQU  [EDX+096],  YMM3
+  VMOVDQU  [EDX+128],  YMM4
+  VMOVDQU  [EDX+160],  YMM5
+  VMOVDQU  [EDX+192],  YMM6
+  VMOVDQU  [EDX+224],  YMM7
+  VMOVDQU  [EDX+256],  YMM8
+  VMOVDQU  [EDX+288],  YMM9
+  VMOVDQU  [EDX+320], YMM10
+  VMOVDQU  [EDX+352], YMM11
+  VMOVDQU  [EDX+384], YMM12
+  VMOVDQU  [EDX+416], YMM13
+  VMOVDQU  [EDX+448], YMM14
+  {$ELSE}
+  VLDDQU   YMM0,  [EAX+000]
+  VLDDQU   YMM1,  [EAX+032]
+  VLDDQU   YMM2,  [EAX+064]
+  VLDDQU   YMM3,  [EAX+096]
+  VLDDQU   YMM4,  [EAX+128]
+  VLDDQU   YMM5,  [EAX+160]
+  VLDDQU   YMM6,  [EAX+192]
+  VLDDQU   YMM7,  [EAX+224]
+  VMOVDQU  [EDX+000],  YMM0
+  VMOVDQU  [EDX+032],  YMM1
+  VMOVDQU  [EDX+064],  YMM2
+  VMOVDQU  [EDX+096],  YMM3
+  VMOVDQU  [EDX+128],  YMM4
+  VMOVDQU  [EDX+160],  YMM5
+  VMOVDQU  [EDX+192],  YMM6
+  VMOVDQU  [EDX+224],  YMM7
+  VLDDQU   YMM0, [EAX+256]
+  VLDDQU   YMM1, [EAX+288]
+  VLDDQU   YMM2, [EAX+320]
+  VLDDQU   YMM3, [EAX+352]
+  VLDDQU   YMM4, [EAX+384]
+  VLDDQU   YMM5, [EAX+416]
+  VLDDQU   YMM6, [EAX+448]
+  VMOVDQU  [EDX+256], YMM0
+  VMOVDQU  [EDX+288], YMM1
+  VMOVDQU  [EDX+320], YMM2
+  VMOVDQU  [EDX+352], YMM3
+  VMOVDQU  [EDX+384], YMM4
+  VMOVDQU  [EDX+416], YMM5
+  VMOVDQU  [EDX+448], YMM6
+  {$ENDIF}
+  {$ENDIF}
+
+  {$IFDEF WIN64}
+  DB $67, $C5, $FF, $F0, $00
+  DB $67, $C5, $FF, $F0, $48, $20
+  DB $67, $C5, $FF, $F0, $50, $40
+  DB $67, $C5, $FF, $F0, $58, $60
+  DB $67, $C5, $FF, $F0, $A0, $80, $00, $00, $00
+  DB $67, $C5, $FF, $F0, $A8, $A0, $00, $00, $00
+  DB $67, $C5, $FF, $F0, $B0, $C0, $00, $00, $00
+  DB $67, $C5, $FF, $F0, $B8, $E0, $00, $00, $00
+  DB $67, $C5, $7F, $F0, $80, $00, $01, $00, $00
+  DB $67, $C5, $7F, $F0, $88, $20, $01, $00, $00
+  DB $67, $C5, $7F, $F0, $90, $40, $01, $00, $00
+  DB $67, $C5, $7F, $F0, $98, $60, $01, $00, $00
+  DB $67, $C5, $7F, $F0, $A0, $80, $01, $00, $00
+  DB $67, $C5, $7F, $F0, $A8, $A0, $01, $00, $00
+  DB $67, $C5, $7F, $F0, $B0, $C0, $01, $00, $00
+  DB $67, $C5, $FE, $7F, $02
+  DB $67, $C5, $FE, $7F, $4A, $20
+  DB $67, $C5, $FE, $7F, $52, $40
+  DB $67, $C5, $FE, $7F, $5A, $60
+  DB $67, $C5, $FE, $7F, $A2, $80, $00, $00, $00
+  DB $67, $C5, $FE, $7F, $AA, $A0, $00, $00, $00
+  DB $67, $C5, $FE, $7F, $B2, $C0, $00, $00, $00
+  DB $67, $C5, $FE, $7F, $BA, $E0, $00, $00, $00
+  DB $67, $C5, $7E, $7F, $82, $00, $01, $00, $00
+  DB $67, $C5, $7E, $7F, $8A, $20, $01, $00, $00
+  DB $67, $C5, $7E, $7F, $92, $40, $01, $00, $00
+  DB $67, $C5, $7E, $7F, $9A, $60, $01, $00, $00
+  DB $67, $C5, $7E, $7F, $A2, $80, $01, $00, $00
+  DB $67, $C5, $7E, $7F, $AA, $A0, $01, $00, $00
+  DB $67, $C5, $7E, $7F, $B2, $C0, $01, $00, $00
+  {$ELSE}
+  DB $C5, $FF, $F0, $00
+  DB $C5, $FF, $F0, $48, $20
+  DB $C5, $FF, $F0, $50, $40
+  DB $C5, $FF, $F0, $58, $60
+  DB $C5, $FF, $F0, $A0, $80, $00, $00, $00
+  DB $C5, $FF, $F0, $A8, $A0, $00, $00, $00
+  DB $C5, $FF, $F0, $B0, $C0, $00, $00, $00
+  DB $C5, $FF, $F0, $B8, $E0, $00, $00, $00
+  DB $C5, $FE, $7F, $02
+  DB $C5, $FE, $7F, $4A, $20
+  DB $C5, $FE, $7F, $52, $40
+  DB $C5, $FE, $7F, $5A, $60
+  DB $C5, $FE, $7F, $A2, $80, $00, $00, $00
+  DB $C5, $FE, $7F, $AA, $A0, $00, $00, $00
+  DB $C5, $FE, $7F, $B2, $C0, $00, $00, $00
+  DB $C5, $FE, $7F, $BA, $E0, $00, $00, $00
+  DB $C5, $FF, $F0, $80, $00, $01, $00, $00
+  DB $C5, $FF, $F0, $88, $20, $01, $00, $00
+  DB $C5, $FF, $F0, $90, $40, $01, $00, $00
+  DB $C5, $FF, $F0, $98, $60, $01, $00, $00
+  DB $C5, $FF, $F0, $A0, $80, $01, $00, $00
+  DB $C5, $FF, $F0, $A8, $A0, $01, $00, $00
+  DB $C5, $FF, $F0, $B0, $C0, $01, $00, $00
+  DB $C5, $FE, $7F, $82, $00, $01, $00, $00
+  DB $C5, $FE, $7F, $8A, $20, $01, $00, $00
+  DB $C5, $FE, $7F, $92, $40, $01, $00, $00
+  DB $C5, $FE, $7F, $9A, $60, $01, $00, $00
+  DB $C5, $FE, $7F, $A2, $80, $01, $00, $00
+  DB $C5, $FE, $7F, $AA, $A0, $01, $00, $00
+  DB $C5, $FE, $7F, $B2, $C0, $01, $00, $00
+  {$ENDIF}
+
+  ADD    EAX, 480
+  ADD    EDX, 480
+  SUB    ECX, 480
   JNZ    @LOOP
 end;
 
