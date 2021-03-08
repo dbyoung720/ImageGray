@@ -111,7 +111,7 @@ type
   DWORD  = FixedUInt;
   PDWORD = ^DWORD;
 
-  { 每一次复制 1 个字节 <Byte> }
+{ 每一次复制 1 个字节 <Byte> }
 procedure Move_Byte(const src: Pointer; dst: Pointer; const len: NativeInt);
 var
   pSrc: PByte;
