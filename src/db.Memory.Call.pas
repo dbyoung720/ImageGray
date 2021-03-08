@@ -3,7 +3,7 @@ unit db.Memory.Call;
   Func: 内存复制优化函数的封装调用
   Name: dbyoung@sina.com
   Date: 2021-3-2
-  Vers: Delphi 10.3.2
+  Vers: Delphi 10.4.2
 }
 
 interface

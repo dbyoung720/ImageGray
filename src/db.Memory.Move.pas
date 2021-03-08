@@ -3,7 +3,7 @@ unit db.Memory.Move;
   Func: 内存复制优化
   Name: dbyoung@sina.com
   Date: 2021-3-2
-  Vers: Delphi 10.3.2
+  Vers: Delphi 10.4.2
 
   未按 16 字节对齐
   1	  Move______Byte
