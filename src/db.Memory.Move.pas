@@ -6,39 +6,61 @@ unit db.Memory.Move;
   Vers: Delphi 10.3.2
 
   未按 16 字节对齐
-  1	  Move_Byte
-  2	  Move_WORD
-  4	  Move_DWORD
-  8	  Move_UINT64
-  16  Move_SSE2_16U
-  32  Move_SSE2_32U
-  64  Move_SSE2_64U
+  1	  Move______Byte
+  2	  Move______WORD
+  4	  Move_____DWORD
+  8	  Move____UINT64
+  16  Move_SSE2_016U
+  32  Move_SSE2_032U
+  48  Move_SSE2_048U
+  64  Move_SSE2_064U
+  80  Move_SSE2_080U
+  96  Move_SSE2_096U
+  112 Move_SSE2_112U
   128 Move_SSE2_128U
+  144 Move_SSE2_144U
+  160 Move_SSE2_160U
+  176 Move_SSE2_176U
+  192 Move_SSE2_192U
+  208 Move_SSE2_208U
+  224 Move_SSE2_224U
+  240 Move_SSE2_240U
   256 Move_SSE2_256U
-  32  Move_AVX1_32U
-  64  Move_AVX1_64U
+  32  Move_AVX1_032U
+  64  Move_AVX1_064U
+  96  Move_AVX1_096U
   128 Move_AVX1_128U
+  160 Move_AVX1_160U
+  192 Move_AVX1_192U
+  224 Move_AVX1_224U
   256 Move_AVX1_256U
+  288 Move_AVX1_288U
+  320 Move_AVX1_320U
+  352 Move_AVX1_352U
+  384 Move_AVX1_384U
+  416 Move_AVX1_416U
+  448 Move_AVX1_448U
+  480 Move_AVX1_480U
   512 Move_AVX1_512U
 
   按 16(SSE) / 32(AVX) 字节对齐
-  16  Move_SSE2_16A
-  32  Move_SSE2_32A
-  64  Move_SSE2_64A
+  16  Move_SSE2_016A
+  32  Move_SSE2_032A
+  64  Move_SSE2_064A
   128 Move_SSE2_128A
   256 Move_SSE2_256A
-  16  Move_SSE4_16A
-  32  Move_SSE4_32A
-  64  Move_SSE4_64A
+  16  Move_SSE4_016A
+  32  Move_SSE4_032A
+  64  Move_SSE4_064A
   128 Move_SSE4_128A
   256 Move_SSE4_256A
-  32  Move_AVX1_32A
-  64  Move_AVX1_64A
+  32  Move_AVX1_032A
+  64  Move_AVX1_064A
   128 Move_AVX1_128A
   256 Move_AVX1_256A
   512 Move_AVX1_512A
-  32  Move_AVX2_32A
-  64  Move_AVX2_64A
+  32  Move_AVX2_032A
+  64  Move_AVX2_064A
   128 Move_AVX2_128A
   256 Move_AVX2_256A
   512 Move_AVX2_512A
