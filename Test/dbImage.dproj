@@ -147,6 +147,8 @@
         <DCCReference Include="Unit1.pas">
             <Form>Form1</Form>
         </DCCReference>
+        <DCCReference Include="..\src\db.Memory.Move.pas"/>
+        <DCCReference Include="..\src\db.Memory.Call.pas"/>
         <DCCReference Include="..\src\db.Image.Gray.pas"/>
         <DCCReference Include="..\src\db.Image.Load.pas"/>
         <DCCReference Include="..\src\db.Image.Common.pas"/>
