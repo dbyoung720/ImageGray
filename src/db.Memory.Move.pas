@@ -6,10 +6,10 @@ unit db.Memory.Move;
   Vers: Delphi 10.3.2
 
   Î´°´ 16 ×Ö½Ú¶ÔÆë
-  1	  Move______Byte
-  2	  Move______WORD
-  4	  Move_____DWORD
-  8	  Move____UINT64
+  1   Move______Byte
+  2   Move______WORD
+  4   Move_____DWORD
+  8   Move____UINT64
   16  Move_SSE2_016U
   32  Move_SSE2_032U
   48  Move_SSE2_048U
