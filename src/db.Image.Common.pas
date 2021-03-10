@@ -93,6 +93,7 @@ const
   c_GraySSEDiv3: DWORD            = $55;
   c_ContSSERaio: DWORD            = $64;
   c_ContSSEMask: DWORD            = $80;
+  c_ContSSEM257: DWORD            = $0101;
   c_GrayMMXAdd: UINT64            = $0001000100010001;
   c_GrayMMXARGB: UINT64           = $0000004D0095001C;
   c_GrayMMXAMask: UINT64          = $FF000000FF000000;

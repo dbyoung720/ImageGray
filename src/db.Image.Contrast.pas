@@ -87,14 +87,17 @@ end;
 
 procedure Contrast_SSEParallel_Proc(pColor: PRGBQuad; const intContrastValue, bmpWidth: Integer);
 asm
-  MOVSS   XMM0, [c_PixBGRAMask]             // XMM0 = |00000000|00000000|00000000|000000FF
   MOVSS   XMM1, [c_ContSSEMask]             // XMM1 = |00000000|00000000|00000000|00000080
-  MOVD    XMM2, EDX                         // XMM2 = |00000000|00000000|00000000|intContrastValue
-  SHUFPS  XMM0, XMM0, 0                     // XMM0 = |000000FF|000000FF|000000FF|000000FF
+  MOVSS   XMM2, [c_ContSSEM257]             // XMM1 = |00000000|00000000|00000000|00000101
+  MOVD    XMM3, EDX                         // XMM2 = |00000000|00000000|00000000|intContrastValue
   SHUFPS  XMM1, XMM1, 0                     // XMM1 = |00000080|00000080|00000080|00000080
-  SHUFPS  XMM2, XMM2, 0                     // XMM2 = |intContrastValue|intContrastValue|intContrastValue|intContrastValue
+  SHUFPS  XMM2, XMM2, 0                     // XMM1 = |00000101|00000101|00000101|00000101
+  SHUFPS  XMM3, XMM3, 0                     // XMM2 = |intContrastValue|intContrastValue|intContrastValue|intContrastValue
 
 @LOOP:
+  MOVSS   XMM0, [c_PixBGRAMask]             // XMM0 = |00000000|00000000|00000000|000000FF
+  SHUFPS  XMM0, XMM0, 0                     // XMM0 = |000000FF|000000FF|000000FF|000000FF
+
   MOVUPS  XMM5, [EAX]                       // XMM5 = |A3R3G3B3|A2R2G2B2|A1R1G1B1|A0R0G0B0|
   MOVAPS  XMM6, XMM5                        // XMM6 = |A3R3G3B3|A2R2G2B2|A1R1G1B1|A0R0G0B0|
   MOVAPS  XMM7, XMM5                        // XMM7 = |A3R3G3B3|A2R2G2B2|A1R1G1B1|A0R0G0B0|
@@ -110,49 +113,58 @@ asm
   PSRLD   XMM7, 16                          // XMM7 = |0000A3R3|0000A2R2|0000A1R1|0000A0R0|
   ANDPS   XMM7, XMM0                        // XMM7 = |000000R3|000000R2|000000R1|000000R0|
 
-  // 计算对比度
+  // 计算对比度  div 255 = (x + (x + 257) >> 8) >> 8
   CMP  EDX, 0
   JG   @Large
   MOVAPS    XMM4, XMM5                      // XMM4 = XMM5
   PSUBW     XMM5, XMM1                      // XMM5 = pColor^.rgbRed - 128
-  PMULLW    XMM5, XMM2                      // XMM5 = (pColor^.rgbRed - 128) * intContrastValue
-  DIVPS     XMM5, XMM0                      // XMM5 = (pColor^.rgbRed - 128) * intContrastValue / 255
-  CVTTPS2DQ XMM5, XMM5                      // XMM5 = Round((pColor^.rgbRed - 128) * intContrastValue / 255)
+  PMULLW    XMM5, XMM3                      // XMM5 = (pColor^.rgbRed - 128) * intContrastValue
+  MOVAPS    XMM0, XMM5                      // XMM0 = XMM5
+  PADDW     XMM5, XMM2                      // XMM5 = XMM5 + 257
+  PSRLW     XMM5, 8                         // XMM5 = XMM5 >> 8
+  PADDW     XMM5, XMM0                      // XMM5 = XMM5 + XMM0
+  PSRLW     XMM5, 8                         // XMM5 = XMM5 >> 8
   PADDB     XMM5, XMM4                      // XMM5 = pColor^.rgbRed + Round((pColor^.rgbRed - 128) * intContrastValue / 255);
 
   MOVAPS    XMM4, XMM6
   PSUBW     XMM6, XMM1                      // XMM6 = pColor^.rgbGreen - 128
-  PMULLW    XMM6, XMM2                      // XMM6 = (pColor^.rgbGreen - 128) * intContrastValue
-  DIVPS     XMM6, XMM0                      // XMM6 = (pColor^.rgbGreen - 128) * intContrastValue / 255
-  CVTTPS2DQ XMM6, XMM6                      // XMM6 = Round((pColor^.rgbGreen - 128) * intContrastValue / 255)
+  PMULLW    XMM6, XMM3                      // XMM6 = (pColor^.rgbGreen - 128) * intContrastValue
+  MOVAPS    XMM0, XMM6                      // XMM0 = XMM6
+  PADDW     XMM6, XMM2                      // XMM6 = XMM6 + 257
+  PSRLW     XMM6, 8                         // XMM6 = XMM6 >> 8
+  PADDW     XMM6, XMM0                      // XMM6 = XMM6 + XMM0
+  PSRLW     XMM6, 8                         // XMM6 = XMM6 >> 8
   PADDB     XMM6, XMM4                      // XMM6 = pColor^.rgbGreen + Round((pColor^.rgbGreen - 128) * intContrastValue / 255);
 
   MOVAPS    XMM4, XMM7
   PSUBW     XMM7, XMM1                      // XMM7 = pColor^.rgbBlue - 128
-  PMULLW    XMM7, XMM2                      // XMM7 = (pColor^.rgbBlue - 128) * intContrastValue
-  DIVPS     XMM7, XMM0                      // XMM7 = (pColor^.rgbBlue - 128) * intContrastValue / 255
-  CVTTPS2DQ XMM7, XMM7                      // XMM7 = Round((pColor^.rgbBlue - 128) * intContrastValue / 255)
+  PMULLW    XMM7, XMM3                      // XMM7 = (pColor^.rgbBlue - 128) * intContrastValue
+  MOVAPS    XMM0, XMM7                      // XMM0 = XMM7
+  PADDW     XMM7, XMM2                      // XMM7 = XMM7 + 257
+  PSRLW     XMM7, 8                         // XMM7 = XMM7 >> 8
+  PADDW     XMM7, XMM0                      // XMM7 = XMM7 + XMM0
+  PSRLW     XMM7, 8                         // XMM7 = XMM7 >> 8
   PADDB     XMM7, XMM4                      // XMM7 = pColor^.rgbBlue + Round((pColor^.rgbBlue - 128) * intContrastValue / 255);
   JMP       @Result
 
 @Large:
   MOVAPS    XMM4, XMM5                      // XMM4 = XMM5
   PSUBD     XMM5, XMM1                      // XMM5 = pColor^.rgbRed - 128
-  PMULLD    XMM5, XMM2                      // XMM5 = (pColor^.rgbRed - 128) * intContrastValue
+  PMULLD    XMM5, XMM3                      // XMM5 = (pColor^.rgbRed - 128) * intContrastValue
   DIVPS     XMM5, XMM1                      // XMM5 = (pColor^.rgbRed - 128) * intContrastValue / 128
   CVTTPS2DQ XMM5, XMM5                      // XMM5 = Round((pColor^.rgbRed - 128) * intContrastValue / kValue)
   PADDUSB   XMM5, XMM4                      // XMM5 = pColor^.rgbRed + Round((pColor^.rgbRed - 128) * intContrastValue / kValue);
 
   MOVAPS    XMM4, XMM6                      // XMM4 = XMM6
   PSUBD     XMM6, XMM1                      // XMM6 = pColor^.rgbGreen - 128
-  PMULLD    XMM6, XMM2                      // XMM6 = (pColor^.rgbGreen - 128) * intContrastValue
+  PMULLD    XMM6, XMM3                      // XMM6 = (pColor^.rgbGreen - 128) * intContrastValue
   DIVPS     XMM6, XMM1                      // XMM6 = (pColor^.rgbGreen - 128) * intContrastValue / 128
   CVTTPS2DQ XMM6, XMM6                      // XMM6 = Round((pColor^.rgbGreen - 128) * intContrastValue / kValue)
   PADDUSB   XMM6, XMM4                      // XMM6 = pColor^.rgbGreen + Round((pColor^.rgbGreen - 128) * intContrastValue / kValue);
 
   MOVAPS    XMM4, XMM7                      // XMM4 = XMM7
   PSUBD     XMM7, XMM1                      // XMM7 = pColor^.rgbBlue - 128
-  PMULLD    XMM7, XMM2                      // XMM7 = (pColor^.rgbBlue - 128) * intContrastValue
+  PMULLD    XMM7, XMM3                      // XMM7 = (pColor^.rgbBlue - 128) * intContrastValue
   DIVPS     XMM7, XMM1                      // XMM7 = (pColor^.rgbBlue - 128) * intContrastValue / 128
   CVTTPS2DQ XMM7, XMM7                      // XMM7 = Round((pColor^.rgbBlue - 128) * intContrastValue / kValue)
   PADDUSB   XMM7, XMM4                      // XMM7 = pColor^.rgbBlue + Round((pColor^.rgbBlue - 128) * intContrastValue / kValue);
