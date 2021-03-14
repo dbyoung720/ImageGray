@@ -33,9 +33,9 @@ begin
     pColor := bmp.ScanLine[I];
     for J  := 0 to bmp.width - 1 do
     begin
-      pColor^.rgbRed   := CheckValue(pColor^.rgbRed, intLightValue);
-      pColor^.rgbGreen := CheckValue(pColor^.rgbGreen, intLightValue);
-      pColor^.rgbBlue  := CheckValue(pColor^.rgbBlue, intLightValue);
+      pColor^.rgbRed   := EnsureRange(pColor^.rgbRed + intLightValue, 0, 255);
+      pColor^.rgbGreen := EnsureRange(pColor^.rgbGreen + intLightValue, 0, 255);
+      pColor^.rgbBlue  := EnsureRange(pColor^.rgbBlue + intLightValue, 0, 255);
       Inc(pColor);
     end;
   end;
@@ -51,9 +51,9 @@ begin
   pColor := GetBitsPointer(bmp);
   for I  := 0 to Count - 1 do
   begin
-    pColor^.rgbRed   := CheckValue(pColor^.rgbRed, intLightValue);
-    pColor^.rgbGreen := CheckValue(pColor^.rgbGreen, intLightValue);
-    pColor^.rgbBlue  := CheckValue(pColor^.rgbBlue, intLightValue);
+    pColor^.rgbRed   := EnsureRange(pColor^.rgbRed + intLightValue, 0, 255);
+    pColor^.rgbGreen := EnsureRange(pColor^.rgbGreen + intLightValue, 0, 255);
+    pColor^.rgbBlue  := EnsureRange(pColor^.rgbBlue + intLightValue, 0, 255);
     Inc(pColor);
   end;
 end;
@@ -81,9 +81,9 @@ var
 begin
   for I := 0 to bmpWidth - 1 do
   begin
-    pColor^.rgbRed   := CheckValue(pColor^.rgbRed, intLightValue);
-    pColor^.rgbGreen := CheckValue(pColor^.rgbGreen, intLightValue);
-    pColor^.rgbBlue  := CheckValue(pColor^.rgbBlue, intLightValue);
+    pColor^.rgbRed   := EnsureRange(pColor^.rgbRed + intLightValue, 0, 255);
+    pColor^.rgbGreen := EnsureRange(pColor^.rgbGreen + intLightValue, 0, 255);
+    pColor^.rgbBlue  := EnsureRange(pColor^.rgbBlue + intLightValue, 0, 255);
     Inc(pColor);
   end;
 end;
@@ -298,4 +298,3 @@ begin
 end;
 
 end.
-

@@ -124,7 +124,6 @@ type
 function GetBmpWidthBytes(bmp: TBitmap): DWORD;
 function GetBitsPointer(bmp: TBitmap): Pointer;
 function GetPixelGray(const r, g, b: Byte): TRGBQuad; inline;
-function CheckValue(const intValue, intRange: Integer): Byte; inline;
 procedure ShowColorChange(frmMain: TForm; cc: TColorChange; OnChangeLight, OnLightResetClick, OnLightCancelClick, OnLightOKClick: TNotifyEvent; var lblValueShow: TLabel; const intMinValue, intMaxValue: Integer; const strCaption, strTip: string);
 
 function CRC32_Calculate(Buffer: PChar; len: Cardinal): Cardinal; cdecl; external name {$IFDEF win32} '_sse42_calculate'; {$ELSE} 'sse42_calculate'; {$ENDIF}
@@ -248,11 +247,6 @@ var
 begin
   byeGray := (c_GrayR77[r] + c_GrayG151[g] + c_GrayB28[b]) shr 8;
   Result  := TRGBQuad(c_GrayValue[byeGray]);
-end;
-
-function CheckValue(const intValue, intRange: Integer): Byte; inline;
-begin
-  Result := EnsureRange(intValue + intRange, 0, 255);
 end;
 
 procedure InitGrayTable;
