@@ -346,7 +346,7 @@ begin
       bmpTemp.Width       := FbmpBackup.Width;
       bmpTemp.Height      := FbmpBackup.Height;
       bmpTemp.Canvas.Draw(0, 0, FbmpBackup);
-      Rotate_Parallel(bmpTemp, bmpDst, I);
+      Rotate_Optimize(bmpTemp, bmpDst, I);
       Inc(I, 5);
       statTip.Panels[0].Text := Format('Ðý×ªÓÃÊ±£º%d ºÁÃë', [ElapsedMilliseconds]);
     end;
@@ -357,5 +357,6 @@ begin
     bmpDst.free;
   end;
 end;
+
 
 end.

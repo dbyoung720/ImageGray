@@ -28,10 +28,10 @@ var
   I, J  : Integer;
   pColor: PRGBQuad;
 begin
-  for I := 0 to bmp.height - 1 do
+  for I := 0 to bmp.Height - 1 do
   begin
     pColor := bmp.ScanLine[I];
-    for J  := 0 to bmp.width - 1 do
+    for J  := 0 to bmp.Width - 1 do
     begin
       pColor^.rgbRed   := EnsureRange(pColor^.rgbRed + intLightValue, 0, 255);
       pColor^.rgbGreen := EnsureRange(pColor^.rgbGreen + intLightValue, 0, 255);
@@ -47,7 +47,7 @@ var
   I, Count: Integer;
   pColor  : PRGBQuad;
 begin
-  Count  := bmp.width * bmp.height;
+  Count  := bmp.Width * bmp.Height;
   pColor := GetBitsPointer(bmp);
   for I  := 0 to Count - 1 do
   begin
@@ -64,7 +64,7 @@ var
   I, Count: Integer;
   pColor  : PRGBQuad;
 begin
-  Count  := bmp.width * bmp.height;
+  Count  := bmp.Width * bmp.Height;
   pColor := GetBitsPointer(bmp);
   for I  := 0 to Count - 1 do
   begin
@@ -97,13 +97,13 @@ begin
   StartScanLine := Integer(bmp.ScanLine[0]);
   bmpWidthBytes := Integer(bmp.ScanLine[1]) - Integer(bmp.ScanLine[0]);
 
-  TParallel.For(0, bmp.height - 1,
+  TParallel.For(0, bmp.Height - 1,
     procedure(Y: Integer)
     var
       pColor: PRGBQuad;
     begin
       pColor := PRGBQuad(StartScanLine + Y * bmpWidthBytes);
-      bgraLight_Parallel_Proc(pColor, bmp.width, intLightValue);
+      bgraLight_Parallel_Proc(pColor, bmp.Width, intLightValue);
     end);
 end;
 
@@ -184,7 +184,7 @@ var
   Count : Integer;
 begin
   pColor := GetBitsPointer(bmp);
-  Count  := bmp.width * bmp.height;
+  Count  := bmp.Width * bmp.Height;
   Light_ASM_Proc(pColor, intLightValue, Count);
 end;
 
@@ -251,13 +251,13 @@ begin
   StartScanLine := Integer(bmp.ScanLine[0]);
   bmpWidthBytes := Integer(bmp.ScanLine[1]) - Integer(bmp.ScanLine[0]);
 
-  TParallel.For(0, bmp.height - 1,
+  TParallel.For(0, bmp.Height - 1,
     procedure(Y: Integer)
     var
       pColor: PRGBQuad;
     begin
       pColor := PRGBQuad(StartScanLine + Y * bmpWidthBytes);
-      Light_SSEParallel_Proc(pColor, intLightValue, bmp.width);
+      Light_SSEParallel_Proc(pColor, intLightValue, bmp.Width);
     end);
 end;
 
@@ -283,17 +283,17 @@ begin
     ltSSEParallel:
       Light_SSEParallel(bmp, intLightValue);
     ltSSE2:
-      bgraLight_sse2(pColor, pLight, bmp.width, bmp.height, intLightValue);
+      bgraLight_sse2(pColor, pLight, bmp.Width, bmp.Height, intLightValue);
     ltSSE4:
-      bgraLight_sse4(pColor, pLight, bmp.width, bmp.height, intLightValue);
+      bgraLight_sse4(pColor, pLight, bmp.Width, bmp.Height, intLightValue);
     ltAVX1:
-      bgraLight_avx1(pColor, pLight, bmp.width, bmp.height, intLightValue);
+      bgraLight_avx1(pColor, pLight, bmp.Width, bmp.Height, intLightValue);
     ltAVX2:
-      bgraLight_avx2(pColor, pLight, bmp.width, bmp.height, intLightValue);
+      bgraLight_avx2(pColor, pLight, bmp.Width, bmp.Height, intLightValue);
     ltAVX512knl:
-      bgraLight_avx512knl(pColor, pLight, bmp.width, bmp.height, intLightValue);
+      bgraLight_avx512knl(pColor, pLight, bmp.Width, bmp.Height, intLightValue);
     ltAVX512skx:
-      bgraLight_avx512skx(pColor, pLight, bmp.width, bmp.height, intLightValue);
+      bgraLight_avx512skx(pColor, pLight, bmp.Width, bmp.Height, intLightValue);
   end;
 end;
 
