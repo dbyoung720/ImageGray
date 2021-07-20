@@ -241,10 +241,10 @@ begin
 
   rac := Trunc(Cos(RotaryAngle) * (1 shl 16));
   ras := Trunc(Sin(RotaryAngle) * (1 shl 16));
-  cxc := ((CenterX + MoveX) * rac);
-  cxs := ((CenterX + MoveX) * ras);
-  cys := ((CenterY + MoveY) * ras);
-  cyc := ((CenterY + MoveY) * rac);
+  cxc := (CenterX + MoveX) * rac;
+  cxs := (CenterX + MoveX) * ras;
+  cys := (CenterY + MoveY) * ras;
+  cyc := (CenterY + MoveY) * rac;
   kcx := cxc - cys - CenterX * (1 shl 16);
   kcy := cxs + cyc - CenterY * (1 shl 16);
 
@@ -288,10 +288,10 @@ begin
 
   rac := Trunc(Cos(RotaryAngle) * (1 shl 16));
   ras := Trunc(Sin(RotaryAngle) * (1 shl 16));
-  cxc := ((CenterX + MoveX) * rac);
-  cxs := ((CenterX + MoveX) * ras);
-  cys := ((CenterY + MoveY) * ras);
-  cyc := ((CenterY + MoveY) * rac);
+  cxc := (CenterX + MoveX) * rac;
+  cxs := (CenterX + MoveX) * ras;
+  cys := (CenterY + MoveY) * ras;
+  cyc := (CenterY + MoveY) * rac;
   kcx := cxc - cys - CenterX * (1 shl 16);
   kcy := cxs + cyc - CenterY * (1 shl 16);
 
