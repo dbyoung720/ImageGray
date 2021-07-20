@@ -24,9 +24,15 @@ procedure HAndVMirror(bmp: TBitmap);
 
 { 旋转 }
 procedure Rotate(const bmpSrc: TBitmap; var bmpDst: TBitmap; const iAngle: Integer);
-procedure Rotate_Optimize(const bmpSrc: TBitmap; var bmpDst: TBitmap; const iAngle: Integer);
 
 implementation
+
+{ 存取类的保护成员变量 }
+type
+  TBMPAccess         = class(TBitmap);
+  TBitmapImageAccess = class(TBitmapImage);
+  PRGBQuadArray      = ^TRGBQuadArray;
+  TRGBQuadArray      = array [0 .. 0] of TRGBQuad;
 
 { 水平翻转 并行模式，需要脱离 IDE 执行 }
 procedure HorizMirror(bmp: TBitmap);
@@ -110,12 +116,8 @@ end;
   4、[SrcX, SrcY] 在原图上不见得存在；
 }
 
-{ 存取类的保护成员变量 }
-type
-  TBMPAccess         = class(TBitmap);
-  TBitmapImageAccess = class(TBitmapImage);
-
-procedure Optimize01(bmpSrc, bmpDst: TBitmap; const CenterX, CenterY, RotaryAngle, MoveX, MoveY: double);
+{ 标准旋转函数 }
+procedure Optimize01(bmpSrc, bmpDst: TBitmap; const RotaryAngle: double; const CenterX, CenterY, MoveX, MoveY: Integer);
 var
   X, Y      : Integer;
   SrcX, SrcY: Integer;
@@ -131,231 +133,194 @@ begin
   end;
 end;
 
-procedure Optimize02(bmpSrc, bmpDst: TBitmap; const CenterX, CenterY, RotaryAngle, MoveX, MoveY: double);
+{ 优化 Pixels }
+procedure Optimize02(bmpSrc, bmpDst: TBitmap; const RotaryAngle: double; const CenterX, CenterY, MoveX, MoveY: Integer);
 var
   X, Y      : Integer;
   SrcX, SrcY: Integer;
-  srcBits   : PDWORD;
-  dstBits   : PDWORD;
-  AAA       : Integer;
+  srcBits   : PRGBQuadArray;
+  dstBits   : PRGBQuadArray;
+  dstWidth  : Integer;
+  dstHeight : Integer;
+  srcWidth  : Integer;
+  srcHeight : Integer;
 begin
   srcBits := TBitmapImageAccess(TBMPAccess(bmpSrc).FImage).FDIB.dsBm.bmBits;
   dstBits := TBitmapImageAccess(TBMPAccess(bmpDst).FImage).FDIB.dsBm.bmBits;
 
-  for Y := 0 to bmpDst.Height - 1 do
-  begin
-    for X := 0 to bmpDst.Width - 1 do
-    begin
-      SrcX := Round((X - CenterX - MoveX) * Cos(RotaryAngle) - (Y - CenterY - MoveY) * Sin(RotaryAngle) + CenterX);
-      SrcY := Round((X - CenterX - MoveX) * Sin(RotaryAngle) + (Y - CenterY - MoveY) * Cos(RotaryAngle) + CenterY);
-      if (SrcX >= 0) and (SrcX < bmpSrc.Width) and (SrcY >= 0) and (SrcY < bmpSrc.Height) then
-      begin
-        AAA := SrcY * bmpSrc.Width + SrcX;
-        Inc(srcBits, AAA);
-        dstBits^ := srcBits^;
-        Dec(srcBits, AAA);
-      end;
-      Inc(dstBits);
-    end;
-  end;
-end;
-
-procedure Optimize03(bmpSrc, bmpDst: TBitmap; const CenterX, CenterY, RotaryAngle, MoveX, MoveY: double);
-var
-  X, Y                  : Integer;
-  SrcX, SrcY            : Integer;
-  srcBits               : PDWORD;
-  dstBits               : PDWORD;
-  xCos, xSin, ySin, yCos: double;
-  xValue, yValue        : double;
-  CosTheta, SinTheta    : Extended;
-  ySinT, YCosT          : double;
-  AAA                   : Integer;
-begin
-  xCos   := (CenterX + MoveX) * Cos(RotaryAngle);
-  xSin   := (CenterX + MoveX) * Sin(RotaryAngle);
-  yCos   := (CenterY + MoveY) * Cos(RotaryAngle);
-  ySin   := (CenterY + MoveY) * Sin(RotaryAngle);
-  xValue := -xCos + ySin + CenterX;
-  yValue := -xSin - yCos + CenterY;
-  SinCos(RotaryAngle, SinTheta, CosTheta);
-
-  srcBits := TBitmapImageAccess(TBMPAccess(bmpSrc).FImage).FDIB.dsBm.bmBits;
-  dstBits := TBitmapImageAccess(TBMPAccess(bmpDst).FImage).FDIB.dsBm.bmBits;
-
-  for Y := 0 to bmpDst.Height - 1 do
-  begin
-    ySinT := Y * SinTheta - xValue;
-    YCosT := Y * CosTheta + yValue;
-    for X := 0 to bmpDst.Width - 1 do
-    begin
-      SrcX := Round(X * CosTheta - ySinT);
-      SrcY := Round(X * SinTheta + YCosT);
-      if (SrcX >= 0) and (SrcX < bmpSrc.Width) and (SrcY >= 0) and (SrcY < bmpSrc.Height) then
-      begin
-        AAA := SrcY * bmpSrc.Width + SrcX;
-        Inc(srcBits, AAA);
-        dstBits^ := srcBits^;
-        Dec(srcBits, AAA);
-      end;
-      Inc(dstBits);
-    end;
-  end;
-end;
-
-procedure Optimize04(bmpSrc, bmpDst: TBitmap; const CenterX, CenterY, RotaryAngle, MoveX, MoveY: double);
-var
-  dstX, dstY            : Integer;
-  SrcX, SrcY            : Integer;
-  srcBits               : PDWORD;
-  dstBits               : PDWORD;
-  xCos, xSin, ySin, yCos: double;
-  xValue, yValue        : Integer;
-  CosTheta, SinTheta    : Extended;
-  iCosTheta, iSinTheta  : Integer;
-  ySinT, YCosT          : Integer;
-  AAA                   : Integer;
-begin
-  xCos   := (CenterX + MoveX) * Cos(RotaryAngle);
-  xSin   := (CenterX + MoveX) * Sin(RotaryAngle);
-  yCos   := (CenterY + MoveY) * Cos(RotaryAngle);
-  ySin   := (CenterY + MoveY) * Sin(RotaryAngle);
-  xValue := Round(-xCos + ySin + CenterX);
-  yValue := Round(-xSin - yCos + CenterY);
-  SinCos(RotaryAngle, SinTheta, CosTheta);
-  iSinTheta := Trunc(SinTheta * (1 shl 16));
-  iCosTheta := Trunc(CosTheta * (1 shl 16));
-
-  srcBits := TBitmapImageAccess(TBMPAccess(bmpSrc).FImage).FDIB.dsBm.bmBits;
-  dstBits := TBitmapImageAccess(TBMPAccess(bmpDst).FImage).FDIB.dsBm.bmBits;
-
-  for dstY := 0 to bmpDst.Height - 1 do
-  begin
-    ySinT    := dstY * iSinTheta shr 16 - xValue;
-    YCosT    := dstY * iCosTheta shr 16 + yValue;
-    for dstX := 0 to bmpDst.Width - 1 do
-    begin
-      SrcX := dstX * iCosTheta shr 16 - ySinT;
-      SrcY := dstX * iSinTheta shr 16 + YCosT;
-      if (SrcX >= 0) and (SrcX < bmpSrc.Width) and (SrcY >= 0) and (SrcY < bmpSrc.Height) then
-      begin
-        AAA := SrcY * bmpSrc.Width + SrcX;
-        Inc(srcBits, AAA);
-        dstBits^ := srcBits^;
-        Dec(srcBits, AAA);
-      end;
-      Inc(dstBits);
-    end;
-  end;
-end;
-
-procedure Optimize05(bmpSrc, bmpDst: TBitmap; const CenterX, CenterY: Integer; const RotaryAngle, MoveX, MoveY: double);
-var
-  dstX, dstY            : Integer;
-  SrcX, SrcY            : Integer;
-  srcBits               : array of TRGBQuad;
-  dstBits               : PRGBQuad;
-  xCos, xSin, ySin, yCos: double;
-  xValue, yValue        : Integer;
-  CosTheta, SinTheta    : Extended;
-  iCosTheta, iSinTheta  : Integer;
-  ySinT, YCosT          : Integer;
-begin
-  xCos   := (CenterX + MoveX) * Cos(RotaryAngle);
-  xSin   := (CenterX + MoveX) * Sin(RotaryAngle);
-  yCos   := (CenterY + MoveY) * Cos(RotaryAngle);
-  ySin   := (CenterY + MoveY) * Sin(RotaryAngle);
-  xValue := Round(-xCos + ySin + CenterX);
-  yValue := Round(-xSin - yCos + CenterY);
-  SinCos(RotaryAngle, SinTheta, CosTheta);
-  iSinTheta := Trunc(SinTheta * (1 shl 16));
-  iCosTheta := Trunc(CosTheta * (1 shl 16));
-
-  SetLength(srcBits, bmpSrc.Width * bmpSrc.Height);
-  CopyMemory(srcBits, TBitmapImageAccess(TBMPAccess(bmpSrc).FImage).FDIB.dsBm.bmBits, bmpSrc.Width * bmpSrc.Height * 4);
-  dstBits := TBitmapImageAccess(TBMPAccess(bmpDst).FImage).FDIB.dsBm.bmBits;
-
-  for dstY := 0 to bmpDst.Height - 1 do
-  begin
-    ySinT    := dstY * iSinTheta shr 16 - xValue;
-    YCosT    := dstY * iCosTheta shr 16 + yValue;
-    for dstX := 0 to bmpDst.Width - 1 do
-    begin
-      SrcX := dstX * iCosTheta shr 16 - ySinT;
-      SrcY := dstX * iSinTheta shr 16 + YCosT;
-      if (SrcX >= 0) and (SrcX < bmpSrc.Width) and (SrcY >= 0) and (SrcY < bmpSrc.Height) then
-      begin
-        dstBits^ := srcBits[SrcY * bmpSrc.Width + SrcX];
-      end;
-      Inc(dstBits);
-    end;
-  end;
-end;
-
-procedure Optimize06(bmpSrc, bmpDst: TBitmap; const CenterX, CenterY: Integer; const RotaryAngle, MoveX, MoveY: double); inline;
-type
-  PRGBQuadArray = ^TRGBQuadArray;
-  TRGBQuadArray = array [0 .. 0] of TRGBQuad;
-var
-  xODst, yODst                  : Integer;
-  srcWidth, srcHeight           : Integer;
-  dstWidth, dstHeight           : Integer;
-  srcBits                       : PRGBQuadArray;
-  dstBits                       : PRGBQuadArray;
-  dstBit                        : PRGBQuad;
-  xPrime, yPrime                : Integer;
-  X, Y                          : Integer;
-  yPrimeSinTheta, yPrimeCosTheta: Integer;
-  CosTheta, SinTheta            : Extended;
-  iCosTheta, iSinTheta          : Integer;
-  xSrc, ySrc                    : Integer;
-begin
   dstWidth  := bmpDst.Width;
   dstHeight := bmpDst.Height;
   srcWidth  := bmpSrc.Width;
   srcHeight := bmpSrc.Height;
 
-  xODst := dstWidth div 2;
-  if ((RotaryAngle = 0.0) or (RotaryAngle = -90.0)) and not Odd(dstWidth) then
-    Dec(xODst);
-  yODst := dstHeight div 2;
-  if ((RotaryAngle = 0.0) or (RotaryAngle = +90.0)) and not Odd(dstHeight) then
-    Dec(yODst);
+  for Y := 0 to dstHeight - 1 do
+  begin
+    for X := 0 to dstWidth - 1 do
+    begin
+      SrcX := Round((X - CenterX - MoveX) * Cos(RotaryAngle) - (Y - CenterY - MoveY) * Sin(RotaryAngle) + CenterX);
+      SrcY := Round((X - CenterX - MoveX) * Sin(RotaryAngle) + (Y - CenterY - MoveY) * Cos(RotaryAngle) + CenterY);
+      if (DWORD(SrcY) < DWORD(srcHeight)) and (DWORD(SrcX) < DWORD(srcWidth)) then
+      begin
+        dstBits[Y * dstWidth + X] := srcBits[SrcY * srcWidth + SrcX];
+      end;
+    end;
+  end;
+end;
 
-  SinCos(RotaryAngle, SinTheta, CosTheta);
-  iSinTheta := Trunc(SinTheta * (1 shl 16));
-  iCosTheta := Trunc(CosTheta * (1 shl 16));
-
+{ 优化循环 }
+procedure Optimize03(bmpSrc, bmpDst: TBitmap; const RotaryAngle: double; const CenterX, CenterY, MoveX, MoveY: Integer);
+var
+  X, Y      : Integer;
+  SrcX, SrcY: Integer;
+  srcBits   : PRGBQuadArray;
+  dstBits   : PRGBQuadArray;
+  cxc, cxs  : Single;
+  cyc, cys  : Single;
+  rac, ras  : Single;
+  dstWidth  : Integer;
+  dstHeight : Integer;
+  srcWidth  : Integer;
+  srcHeight : Integer;
+  krx, kry  : Single;
+begin
   srcBits := TBitmapImageAccess(TBMPAccess(bmpSrc).FImage).FDIB.dsBm.bmBits;
   dstBits := TBitmapImageAccess(TBMPAccess(bmpDst).FImage).FDIB.dsBm.bmBits;
-  dstBit  := @dstBits[(bmpDst.Width * bmpDst.Height) - 1];
 
-  yPrime := yODst;
-  for Y  := 0 to dstHeight - 1 do
+  dstWidth  := bmpDst.Width;
+  dstHeight := bmpDst.Height;
+  srcWidth  := bmpSrc.Width;
+  srcHeight := bmpSrc.Height;
+
+  rac := Cos(RotaryAngle);
+  ras := Sin(RotaryAngle);
+  cxc := (CenterX + MoveX) * rac;
+  cxs := (CenterX + MoveX) * ras;
+  cys := (CenterY + MoveY) * ras;
+  cyc := (CenterY + MoveY) * rac;
+
+  for Y := 0 to dstHeight - 1 do
   begin
-    yPrimeSinTheta := yPrime * iSinTheta;
-    yPrimeCosTheta := yPrime * iCosTheta;
-    xPrime         := xODst;
-    for X          := 0 to dstWidth - 1 do
+    krx   := cxc - cys - CenterX + Y * ras;
+    kry   := cxs + cyc - CenterY - Y * rac;
+    for X := 0 to dstWidth - 1 do
     begin
-      xSrc := SmallInt((xPrime * iCosTheta - yPrimeSinTheta) shr 16) + CenterX;
-      ySrc := SmallInt((xPrime * iSinTheta + yPrimeCosTheta) shr 16) + CenterY;
-      if (DWORD(ySrc) < DWORD(srcHeight)) and (DWORD(xSrc) < DWORD(srcWidth)) then
+      SrcX := Round(X * rac - krx);
+      SrcY := Round(X * ras - kry);
+      if (DWORD(SrcY) < DWORD(srcHeight)) and (DWORD(SrcX) < DWORD(srcWidth)) then
       begin
-        dstBit^ := srcBits[ySrc * srcWidth + xSrc];
+        dstBits[Y * dstWidth + X] := srcBits[SrcY * srcWidth + SrcX];
       end;
-      Dec(dstBit);
-      Dec(xPrime);
     end;
-    Dec(yPrime);
   end;
+end;
+
+{ 优化浮点运算为整数运算 }
+procedure Optimize04(bmpSrc, bmpDst: TBitmap; const RotaryAngle: double; const CenterX, CenterY, MoveX, MoveY: Integer);
+var
+  X, Y      : Integer;
+  SrcX, SrcY: Integer;
+  srcBits   : PRGBQuadArray;
+  dstBits   : PRGBQuadArray;
+  cxc, cxs  : Integer;
+  cyc, cys  : Integer;
+  rac, ras  : Integer;
+  kcx, kcy  : Integer;
+  dstWidth  : Integer;
+  dstHeight : Integer;
+  srcWidth  : Integer;
+  srcHeight : Integer;
+  krx, kry  : Integer;
+begin
+  srcBits := TBitmapImageAccess(TBMPAccess(bmpSrc).FImage).FDIB.dsBm.bmBits;
+  dstBits := TBitmapImageAccess(TBMPAccess(bmpDst).FImage).FDIB.dsBm.bmBits;
+
+  dstWidth  := bmpDst.Width;
+  dstHeight := bmpDst.Height;
+  srcWidth  := bmpSrc.Width;
+  srcHeight := bmpSrc.Height;
+
+  rac := Trunc(Cos(RotaryAngle) * (1 shl 16));
+  ras := Trunc(Sin(RotaryAngle) * (1 shl 16));
+  cxc := ((CenterX + MoveX) * rac);
+  cxs := ((CenterX + MoveX) * ras);
+  cys := ((CenterY + MoveY) * ras);
+  cyc := ((CenterY + MoveY) * rac);
+  kcx := cxc - cys - CenterX * (1 shl 16);
+  kcy := cxs + cyc - CenterY * (1 shl 16);
+
+  for Y := 0 to dstHeight - 1 do
+  begin
+    krx   := kcx + Y * ras;
+    kry   := kcy - Y * rac;
+    for X := 0 to dstWidth - 1 do
+    begin
+      SrcX := SmallInt((X * rac - krx) shr 16);
+      SrcY := SmallInt((X * ras - kry) shr 16);
+      if (DWORD(SrcY) < DWORD(srcHeight)) and (DWORD(SrcX) < DWORD(srcWidth)) then
+      begin
+        dstBits[Y * dstWidth + X] := srcBits[SrcY * srcWidth + SrcX];
+      end;
+    end;
+  end;
+end;
+
+{ 并行优化 }
+procedure Optimize05(bmpSrc, bmpDst: TBitmap; const RotaryAngle: double; const CenterX, CenterY, MoveX, MoveY: Integer);
+var
+  srcBits  : PRGBQuadArray;
+  dstBits  : PRGBQuadArray;
+  cxc, cxs : Integer;
+  cyc, cys : Integer;
+  rac, ras : Integer;
+  kcx, kcy : Integer;
+  dstWidth : Integer;
+  dstHeight: Integer;
+  srcWidth : Integer;
+  srcHeight: Integer;
+begin
+  srcBits := TBitmapImageAccess(TBMPAccess(bmpSrc).FImage).FDIB.dsBm.bmBits;
+  dstBits := TBitmapImageAccess(TBMPAccess(bmpDst).FImage).FDIB.dsBm.bmBits;
+
+  dstWidth  := bmpDst.Width;
+  dstHeight := bmpDst.Height;
+  srcWidth  := bmpSrc.Width;
+  srcHeight := bmpSrc.Height;
+
+  rac := Trunc(Cos(RotaryAngle) * (1 shl 16));
+  ras := Trunc(Sin(RotaryAngle) * (1 shl 16));
+  cxc := ((CenterX + MoveX) * rac);
+  cxs := ((CenterX + MoveX) * ras);
+  cys := ((CenterY + MoveY) * ras);
+  cyc := ((CenterY + MoveY) * rac);
+  kcx := cxc - cys - CenterX * (1 shl 16);
+  kcy := cxs + cyc - CenterY * (1 shl 16);
+
+  TParallel.For(0, dstHeight - 1,
+    procedure(Y: Integer)
+    var
+      X: Integer;
+      krx, kry: Integer;
+      SrcX, SrcY: Integer;
+    begin
+      krx := kcx + Y * ras;
+      kry := kcy - Y * rac;
+      for X := 0 to dstWidth - 1 do
+      begin
+        SrcX := SmallInt((X * rac - krx) shr 16);
+        SrcY := SmallInt((X * ras - kry) shr 16);
+        if (DWORD(SrcY) < DWORD(srcHeight)) and (DWORD(SrcX) < DWORD(srcWidth)) then
+        begin
+          dstBits[Y * dstWidth + X] := srcBits[SrcY * srcWidth + SrcX];
+        end;
+      end;
+    end);
 end;
 
 procedure Rotate(const bmpSrc: TBitmap; var bmpDst: TBitmap; const iAngle: Integer);
 var
-  CenterX, CenterY: Integer;
   RotaryAngle     : double;
-  MoveX, MoveY    : double;
+  CenterX, CenterY: Integer;
+  MoveX, MoveY    : Integer;
 begin
   RotaryAngle               := (iAngle mod 360) * PI / 180;
   bmpDst.PixelFormat        := pf32bit;
@@ -364,81 +329,12 @@ begin
   bmpDst.Canvas.Brush.Color := clBlack;
   bmpDst.Canvas.FillRect(bmpDst.Canvas.ClipRect);
 
-  MoveX   := (bmpDst.Width - bmpSrc.Width) / 2;
-  MoveY   := (bmpDst.Height - bmpSrc.Height) / 2;
+  MoveX   := (bmpDst.Width - bmpSrc.Width) div 2;
+  MoveY   := (bmpDst.Height - bmpSrc.Height) div 2;
   CenterX := bmpSrc.Width div 2;
   CenterY := bmpSrc.Height div 2;
 
-  Optimize06(bmpSrc, bmpDst, CenterX, CenterY, RotaryAngle, MoveX, MoveY);
-end;
-
-procedure Rotate_Optimize(const bmpSrc: TBitmap; var bmpDst: TBitmap; const iAngle: Integer);
-type
-  PRGBQuadArray = ^TRGBQuadArray;
-  TRGBQuadArray = array [0 .. 0] of TRGBQuad;
-var
-  RotaryAngle                   : Extended;
-  CosTheta, SinTheta            : Extended;
-  iCosTheta, iSinTheta          : Integer;
-  xSrc, ySrc                    : Integer;
-  X, Y                          : Integer;
-  xODst, yODst                  : Integer;
-  CenterX, CenterY              : Integer;
-  xPrime, yPrime                : Integer;
-  srcWidth, srcHeight           : Integer;
-  dstWidth, dstHeight           : Integer;
-  yPrimeSinTheta, yPrimeCosTheta: Integer;
-  srcBits                       : PRGBQuadArray;
-  dstBits                       : PRGBQuadArray;
-  dstBit                        : PRGBQuad;
-begin
-  RotaryAngle := (iAngle mod 360) * PI / 180;
-  SinCos(RotaryAngle, SinTheta, CosTheta);
-  iSinTheta                 := Trunc(SinTheta * (1 shl 16));
-  iCosTheta                 := Trunc(CosTheta * (1 shl 16));
-  bmpSrc.PixelFormat        := pf32bit;
-  srcWidth                  := bmpSrc.Width;
-  srcHeight                 := bmpSrc.Height;
-  CenterX                   := srcWidth div 2;
-  CenterY                   := srcHeight div 2;
-  dstWidth                  := SmallInt((srcWidth * ABS(iCosTheta) + srcHeight * ABS(iSinTheta)) shr 16);
-  dstHeight                 := SmallInt((srcWidth * ABS(iSinTheta) + srcHeight * ABS(iCosTheta)) shr 16);
-  bmpDst.PixelFormat        := pf32bit;
-  bmpDst.Width              := dstWidth;
-  bmpDst.Height             := dstHeight;
-  bmpDst.Canvas.Brush.Color := clBlack;
-  bmpDst.Canvas.FillRect(bmpDst.Canvas.ClipRect);
-
-  xODst := dstWidth div 2;
-  if ((RotaryAngle = 0.0) or (RotaryAngle = -90.0)) and not Odd(dstWidth) then
-    Dec(xODst);
-  yODst := dstHeight div 2;
-  if ((RotaryAngle = 0.0) or (RotaryAngle = +90.0)) and not Odd(dstHeight) then
-    Dec(yODst);
-
-  srcBits := TBitmapImageAccess(TBMPAccess(bmpSrc).FImage).FDIB.dsBm.bmBits;
-  dstBits := TBitmapImageAccess(TBMPAccess(bmpDst).FImage).FDIB.dsBm.bmBits;
-  dstBit  := @dstBits[(bmpDst.Width * bmpDst.Height) - 1];
-
-  yPrime := yODst;
-  for Y  := 0 to dstHeight - 1 do
-  begin
-    yPrimeSinTheta := yPrime * iSinTheta;
-    yPrimeCosTheta := yPrime * iCosTheta;
-    xPrime         := xODst;
-    for X          := 0 to dstWidth - 1 do
-    begin
-      xSrc := SmallInt((xPrime * iCosTheta - yPrimeSinTheta) shr 16) + CenterX;
-      ySrc := SmallInt((xPrime * iSinTheta + yPrimeCosTheta) shr 16) + CenterY;
-      if (DWORD(ySrc) < DWORD(srcHeight)) and (DWORD(xSrc) < DWORD(srcWidth)) then
-      begin
-        dstBit^ := srcBits[ySrc * srcWidth + xSrc];
-      end;
-      Dec(dstBit);
-      Dec(xPrime);
-    end;
-    Dec(yPrime);
-  end;
+  Optimize05(bmpSrc, bmpDst, RotaryAngle, CenterX, CenterY, MoveX, MoveY);
 end;
 
 end.
