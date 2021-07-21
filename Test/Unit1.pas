@@ -63,6 +63,7 @@ type
     FbmpTrans        : TBitmap;
     FTrackColorChange: TTrackBar;
     FlblLightValue   : TLabel;
+    FintRotateAngle  : Integer;
     procedure BackupBmp;
     procedure LoadImageProc(const strFileName: string; img: TImage);
     procedure OnColorChange(Sender: TObject);
@@ -129,6 +130,7 @@ begin
   FbmpBackup.PixelFormat := pf32bit;
   FbmpTrans              := TBitmap.Create;
   FbmpTrans.PixelFormat  := pf32bit;
+  FintRotateAngle        := 5;
 
   mniSizeActual.Checked  := False;
   mniSizeStrecth.Checked := True;
@@ -162,6 +164,7 @@ begin
   if not FileExists(FstrBackFileName) then
     Exit;
 
+  FintRotateAngle := 5;
   LoadImageProc(FstrBackFileName, imgShow);
 end;
 
@@ -329,9 +332,6 @@ begin
   end;
 end;
 
-var
-  I: Integer = 5;
-
 procedure TForm1.mniGeometryRotateClick(Sender: TObject);
 var
   bmpTemp: TBitmap;
@@ -346,8 +346,8 @@ begin
       bmpTemp.Width       := FbmpBackup.Width;
       bmpTemp.Height      := FbmpBackup.Height;
       bmpTemp.Canvas.Draw(0, 0, FbmpBackup);
-      Rotate(bmpTemp, bmpDst, I);
-      Inc(I, 5);
+      Rotate(bmpTemp, bmpDst, FintRotateAngle);
+      Inc(FintRotateAngle, 5);
       statTip.Panels[0].Text := Format('Ðý×ªÓÃÊ±£º%d ºÁÃë', [ElapsedMilliseconds]);
     end;
     imgShow.Picture.Bitmap.Assign(bmpDst);
