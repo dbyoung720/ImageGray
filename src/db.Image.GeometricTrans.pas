@@ -108,12 +108,6 @@ end;
   那么，根据新的坐标点求源坐标点的公式为：
   x=(x'- rx0)*cos(RotaryAngle) - (y'- ry0)*sin(RotaryAngle) + rx0 ;
   y=(x'- rx0)*sin(RotaryAngle) + (y'- ry0)*cos(RotaryAngle) + ry0 ;
-
-  看看这个循环，影响效率的问题有如下三个：
-  1、有浮点运算；          可优化为整数运算
-  2、只是单个像素点运算；  可优化为整行运算
-  3、- CenterX - MoveX) * cos(RotaryAngle)、- CenterY - MoveY) * sin(RotaryAngle)、- CenterX - MoveX) * sin(RotaryAngle)、- CenterY - MoveY) * cos(RotaryAngle) 可以拿到循环上一层；
-  4、[SrcX, SrcY] 在原图上不见得存在；
 }
 
 { 标准旋转函数 }
