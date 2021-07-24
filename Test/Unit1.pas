@@ -340,12 +340,12 @@ begin
   bmpTemp := TBitmap.Create;
   bmpDst  := TBitmap.Create;
   try
+    bmpTemp.PixelFormat := pf32bit;
+    bmpTemp.Width       := FbmpBackup.Width;
+    bmpTemp.Height      := FbmpBackup.Height;
+    bmpTemp.Canvas.Draw(0, 0, FbmpBackup);
     with TStopwatch.StartNew do
     begin
-      bmpTemp.PixelFormat := pf32bit;
-      bmpTemp.Width       := FbmpBackup.Width;
-      bmpTemp.Height      := FbmpBackup.Height;
-      bmpTemp.Canvas.Draw(0, 0, FbmpBackup);
       Rotate(bmpTemp, bmpDst, FintRotateAngle);
       Inc(FintRotateAngle, 5);
       statTip.Panels[0].Text := Format('Ðý×ªÓÃÊ±£º%d ºÁÃë', [ElapsedMilliseconds]);

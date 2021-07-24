@@ -34,7 +34,7 @@ type
   PRGBQuadArray      = ^TRGBQuadArray;
   TRGBQuadArray      = array [0 .. 0] of TRGBQuad;
 
-{ 水平翻转 并行模式，需要脱离 IDE 执行 }
+  { 水平翻转 并行模式，需要脱离 IDE 执行 }
 procedure HorizMirror(bmp: TBitmap);
 var
   StartScanLine: Integer;
@@ -75,7 +75,6 @@ var
 begin
   Count    := Integer(bmp.ScanLine[0]) - Integer(bmp.ScanLine[1]);
   tmpColor := AllocMem(Count);
-
   try
     for Y := 0 to bmp.Height div 2 - 1 do
     begin
@@ -84,9 +83,6 @@ begin
       Move(pColor01^, tmpColor^, Count);
       Move(pColor02^, pColor01^, Count);
       Move(tmpColor^, pColor02^, Count);
-      // apex_memcpy(tmpColor, pColor01, Count);
-      // apex_memcpy(pColor01, pColor02, Count);
-      // apex_memcpy(pColor02, tmpColor, Count);
     end;
   finally
     FreeMem(tmpColor);
