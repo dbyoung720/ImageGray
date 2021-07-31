@@ -110,16 +110,18 @@ const
     );
 
 type
-  TTwoLight255 = array [0 .. 255, -255 .. 255] of Byte;
-  TGrayTable   = array [0 .. 1785] of Integer;
-  TLightTable  = TTwoLight255;
-  TColorChange = (ccLight, ccContrast, ccSaturation, ccColorMode, ccTranslate);
-  TAlpha       = array [0 .. 255] of Integer;
-  TGrays       = array [0 .. 767] of Integer;
-  TVec4i       = array [0 .. 3] of Integer;
-  TVec4f       = array [0 .. 3] of Single;
-  PVec4i       = ^TVec4i;
-  PVec4f       = ^TVec4f;
+  TTwoLight255  = array [0 .. 255, -255 .. 255] of Byte;
+  TGrayTable    = array [0 .. 1785] of Integer;
+  TLightTable   = TTwoLight255;
+  TColorChange  = (ccLight, ccContrast, ccSaturation, ccColorMode, ccTranslate);
+  TAlpha        = array [0 .. 255] of Integer;
+  TGrays        = array [0 .. 767] of Integer;
+  TVec4i        = array [0 .. 3] of Integer;
+  TVec4f        = array [0 .. 3] of Single;
+  PVec4i        = ^TVec4i;
+  PVec4f        = ^TVec4f;
+  PRGBQuadArray = ^TRGBQuadArray;
+  TRGBQuadArray = array [0 .. 0] of TRGBQuad;
 
 function GetBmpWidthBytes(bmp: TBitmap): DWORD;
 function GetBitsPointer(bmp: TBitmap): Pointer;
@@ -162,7 +164,14 @@ procedure bgraSaturation_avx2(src: PByte; dst: PDWORD; width, height, keyValue: 
 procedure bgraSaturation_avx512skx(src: PByte; dst: PDWORD; width, height, keyValue: Integer; alpha: TAlpha; grays: TGrays); cdecl; external {$IFDEF WIN32}name '_bgraSaturation_avx512skx' {$ELSE} name 'bgraSaturation_avx512skx' {$IFEND};
 procedure bgraSaturation_avx512knl(src: PByte; dst: PDWORD; width, height, keyValue: Integer; alpha: TAlpha; grays: TGrays); cdecl; external {$IFDEF WIN32}name '_bgraSaturation_avx512knl' {$ELSE} name 'bgraSaturation_avx512knl' {$IFEND};
 
-function apex_memcpy(dst:Pointer; const src:Pointer; Count: NativeInt): Pointer; cdecl; external {$IFDEF WIN32}name '_apex_memmove_dispatcher'{$ELSE} name 'apex_memmove_dispatcher' {$IFEND};
+procedure RotateSSE_sse2(const Y, dstWidth, srcWidth, srcHeight, rac, ras, krx, kry: Integer; const srcBits: PRGBQuadArray; dstBits: PRGBQuadArray); cdecl; external {$IFDEF WIN32}name '_RotateSSE_sse2' {$ELSE} name 'RotateSSE_sse2' {$IFEND};
+procedure RotateSSE_sse4(const Y, dstWidth, srcWidth, srcHeight, rac, ras, krx, kry: Integer; const srcBits: PRGBQuadArray; dstBits: PRGBQuadArray); cdecl; external {$IFDEF WIN32}name '_RotateSSE_sse4' {$ELSE} name 'RotateSSE_sse4' {$IFEND};
+procedure RotateSSE_avx1(const Y, dstWidth, srcWidth, srcHeight, rac, ras, krx, kry: Integer; const srcBits: PRGBQuadArray; dstBits: PRGBQuadArray); cdecl; external {$IFDEF WIN32}name '_RotateSSE_avx' {$ELSE} name 'RotateSSE_avx' {$IFEND};
+procedure RotateSSE_avx2(const Y, dstWidth, srcWidth, srcHeight, rac, ras, krx, kry: Integer; const srcBits: PRGBQuadArray; dstBits: PRGBQuadArray); cdecl; external {$IFDEF WIN32}name '_RotateSSE_avx2' {$ELSE} name 'RotateSSE_avx2' {$IFEND};
+procedure RotateSSE_avx512skx(const Y, dstWidth, srcWidth, srcHeight, rac, ras, krx, kry: Integer; const srcBits: PRGBQuadArray; dstBits: PRGBQuadArray); cdecl; external {$IFDEF WIN32}name '_RotateSSE_avx512skx' {$ELSE} name 'RotateSSE_avx512skx' {$IFEND};
+procedure RotateSSE_avx512knl(const Y, dstWidth, srcWidth, srcHeight, rac, ras, krx, kry: Integer; const srcBits: PRGBQuadArray; dstBits: PRGBQuadArray); cdecl; external {$IFDEF WIN32}name '_RotateSSE_avx512knl' {$ELSE} name 'RotateSSE_avx512knl' {$IFEND};
+
+function apex_memcpy(dst: Pointer; const src: Pointer; Count: NativeInt): Pointer; cdecl; external {$IFDEF WIN32}name '_apex_memmove_dispatcher'{$ELSE} name 'apex_memmove_dispatcher' {$IFEND};
 
 procedure _abort; cdecl; external 'msvcrt.dll' name 'abort';
 procedure abort; cdecl; external 'msvcrt.dll' name 'abort';
@@ -369,8 +378,9 @@ begin
 end;
 
 initialization
-  InitGrayTable;
-  InitLightTable;
-  InitContrastTable;
+
+InitGrayTable;
+InitLightTable;
+InitContrastTable;
 
 end.

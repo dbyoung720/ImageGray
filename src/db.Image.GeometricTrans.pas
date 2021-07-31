@@ -31,8 +31,6 @@ implementation
 type
   TBMPAccess         = class(TBitmap);
   TBitmapImageAccess = class(TBitmapImage);
-  PRGBQuadArray      = ^TRGBQuadArray;
-  TRGBQuadArray      = array [0 .. 0] of TRGBQuad;
 
   { 水平翻转 并行模式，需要脱离 IDE 执行 }
 procedure HorizMirror(bmp: TBitmap);
@@ -306,6 +304,48 @@ begin
     end);
 end;
 
+{ 并行 + SSE 优化 }
+procedure Optimize06(bmpSrc, bmpDst: TBitmap; const RotaryAngle: double; const CenterX, CenterY, MoveX, MoveY: Integer);
+var
+  srcBits  : PRGBQuadArray;
+  dstBits  : PRGBQuadArray;
+  cxc, cxs : Integer;
+  cyc, cys : Integer;
+  rac, ras : Integer;
+  kcx, kcy : Integer;
+  dstWidth : Integer;
+  dstHeight: Integer;
+  srcWidth : Integer;
+  srcHeight: Integer;
+begin
+  srcBits := TBitmapImageAccess(TBMPAccess(bmpSrc).FImage).FDIB.dsBm.bmBits;
+  dstBits := TBitmapImageAccess(TBMPAccess(bmpDst).FImage).FDIB.dsBm.bmBits;
+
+  dstWidth  := bmpDst.Width;
+  dstHeight := bmpDst.Height;
+  srcWidth  := bmpSrc.Width;
+  srcHeight := bmpSrc.Height;
+
+  rac := Trunc(Cos(RotaryAngle) * (1 shl 16));
+  ras := Trunc(Sin(RotaryAngle) * (1 shl 16));
+  cxc := (CenterX + MoveX) * rac;
+  cxs := (CenterX + MoveX) * ras;
+  cys := (CenterY + MoveY) * ras;
+  cyc := (CenterY + MoveY) * rac;
+  kcx := cxc - cys - CenterX * (1 shl 16);
+  kcy := cxs + cyc - CenterY * (1 shl 16);
+
+  TParallel.For(0, dstHeight - 1,
+    procedure(Y: Integer)
+    var
+      krx, kry: Integer;
+    begin
+      krx := kcx + Y * ras;
+      kry := kcy - Y * rac;
+      RotateSSE_sse4(Y, dstWidth, srcWidth, srcHeight, rac, ras, krx, kry, srcBits, dstBits); // 由于参数过多，加速效果不理想
+    end);
+end;
+
 procedure Rotate(const bmpSrc: TBitmap; var bmpDst: TBitmap; const iAngle: Integer);
 var
   RotaryAngle     : double;
@@ -324,7 +364,7 @@ begin
   CenterX := bmpSrc.Width div 2;
   CenterY := bmpSrc.Height div 2;
 
-  Optimize05(bmpSrc, bmpDst, RotaryAngle, CenterX, CenterY, MoveX, MoveY);
+  Optimize06(bmpSrc, bmpDst, RotaryAngle, CenterX, CenterY, MoveX, MoveY);
 end;
 
 end.
