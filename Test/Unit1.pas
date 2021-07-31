@@ -130,7 +130,7 @@ begin
   FbmpBackup.PixelFormat := pf32bit;
   FbmpTrans              := TBitmap.Create;
   FbmpTrans.PixelFormat  := pf32bit;
-  FintRotateAngle        := 5;
+  FintRotateAngle        := 0;
 
   mniSizeActual.Checked  := False;
   mniSizeStrecth.Checked := True;
@@ -164,7 +164,7 @@ begin
   if not FileExists(FstrBackFileName) then
     Exit;
 
-  FintRotateAngle := 5;
+  FintRotateAngle := 0;
   LoadImageProc(FstrBackFileName, imgShow);
 end;
 
@@ -334,26 +334,19 @@ end;
 
 procedure TForm1.mniGeometryRotateClick(Sender: TObject);
 var
-  bmpTemp: TBitmap;
-  bmpDst : TBitmap;
+  bmpDst: TBitmap;
 begin
-  bmpTemp := TBitmap.Create;
-  bmpDst  := TBitmap.Create;
+  bmpDst := TBitmap.Create;
+  Inc(FintRotateAngle, 5);
   try
-    bmpTemp.PixelFormat := pf32bit;
-    bmpTemp.Width       := FbmpBackup.Width;
-    bmpTemp.Height      := FbmpBackup.Height;
-    bmpTemp.Canvas.Draw(0, 0, FbmpBackup);
     with TStopwatch.StartNew do
     begin
-      Rotate(bmpTemp, bmpDst, FintRotateAngle);
-      Inc(FintRotateAngle, 5);
+      Rotate(FbmpBackup, bmpDst, FintRotateAngle);
       statTip.Panels[0].Text := Format('Ðý×ªÓÃÊ±£º%d ºÁÃë', [ElapsedMilliseconds]);
     end;
     imgShow.Picture.Bitmap.Assign(bmpDst);
     imgShow.Invalidate;
   finally
-    bmpTemp.free;
     bmpDst.free;
   end;
 end;

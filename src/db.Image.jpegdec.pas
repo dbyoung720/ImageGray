@@ -1,6 +1,6 @@
 /// JPEG picture fast decoder, using SSE/SSE2
 // - released under MPL/GPL/LGPL tri-license; version 1.18
-unit jpegdec;
+unit db.Image.jpegdec;
 
 (*
     This file is a JPEG picture fast decoder for Delphi
