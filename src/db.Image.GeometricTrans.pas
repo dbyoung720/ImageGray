@@ -342,7 +342,7 @@ begin
     begin
       krx := kcx + Y * ras;
       kry := kcy - Y * rac;
-      RotateSSE_sse4(Y, dstWidth, srcWidth, srcHeight, rac, ras, krx, kry, srcBits, dstBits); // 由于参数过多，加速效果不理想
+      RotateSSE_avx2(Y, dstWidth, srcWidth, srcHeight, rac, ras, krx, kry, srcBits, dstBits); // 由于参数过多，加速效果不理想
     end);
 end;
 
