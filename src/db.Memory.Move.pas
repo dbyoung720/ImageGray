@@ -3,7 +3,7 @@ unit db.Memory.Move;
   Func: 内存复制优化
   Name: dbyoung@sina.com
   Date: 2021-3-2
-  Vers: Delphi 10.4.2
+  Vers: Delphi 11
 
   未按 16 字节对齐
   1   Move______Byte
@@ -81,6 +81,23 @@ unit db.Memory.Move;
   内存地址能被 32 整除。
   内存地址的最后两位必须类似于： $..20, $..40, $..60, $..80, $..A0, $..C0, $..E0 。即内存地址的最后一位必须是 0，倒数第二位必须是偶数。
   操作的俩个数的内存地址，都要是 32 字节对齐，才能使用 AVX 对齐指令；
+
+  Delphi 参数寄存器顺序：
+  X86: EAX, EDX, ECX
+  X64: ECX, EDX, EAX
+
+  通用寄存器：
+  CPU  :
+  EAX/EBX/ECX/EDX/EDI/ESI           32位 (x86)
+  RAX/RBX/RCX/RDX/RDI/RSI           64位 (x64, EAX 寄存器是 RAX 寄存器的低 32 位)
+
+  SIMD寄存器：
+  MMX    :   MM0 --- MM7    064位                                         ( 主要针对浮点运算 )
+  SSE2   :  XMM0--- XMM7    128位                                         ( 浮点 + 整数 )
+  SSE4   :  XMM0---XMM15    128位                                         ( 浮点 + 整数 )
+  AVX    :  YMM0---YMM15    256位 (XMM 寄存器是 YMM 寄存器的低 128 位)    ( 浮点 )
+  AVX2   :  YMM0---YMM15    256位 (XMM 寄存器是 YMM 寄存器的低 128 位)    ( 浮点 + 整数 )
+  AVX512 :  ZMM0---ZMM31    512位 (YMM 寄存器是 ZMM 寄存器的低 256 位)    ( 浮点 + 整数 )
 }
 
 interface

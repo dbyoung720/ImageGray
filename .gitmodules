@@ -1,0 +1,6 @@
+[submodule "src/mORMot2"]
+	path = src/mORMot2
+	url = https://github.com/synopse/mORMot2.git
+[submodule "src/ZSTD4Delphi"]
+	path = src/ZSTD4Delphi
+	url = https://github.com/YWtheGod/ZSTD4Delphi.git

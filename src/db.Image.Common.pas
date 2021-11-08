@@ -3,10 +3,27 @@ unit db.Image.Common;
   Func: 32位位图公共单元
   Name: dbyoung@sina.com
   Date: 2020-10-01
-  Vers: Delphi 10.3.2
+  Vers: Delphi 11
   Test: 4096 * 4096 * 32
-  Note：Delphi 的 Release 模式是有优化的，Debug 是没有的；下面的时间，都是在 DEBUG 模式下的用时；
+  Note：Delphi 的 Release 模式是有优化的，Debug 是没有的；下面的时间，都是在 X86、DEBUG 模式下的用时；
   Note: 并行程序，不能在 IDE 下运行查看效果。必须脱离 IDE 执行查看效果。
+
+  Delphi 参数寄存器顺序：
+  X86: EAX, EDX, ECX
+  X64: ECX, EDX, EAX
+
+  通用寄存器：
+  CPU  :
+  EAX/EBX/ECX/EDX/EDI/ESI           32位 (x86)
+  RAX/RBX/RCX/RDX/RDI/RSI           64位 (x64, EAX 寄存器是 RAX 寄存器的低 32 位)
+
+  SIMD寄存器：
+  MMX    :   MM0 --- MM7    064位                                         ( 主要针对浮点运算 )
+  SSE2   :  XMM0--- XMM7    128位                                         ( 浮点 + 整数 )
+  SSE4   :  XMM0---XMM15    128位                                         ( 浮点 + 整数 )
+  AVX    :  YMM0---YMM15    256位 (XMM 寄存器是 YMM 寄存器的低 128 位)    ( 浮点 )
+  AVX2   :  YMM0---YMM15    256位 (XMM 寄存器是 YMM 寄存器的低 128 位)    ( 浮点 + 整数 )
+  AVX512 :  ZMM0---ZMM31    512位 (YMM 寄存器是 ZMM 寄存器的低 256 位)    ( 浮点 + 整数 )
 }
 
 interface
@@ -171,8 +188,6 @@ procedure RotateSSE_avx2(const Y, dstWidth, srcWidth, srcHeight, rac, ras, krx, 
 procedure RotateSSE_avx512skx(const Y, dstWidth, srcWidth, srcHeight, rac, ras, krx, kry: Integer; const srcBits: PRGBQuadArray; dstBits: PRGBQuadArray); cdecl; external {$IFDEF WIN32}name '_RotateSSE_avx512skx' {$ELSE} name 'RotateSSE_avx512skx' {$IFEND};
 procedure RotateSSE_avx512knl(const Y, dstWidth, srcWidth, srcHeight, rac, ras, krx, kry: Integer; const srcBits: PRGBQuadArray; dstBits: PRGBQuadArray); cdecl; external {$IFDEF WIN32}name '_RotateSSE_avx512knl' {$ELSE} name 'RotateSSE_avx512knl' {$IFEND};
 
-function apex_memcpy(dst: Pointer; const src: Pointer; Count: NativeInt): Pointer; cdecl; external {$IFDEF WIN32}name '_apex_memmove_dispatcher'{$ELSE} name 'apex_memmove_dispatcher' {$IFEND};
-
 procedure _abort; cdecl; external 'msvcrt.dll' name 'abort';
 procedure abort; cdecl; external 'msvcrt.dll' name 'abort';
 function __alldiv(a, b: Int64): Int64; stdcall; external 'ntdll.dll' name '_alldiv';
@@ -192,7 +207,6 @@ var
 implementation
 
 {$IFDEF WIN32}
-{$LINK obj\apex_memmove_x86.obj}
 {$LINK obj\crc32_x86.obj}
 {$LINK obj\DAVX_X86.obj}
 {$LINK obj\DAVX_X86_sse2.obj}
@@ -202,7 +216,6 @@ implementation
 {$LINK obj\DAVX_X86_avx512knl.obj}
 {$LINK obj\DAVX_X86_avx512skx.obj}
 {$ELSE}
-{$LINK obj\apex_memmove_x64.obj}
 {$LINK obj\crc32_x64.obj}
 {$LINK obj\DAVX_X64.obj}
 {$LINK obj\DAVX_X64_sse2.obj}

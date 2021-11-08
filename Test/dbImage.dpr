@@ -6,7 +6,6 @@ program dbImage;
 
 uses
 {$IFDEF WIN32}
-  FastMove,
   db.Image.jpegdec in '..\src\db.Image.jpegdec.pas',
 {$IFEND }
   Vcl.Forms,

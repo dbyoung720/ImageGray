@@ -4,7 +4,7 @@
 
 ## Description：
     Function：32bit Pixel RGB to Gray
-    DevTools：Delphi 10.3
+    DevTools：Delphi 11
     Platform：Win10X64；Support X86、X64
 
 ### Delphi implemented function：

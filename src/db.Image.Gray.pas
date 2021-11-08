@@ -3,7 +3,7 @@ unit db.Image.Gray;
   Func: 32位位图灰值化
   Name: dbyoung@sina.com
   Date: 2020-10-01
-  Vers: Delphi 10.3.2
+  Vers: Delphi 11
   Test: 4096 * 4096 * 32
   Note：Delphi 的 Release 模式是有优化的，Debug 是没有的；下面的时间，都是在 DEBUG 模式下的用时；
   Note: 并行程序，不能在 IDE 下运行查看效果。必须脱离 IDE 执行查看效果。
@@ -20,15 +20,22 @@ unit db.Image.Gray;
   查表优化：
   R、G、B，都在 0---255 之间，可以将 R(0---255)*77、G(0---255)*151、B(0---255)*28 预先计算好，存放在表中，优化掉乘法
 
-  寄存器宽度：
+  Delphi 参数寄存器顺序：
+  X86: EAX, EDX, ECX
+  X64: ECX, EDX, EAX
+
+  通用寄存器：
   CPU  :
-  EAX/EBX/ECX/EDX/EDI/ESI           32BITS (x86)
-  RAX/RBX/RCX/RDX/RDI/RSI           64BITS (x64, EAX 寄存器是 RAX 寄存器的低 32 位)
-  MMX    :   MM0 --- MM7            64BITS
-  SSE2   :  XMM0--- XMM7           128BITS
-  SSE4   :  XMM0---XMM15           128BITS (SSE4 以上指令，Delphi 编译器不支持)
-  AVX    :  YMM0---YMM15           256BITS (XMM 寄存器是 YMM 寄存器的低 128 位)
-  AVX512 :  ZMM0---ZMM31           512BITS (YMM 寄存器是 ZMM 寄存器的低 256 位)
+  EAX/EBX/ECX/EDX/EDI/ESI           32位 (x86)
+  RAX/RBX/RCX/RDX/RDI/RSI           64位 (x64, EAX 寄存器是 RAX 寄存器的低 32 位)
+
+  SIMD寄存器：
+  MMX    :   MM0 --- MM7    064位                                         ( 主要针对浮点运算 )
+  SSE2   :  XMM0--- XMM7    128位                                         ( 浮点 + 整数 )
+  SSE4   :  XMM0---XMM15    128位                                         ( 浮点 + 整数 )
+  AVX    :  YMM0---YMM15    256位 (XMM 寄存器是 YMM 寄存器的低 128 位)    ( 浮点 )
+  AVX2   :  YMM0---YMM15    256位 (XMM 寄存器是 YMM 寄存器的低 128 位)    ( 浮点 + 整数 )
+  AVX512 :  ZMM0---ZMM31    512位 (YMM 寄存器是 ZMM 寄存器的低 256 位)    ( 浮点 + 整数 )
 }
 
 interface
@@ -69,15 +76,17 @@ end;
 { 119 ms }
 procedure Gray_ScanLine(bmp: TBitmap);
 var
-  I, J  : Integer;
-  pColor: PRGBQuad;
+  I, J   : Integer;
+  pColor : PRGBQuad;
+  byeGray: Byte;
 begin
   for I := 0 to bmp.Height - 1 do
   begin
     pColor := bmp.ScanLine[I];
     for J  := 0 to bmp.Width - 1 do
     begin
-      pColor^ := GetPixelGray(pColor^.rgbRed, pColor^.rgbGreen, pColor^.rgbBlue);
+      byeGray := Round(0.299 * pColor^.rgbRed + 0.587 * pColor^.rgbGreen + 0.114 * pColor^.rgbBlue);
+      pColor^ := TRGBQuad(RGB(byeGray, byeGray, byeGray));
       Inc(pColor);
     end;
   end;
@@ -88,12 +97,14 @@ procedure Gray_Delphi(bmp: TBitmap);
 var
   I, Count: Integer;
   pColor  : PRGBQuad;
+  byeGray : Byte;
 begin
   Count  := bmp.Width * bmp.Height;
   pColor := GetBitsPointer(bmp);
   for I  := 0 to Count - 1 do
   begin
-    pColor^ := GetPixelGray(pColor^.rgbRed, pColor^.rgbGreen, pColor^.rgbBlue);
+    byeGray := Round(0.299 * pColor^.rgbRed + 0.587 * pColor^.rgbGreen + 0.114 * pColor^.rgbBlue);
+    pColor^ := TRGBQuad(RGB(byeGray, byeGray, byeGray));
     Inc(pColor);
   end;
 end;
@@ -103,6 +114,7 @@ procedure Gray_FourPoint(bmp: TBitmap);
 var
   I, J, Count: Integer;
   pColor     : PRGBQuad;
+  byeGray    : Byte;
 begin
   Count  := bmp.Width * bmp.Height;
   pColor := GetBitsPointer(bmp);
@@ -110,7 +122,8 @@ begin
   begin
     for J := 0 to 3 do
     begin
-      pColor^ := GetPixelGray(pColor^.rgbRed, pColor^.rgbGreen, pColor^.rgbBlue);
+      byeGray := Round(0.299 * pColor^.rgbRed + 0.587 * pColor^.rgbGreen + 0.114 * pColor^.rgbBlue);
+      pColor^ := TRGBQuad(RGB(byeGray, byeGray, byeGray));
       Inc(pColor);
     end;
   end;
@@ -130,11 +143,13 @@ begin
     var
       X: Integer;
       pColor: PRGBQuad;
+      byeGray: Byte;
     begin
       pColor := PRGBQuad(StartScanLine + Y * bmpWidthBytes);
       for X := 0 to bmp.Width - 1 do
       begin
-        pColor^ := GetPixelGray(pColor^.rgbRed, pColor^.rgbGreen, pColor^.rgbBlue);
+        byeGray := Round(0.299 * pColor^.rgbRed + 0.587 * pColor^.rgbGreen + 0.114 * pColor^.rgbBlue);
+        pColor^ := TRGBQuad(RGB(byeGray, byeGray, byeGray));
         Inc(pColor);
       end;
     end);
@@ -208,6 +223,7 @@ procedure Gray_MMX_Proc_P0(pColor: PByte; const Count: Integer); register;
 asm
   {$IFDEF WIN32}
   EMMS
+
   MOV        ECX,   EDX                          // ECX = Count 循环计数 EDX (Count) 赋给 ECX；
   PXOR       MM7,   MM7                          // MM7 = $0000000000000000
   MOVQ       MM6,   c_GrayMMXARGB                // MM6 = $0000004D0095001C
@@ -241,6 +257,7 @@ end;
 procedure Gray_MMX_Proc_P1(pColor: PByte; const Count: Integer); register;
 asm
   EMMS
+
   MOV        ECX,  EDX             // ECX = Count 循环计数 EDX (Count) 赋给 ECX；
   PXOR       MM7,  MM7             // MM7 = $0000000000000000
   MOVQ       MM6,  c_GrayMMXARGB   // MM6 = $0000004D0095001C
@@ -282,7 +299,7 @@ procedure Gray_MMX_Proc_P2(pColor: PByte; Count: Integer); register;
 asm
   {$IFDEF WIN32}
   EMMS
-  SUB        EDX,  16                             // Count 需要能被 24 整除 4096*4096*4 mod 24 = 16
+  SUB        EDX,  16                             // Count 需要能被 24 整除 4096*4096*4 mod 24 = 0
   MOV        ECX,  EDX                            // ECX = Count 循环计数 EDX (Count) 赋给 ECX；
   PXOR       MM7,  MM7                            // MM7 = $0000000000000000
   MOVQ       MM6,  c_GrayMMXARGB                  // MM6 = $0000004D0095001C
@@ -356,7 +373,7 @@ asm
   MOV        EBX,   [EBX*4 + c_GrayValue]         // EBX = TRGBQuad(c_GrayValue[byeGray])
   MOV        [EAX+4*5], EBX                       // [EAX+4*5] = TRGBQuad(c_GrayValue[byeGray])
 
-  ADD        EAX,   24                            // EAX   = 指向下6个像素
+  ADD        EAX,   24                            // EAX   = 指向下 6个像素
   SUB        ECX,   24                            // Count 减 24
   JNZ        @LOOP                                // 循环
   EMMS
@@ -507,6 +524,7 @@ asm
   {$IFDEF WIN64}
   MOV     RAX,  RCX
   {$IFEND}
+
   MOV     ECX,  EDX
   MOVSS   XMM1, [c_PixBGRAMask]             // XMM1 = 000000000000000000000000000000FF
   MOVSS   XMM2, [c_GraySSERioB]             // XMM2 = 0000000000000000000000000000001C

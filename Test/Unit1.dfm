@@ -11,7 +11,6 @@ object Form1: TForm1
   Font.Name = 'Tahoma'
   Font.Style = []
   Menu = MainMenu1
-  OldCreateOrder = False
   Position = poScreenCenter
   OnClose = FormClose
   OnCreate = FormCreate
@@ -183,7 +182,7 @@ object Form1: TForm1
     end
   end
   object dlgOpenPic: TOpenPictureDialog
-    Left = 40
-    Top = 24
+    Left = 144
+    Top = 96
   end
 end

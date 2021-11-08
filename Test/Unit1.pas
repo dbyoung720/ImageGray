@@ -199,7 +199,7 @@ procedure TForm1.mniColorGrayClick(Sender: TObject);
 begin
   with TStopwatch.StartNew do
   begin
-    Gray(imgShow.Picture.Bitmap, gtSSEParallel);
+    Gray(imgShow.Picture.Bitmap);
     statTip.Panels[0].Text := Format('灰值化用时：%d 毫秒', [ElapsedMilliseconds]);
   end;
 
@@ -210,7 +210,7 @@ procedure TForm1.mniColorInvertClick(Sender: TObject);
 begin
   with TStopwatch.StartNew do
   begin
-    Invert(imgShow.Picture.Bitmap, itDelphi);
+    Invert(imgShow.Picture.Bitmap);
     statTip.Panels[0].Text := Format('反色用时：%d 毫秒', [ElapsedMilliseconds]);
   end;
   imgShow.Invalidate;

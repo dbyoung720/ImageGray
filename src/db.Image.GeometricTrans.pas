@@ -3,10 +3,27 @@ unit db.Image.GeometricTrans;
   Func: 32位位图几何变换
   Name: dbyoung@sina.com
   Date: 2021-2-22
-  Vers: Delphi 10.3.2
+  Vers: Delphi 11
   Test: 4096 * 4096 * 32
-  Note：Delphi 的 Release 模式是有优化的，Debug 是没有的；下面的时间，都是在 DEBUG 模式下的用时；
+  Note：Delphi 的 Release 模式是有优化的，Debug 是没有的；下面的时间，都是在 X86、DEBUG 模式下的用时；
   Note: 并行程序，不能在 IDE 下运行查看效果。必须脱离 IDE 执行查看效果。
+
+  Delphi 参数寄存器顺序：
+  X86: EAX, EDX, ECX
+  X64: ECX, EDX, EAX
+
+  通用寄存器：
+  CPU  :
+  EAX/EBX/ECX/EDX/EDI/ESI           32位 (x86)
+  RAX/RBX/RCX/RDX/RDI/RSI           64位 (x64, EAX 寄存器是 RAX 寄存器的低 32 位)
+
+  SIMD寄存器：
+  MMX    :   MM0 --- MM7    064位                                         ( 主要针对浮点运算 )
+  SSE2   :  XMM0--- XMM7    128位                                         ( 浮点 + 整数 )
+  SSE4   :  XMM0---XMM15    128位                                         ( 浮点 + 整数 )
+  AVX    :  YMM0---YMM15    256位 (XMM 寄存器是 YMM 寄存器的低 128 位)    ( 浮点 )
+  AVX2   :  YMM0---YMM15    256位 (XMM 寄存器是 YMM 寄存器的低 128 位)    ( 浮点 + 整数 )
+  AVX512 :  ZMM0---ZMM31    512位 (YMM 寄存器是 ZMM 寄存器的低 256 位)    ( 浮点 + 整数 )
 }
 
 interface
@@ -27,17 +44,27 @@ procedure Rotate(const bmpSrc: TBitmap; var bmpDst: TBitmap; const iAngle: Integ
 
 implementation
 
+uses libc, mormot.core.base;
+
 { 存取类的保护成员变量 }
 type
   TBMPAccess         = class(TBitmap);
   TBitmapImageAccess = class(TBitmapImage);
 
-  { 水平翻转 并行模式，需要脱离 IDE 执行 }
+procedure SwapDWORD(var A, B: DWORD); assembler;
+asm
+  MOV     EBX,   [EAX]
+  XCHG    EBX,   [EDX]
+  MOV     [EAX], EBX
+end;
+
+{ 水平翻转 并行模式，需要脱离 IDE 执行 }
 procedure HorizMirror(bmp: TBitmap);
 var
   StartScanLine: Integer;
   bmpWidthBytes: Integer;
 begin
+
   StartScanLine := Integer(bmp.ScanLine[0]);
   bmpWidthBytes := Integer(bmp.ScanLine[1]) - Integer(bmp.ScanLine[0]);
 
@@ -78,9 +105,21 @@ begin
     begin
       pColor01 := bmp.ScanLine[Y];
       pColor02 := bmp.ScanLine[bmp.Height - Y - 1];
-      Move(pColor01^, tmpColor^, Count);
-      Move(pColor02^, pColor01^, Count);
-      Move(tmpColor^, pColor02^, Count);
+      // Move(pColor01^, tmpColor^, Count);
+      // Move(pColor02^, pColor01^, Count);
+      // Move(tmpColor^, pColor02^, Count);
+      // {$IFDEF CPUX86}
+      // _memmove(tmpColor, pColor01, Count);
+      // _memmove(pColor01, pColor02, Count);
+      // _memmove(pColor02, tmpColor, Count);
+      // {$ELSE}
+      // memmove(tmpColor, pColor01, Count);
+      // memmove(pColor01, pColor02, Count);
+      // memmove(pColor02, tmpColor, Count);
+      // {$ENDIF}
+      MoveFast(pColor01^, tmpColor^, Count);
+      MoveFast(pColor02^, pColor01^, Count);
+      MoveFast(tmpColor^, pColor02^, Count);
     end;
   finally
     FreeMem(tmpColor);
@@ -304,48 +343,6 @@ begin
     end);
 end;
 
-{ 并行 + SSE 优化 }
-procedure Optimize06(bmpSrc, bmpDst: TBitmap; const RotaryAngle: double; const CenterX, CenterY, MoveX, MoveY: Integer);
-var
-  srcBits  : PRGBQuadArray;
-  dstBits  : PRGBQuadArray;
-  cxc, cxs : Integer;
-  cyc, cys : Integer;
-  rac, ras : Integer;
-  kcx, kcy : Integer;
-  dstWidth : Integer;
-  dstHeight: Integer;
-  srcWidth : Integer;
-  srcHeight: Integer;
-begin
-  srcBits := TBitmapImageAccess(TBMPAccess(bmpSrc).FImage).FDIB.dsBm.bmBits;
-  dstBits := TBitmapImageAccess(TBMPAccess(bmpDst).FImage).FDIB.dsBm.bmBits;
-
-  dstWidth  := bmpDst.Width;
-  dstHeight := bmpDst.Height;
-  srcWidth  := bmpSrc.Width;
-  srcHeight := bmpSrc.Height;
-
-  rac := Trunc(Cos(RotaryAngle) * (1 shl 16));
-  ras := Trunc(Sin(RotaryAngle) * (1 shl 16));
-  cxc := (CenterX + MoveX) * rac;
-  cxs := (CenterX + MoveX) * ras;
-  cys := (CenterY + MoveY) * ras;
-  cyc := (CenterY + MoveY) * rac;
-  kcx := cxc - cys - CenterX * (1 shl 16);
-  kcy := cxs + cyc - CenterY * (1 shl 16);
-
-  TParallel.For(0, dstHeight - 1,
-    procedure(Y: Integer)
-    var
-      krx, kry: Integer;
-    begin
-      krx := kcx + Y * ras;
-      kry := kcy - Y * rac;
-      RotateSSE_avx2(Y, dstWidth, srcWidth, srcHeight, rac, ras, krx, kry, srcBits, dstBits); // 由于参数过多，加速效果不理想
-    end);
-end;
-
 procedure Rotate(const bmpSrc: TBitmap; var bmpDst: TBitmap; const iAngle: Integer);
 var
   RotaryAngle     : double;
@@ -364,7 +361,7 @@ begin
   CenterX := bmpSrc.Width div 2;
   CenterY := bmpSrc.Height div 2;
 
-  Optimize06(bmpSrc, bmpDst, RotaryAngle, CenterX, CenterY, MoveX, MoveY);
+  Optimize05(bmpSrc, bmpDst, RotaryAngle, CenterX, CenterY, MoveX, MoveY);
 end;
 
 end.

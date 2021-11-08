@@ -4,7 +4,7 @@
 
 ## 说明：
     功能：32bit Pixel RGB to Gray
-    开发：Delphi 10.3
+    开发：Delphi 11
     平台：Win10X64；支持 X86/X64
 
 ### Delphi 下实现的函数：
