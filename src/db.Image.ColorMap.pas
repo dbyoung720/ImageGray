@@ -18,12 +18,12 @@ unit db.Image.ColorMap;
   RAX/RBX/RCX/RDX/RDI/RSI           64位 (x64, EAX 寄存器是 RAX 寄存器的低 32 位)
 
   SIMD寄存器：
-  MMX    :   MM0 --- MM7    064位                                         ( 主要针对浮点运算 )
-  SSE2   :  XMM0--- XMM7    128位                                         ( 浮点 + 整数 )
-  SSE4   :  XMM0---XMM15    128位                                         ( 浮点 + 整数 )
-  AVX    :  YMM0---YMM15    256位 (XMM 寄存器是 YMM 寄存器的低 128 位)    ( 浮点 )
-  AVX2   :  YMM0---YMM15    256位 (XMM 寄存器是 YMM 寄存器的低 128 位)    ( 浮点 + 整数 )
-  AVX512 :  ZMM0---ZMM31    512位 (YMM 寄存器是 ZMM 寄存器的低 256 位)    ( 浮点 + 整数 )
+  MMX    :   MM0 --- MM7                             064位                                         ( 主要针对浮点运算 )
+  SSE2   :  XMM0--- XMM7                             128位                                         ( 浮点 + 整数 )
+  SSE4   :  XMM0--- XMM7(X86)  XMM0--- XMM15(X64)    128位                                         ( 浮点 + 整数 )
+  AVX    :  YMM0--- YMM7(X86)  YMM0--- YMM15(X64)    256位 (XMM 寄存器是 YMM 寄存器的低 128 位)    ( 浮点 )
+  AVX2   :  YMM0---YMM15                             256位 (XMM 寄存器是 YMM 寄存器的低 128 位)    ( 浮点 + 整数 )
+  AVX512 :  ZMM0---ZMM31                             512位 (YMM 寄存器是 ZMM 寄存器的低 256 位)    ( 浮点 + 整数 )
 }
 
 interface

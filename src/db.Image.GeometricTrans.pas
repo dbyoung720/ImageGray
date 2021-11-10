@@ -18,12 +18,12 @@ unit db.Image.GeometricTrans;
   RAX/RBX/RCX/RDX/RDI/RSI           64位 (x64, EAX 寄存器是 RAX 寄存器的低 32 位)
 
   SIMD寄存器：
-  MMX    :   MM0 --- MM7    064位                                         ( 主要针对浮点运算 )
-  SSE2   :  XMM0--- XMM7    128位                                         ( 浮点 + 整数 )
-  SSE4   :  XMM0---XMM15    128位                                         ( 浮点 + 整数 )
-  AVX    :  YMM0---YMM15    256位 (XMM 寄存器是 YMM 寄存器的低 128 位)    ( 浮点 )
-  AVX2   :  YMM0---YMM15    256位 (XMM 寄存器是 YMM 寄存器的低 128 位)    ( 浮点 + 整数 )
-  AVX512 :  ZMM0---ZMM31    512位 (YMM 寄存器是 ZMM 寄存器的低 256 位)    ( 浮点 + 整数 )
+  MMX    :   MM0 --- MM7                             064位                                         ( 主要针对浮点运算 )
+  SSE2   :  XMM0--- XMM7                             128位                                         ( 浮点 + 整数 )
+  SSE4   :  XMM0--- XMM7(X86)  XMM0--- XMM15(X64)    128位                                         ( 浮点 + 整数 )
+  AVX    :  YMM0--- YMM7(X86)  YMM0--- YMM15(X64)    256位 (XMM 寄存器是 YMM 寄存器的低 128 位)    ( 浮点 )
+  AVX2   :  YMM0---YMM15                             256位 (XMM 寄存器是 YMM 寄存器的低 128 位)    ( 浮点 + 整数 )
+  AVX512 :  ZMM0---ZMM31                             512位 (YMM 寄存器是 ZMM 寄存器的低 256 位)    ( 浮点 + 整数 )
 }
 
 interface
@@ -343,6 +343,119 @@ begin
     end);
 end;
 
+procedure Rotate_Proc01(const krx, kry, IndexRow: Integer; const srcBits: PRGBQuadArray; dstBits: PRGBQuadArray; const rac, ras: Integer; const dstWidth, srcWidth, srcHeight: DWORD); assembler; inline;
+var
+  X         : Integer;
+  SrcX, SrcY: DWORD;
+begin
+  for X := dstWidth - 1 downto 0 do
+  begin
+    SrcX := (X * rac - krx) shr 16;
+    SrcY := (X * ras - kry) shr 16;
+    if (SrcY < srcHeight) and (SrcX < srcWidth) then
+    begin
+      dstBits[IndexRow * Integer(dstWidth) + X] := srcBits[SrcY * srcWidth + SrcX];
+    end;
+  end;
+end;
+
+procedure Rotate_Proc02(const krx, kry, IndexRow: Integer; const srcBits: PRGBQuadArray; dstBits: PRGBQuadArray; const rac, ras: Integer; const dstWidth, srcWidth, srcHeight: DWORD); assembler;
+asm
+  MOV  [EBP-$04], EAX          // [EBP-$04] = krx
+  MOV  [EBP-$08], EDX          // [EBP-$08] = kry
+  MOV  EBX, ECX                // EBX = IndexRow
+  MOV  ECX, dstWidth           // ECX = dstWidth 循环计数
+
+@LOOP:
+  MOV   EAX,  ECX               // EAX = X
+  IMUL  EAX,  rac               // EAX = X * rac
+  SUB   EAX,  [EBP-$04]         // EAX = X * rac - krx
+  SHR   EAX,  16                // EAX = (X * rac - krx) shr 16  = SrcX
+
+  MOV   EDX,  ECX               // EDX = X
+  IMUL  EDX,  ras               // EDX = X * ras
+  SUB   EDX,  [EBP-$08]         // EDX = X * ras - kry
+  SHR   EDX,  16                // EDX = (X * ras - kry) shr 16  = SrcY
+
+  CMP   EAX,  srcWidth          // IF SrcX < srcWidth
+  JNB   @NEXT                   //
+  CMP   EDX,  srcHeight         // IF SrcY < srcHeight
+  JNB   @NEXT                   //
+
+  MOV  EDI,  EDX                // EDI = (X * ras - kry) shr 16  = SrcY
+  IMUL EDI,  srcWidth           // EDI = SrcY * srcWidth
+  ADD  EDI,  EAX                // EDI = SrcY * srcWidth + SrcX
+  MOV  EDX,  [srcBits]          // EDI = [srcBits]
+  MOV  EDI,  [EDX + EDI * 4]    // EDI = srcBits[SrcY * srcWidth + SrcX]
+
+  MOV  EDX,  EBX                // EDX = IndexRow
+  IMUL EDX,  dstWidth           // EDX = IndexRow * dstWidth
+  ADD  EDX,  ECX                // EDX = IndexRow * dstWidth + X
+  MOV  ESI,  [dstBits]          // ESI = [dstBits]
+  MOV  [ESI + EDX * 4], EDI     // dstBits[IndexRow * Integer(dstWidth) + X] = EDI
+
+@NEXT:
+  DEC  ECX
+  JNZ  @LOOP
+  MOV  ESP,  EBP
+END;
+
+procedure Rotate_Proc03(const krx, kry, IndexRow: Integer; const srcBits: PRGBQuadArray; dstBits: PRGBQuadArray; const rac, ras: Integer; const dstWidth, srcWidth, srcHeight: DWORD); assembler;
+asm
+  MOV  EBX, ECX           // EBX = IndexRow
+  MOV  ECX, dstWidth      // ECX = dstWidth 循环计数
+
+@LOOP:
+
+
+@NEXT:
+  DEC ECX
+  JNZ @LOOP
+  MOV ESP,EBP
+end;
+
+{ 并行 + SIMD 优化 }
+procedure Optimize06(bmpSrc, bmpDst: TBitmap; const RotaryAngle: double; const CenterX, CenterY, MoveX, MoveY: Integer);
+var
+  srcBits  : PRGBQuadArray;
+  dstBits  : PRGBQuadArray;
+  cxc, cxs : Integer;
+  cyc, cys : Integer;
+  rac, ras : Integer;
+  kcx, kcy : Integer;
+  dstWidth : Integer;
+  dstHeight: Integer;
+  srcWidth : Integer;
+  srcHeight: Integer;
+begin
+  srcBits := TBitmapImageAccess(TBMPAccess(bmpSrc).FImage).FDIB.dsBm.bmBits;
+  dstBits := TBitmapImageAccess(TBMPAccess(bmpDst).FImage).FDIB.dsBm.bmBits;
+
+  dstWidth  := bmpDst.Width;
+  dstHeight := bmpDst.Height;
+  srcWidth  := bmpSrc.Width;
+  srcHeight := bmpSrc.Height;
+
+  rac := Trunc(Cos(RotaryAngle) * (1 shl 16));
+  ras := Trunc(Sin(RotaryAngle) * (1 shl 16));
+  cxc := (CenterX + MoveX) * rac;
+  cxs := (CenterX + MoveX) * ras;
+  cys := (CenterY + MoveY) * ras;
+  cyc := (CenterY + MoveY) * rac;
+  kcx := cxc - cys - CenterX * (1 shl 16);
+  kcy := cxs + cyc - CenterY * (1 shl 16);
+
+  TParallel.For(0, dstHeight - 1,
+    procedure(IndexRow: Integer)
+    var
+      krx, kry: Integer;
+    begin
+      krx := kcx + IndexRow * ras;
+      kry := kcy - IndexRow * rac;
+      Rotate_Proc02(krx, kry, IndexRow, srcBits, dstBits, rac, ras, dstWidth, srcWidth, srcHeight);
+    end);
+end;
+
 procedure Rotate(const bmpSrc: TBitmap; var bmpDst: TBitmap; const iAngle: Integer);
 var
   RotaryAngle     : double;
@@ -361,7 +474,7 @@ begin
   CenterX := bmpSrc.Width div 2;
   CenterY := bmpSrc.Height div 2;
 
-  Optimize05(bmpSrc, bmpDst, RotaryAngle, CenterX, CenterY, MoveX, MoveY);
+  Optimize06(bmpSrc, bmpDst, RotaryAngle, CenterX, CenterY, MoveX, MoveY);
 end;
 
 end.
