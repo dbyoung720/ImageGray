@@ -4,9 +4,6 @@ unit db.Image.Gray;
   Name: dbyoung@sina.com
   Date: 2020-10-01
   Vers: Delphi 11
-  Test: 4096 * 4096 * 32
-  Note：Delphi 的 Release 模式是有优化的，Debug 是没有的；下面的时间，都是在 DEBUG 模式下的用时；
-  Note: 并行程序，不能在 IDE 下运行查看效果。必须脱离 IDE 执行查看效果。
 
   基本原理：
   Gray = (R + G + B) / 3  = (R + G + B) * 85($55) / 255 = (R + G + B) * 85($55) >> 8
@@ -19,23 +16,6 @@ unit db.Image.Gray;
 
   查表优化：
   R、G、B，都在 0---255 之间，可以将 R(0---255)*77、G(0---255)*151、B(0---255)*28 预先计算好，存放在表中，优化掉乘法
-
-  Delphi 参数寄存器顺序：
-  X86: EAX, EDX, ECX
-  X64: ECX, EDX, EAX
-
-  通用寄存器：
-  CPU  :
-  EAX/EBX/ECX/EDX/EDI/ESI           32位 (x86)
-  RAX/RBX/RCX/RDX/RDI/RSI           64位 (x64, EAX 寄存器是 RAX 寄存器的低 32 位)
-
-  SIMD寄存器：
-  MMX    :   MM0 --- MM7                             064位                                         ( 主要针对浮点运算 )
-  SSE2   :  XMM0--- XMM7                             128位                                         ( 浮点 + 整数 )
-  SSE4   :  XMM0--- XMM7(X86)  XMM0--- XMM15(X64)    128位                                         ( 浮点 + 整数 )
-  AVX    :  YMM0--- YMM7(X86)  YMM0--- YMM15(X64)    256位 (XMM 寄存器是 YMM 寄存器的低 128 位)    ( 浮点 )
-  AVX2   :  YMM0---YMM15                             256位 (XMM 寄存器是 YMM 寄存器的低 128 位)    ( 浮点 + 整数 )
-  AVX512 :  ZMM0---ZMM31                             512位 (YMM 寄存器是 ZMM 寄存器的低 256 位)    ( 浮点 + 整数 )
 }
 
 interface

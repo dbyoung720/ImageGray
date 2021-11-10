@@ -84,7 +84,7 @@ implementation
 {$R *.dfm}
 
 uses
-  db.Image.Load, db.Image.Gray, db.Image.Invert, db.Image.Light, db.Image.Contrast, db.Image.Saturation, db.Image.ColorMap, db.Image.Effect, db.Image.GeometricTrans;
+  db.Image.Load, db.Image.Gray, db.Image.Rotate, db.Image.Invert, db.Image.Light, db.Image.Contrast, db.Image.Saturation, db.Image.ColorMap, db.Image.Effect, db.Image.GeometricTrans;
 
 procedure TForm1.LoadImageProc(const strFileName: string; img: TImage);
 begin

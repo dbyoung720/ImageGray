@@ -3,6 +3,7 @@
 - [简体中文](readmeCN.md)
 
 ## Description：
+    I record the process of learning SIMD
     Function：32bit Pixel RGB to Gray
     DevTools：Delphi 11
     Platform：Win10X64；Support X86、X64

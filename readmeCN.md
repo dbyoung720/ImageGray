@@ -3,6 +3,7 @@
 - [English](readme.md)
 
 ## 说明：
+    这是我学习 SIMD 的过程记录
     功能：32bit Pixel RGB to Gray
     开发：Delphi 11
     平台：Win10X64；支持 X86/X64
