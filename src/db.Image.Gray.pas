@@ -23,7 +23,7 @@ interface
 uses Winapi.Windows, System.SysUtils, System.Threading, Vcl.Graphics, Winapi.GDIPOBJ, Winapi.GDIPAPI, db.Image.Common;
 
 type
-  TGrayType = (gtAPI, gtScanLine, gtDelphi, gtFourPoint, gtParallel, gtGDIPLUS, gtTable, gtASM, gtMMX, gtSSE, gtSSEParallel, gtSSE2, gtSSE4, gtAVX1, gtAVX2, gtAVX512knl, gtAVX512skx, gtGPU, gtOther);
+  TGrayType = (gtAPI, gtScanLine, gtDelphi, gtFourPoint, gtParallel, gtGDIPLUS, gtTable, gtASM, gtMMX, gtSSE, gtSSEParallel, gtGPU, gtOther);
 
 procedure Gray(bmp: TBitmap; const gt: TGrayType = gtSSEParallel);
 
@@ -648,13 +648,7 @@ begin
 end;
 
 procedure Gray(bmp: TBitmap; const gt: TGrayType = gtSSEParallel);
-var
-  pColor: PByte;
-  pGray : PDWORD;
 begin
-  pColor := GetBitsPointer(bmp);
-  pGray  := GetBitsPointer(bmp);
-
   case gt of
     gtAPI:
       Gray_API(bmp);
@@ -678,18 +672,6 @@ begin
       Gray_SSE(bmp);
     gtSSEParallel:
       Gray_SSEParallel(bmp);
-    gtSSE2:
-      bgraGray_sse2(pColor, pGray, bmp.Width, bmp.Height);
-    gtSSE4:
-      bgraGray_sse4(pColor, pGray, bmp.Width, bmp.Height);
-    gtAVX1:
-      bgraGray_avx1(pColor, pGray, bmp.Width, bmp.Height);
-    gtAVX2:
-      bgraGray_avx2(pColor, pGray, bmp.Width, bmp.Height);
-    gtAVX512knl:
-      bgraGray_avx512knl(pColor, pGray, bmp.Width, bmp.Height);
-    gtAVX512skx:
-      bgraGray_avx512skx(pColor, pGray, bmp.Width, bmp.Height);
     gtGPU:
       Gray_GPU(bmp);
     gtOther:

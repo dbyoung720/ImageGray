@@ -14,7 +14,7 @@ interface
 uses Winapi.Windows, Vcl.Graphics, System.Threading, System.Math, db.Image.Common;
 
 type
-  TLightType = (ltScanline, ltDelphi, ltTable, ltASM, ltParallel, ltParallel_SSE, ltParallel_AVX2, ltSSE2, ltSSE4, ltAVX1, ltAVX2, ltAVX512knl, ltAVX512skx);
+  TLightType = (ltScanline, ltDelphi, ltTable, ltASM, ltParallel, ltParallel_SSE, ltParallel_AVX2);
 
 procedure Light(bmp: TBitmap; const intLightValue: Integer; const lt: TLightType = ltParallel_SSE);
 
@@ -334,6 +334,7 @@ asm
   JNZ      @LOOP02
 end;
 
+{ 4 ms  需要脱离 IDE 执行 / ScanLine 不能用于 TParallel.For 中 }
 procedure Light_AVX2_Parallel(bmp: TBitmap; const intLightValue: Integer);
 var
   StartScanLine: Integer;
@@ -353,13 +354,7 @@ begin
 end;
 
 procedure Light(bmp: TBitmap; const intLightValue: Integer; const lt: TLightType = ltParallel_SSE);
-var
-  pColor: PByte;
-  pLight: PDWORD;
 begin
-  pColor := GetBitsPointer(bmp);
-  pLight := GetBitsPointer(bmp);
-
   case lt of
     ltScanline:
       Light_ScanLine(bmp, intLightValue);
@@ -375,18 +370,6 @@ begin
       Light_SSE_Parallel(bmp, intLightValue);
     ltParallel_AVX2:
       Light_AVX2_Parallel(bmp, intLightValue);
-    ltSSE2:
-      bgraLight_sse2(pColor, pLight, bmp.Width, bmp.Height, intLightValue);
-    ltSSE4:
-      bgraLight_sse4(pColor, pLight, bmp.Width, bmp.Height, intLightValue);
-    ltAVX1:
-      bgraLight_avx1(pColor, pLight, bmp.Width, bmp.Height, intLightValue);
-    ltAVX2:
-      bgraLight_avx2(pColor, pLight, bmp.Width, bmp.Height, intLightValue);
-    ltAVX512knl:
-      bgraLight_avx512knl(pColor, pLight, bmp.Width, bmp.Height, intLightValue);
-    ltAVX512skx:
-      bgraLight_avx512skx(pColor, pLight, bmp.Width, bmp.Height, intLightValue);
   end;
 end;
 
