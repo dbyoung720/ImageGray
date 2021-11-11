@@ -14,9 +14,9 @@ interface
 uses Winapi.Windows, Vcl.Graphics, System.Threading, System.Math, db.Image.Common;
 
 type
-  TLightType = (ltScanline, ltDelphi, ltTable, ltParallel, ltASM, ltSSEParallel, ltSSE2, ltSSE4, ltAVX1, ltAVX2, ltAVX512knl, ltAVX512skx);
+  TLightType = (ltScanline, ltDelphi, ltTable, ltASM, ltParallel, ltParallel_SSE, ltParallel_AVX2, ltSSE2, ltSSE4, ltAVX1, ltAVX2, ltAVX512knl, ltAVX512skx);
 
-procedure Light(bmp: TBitmap; const intLightValue: Integer; const lt: TLightType = ltSSEParallel);
+procedure Light(bmp: TBitmap; const intLightValue: Integer; const lt: TLightType = ltParallel_SSE);
 
 implementation
 
@@ -70,38 +70,6 @@ begin
     pColor^.rgbBlue  := g_LightTable[pColor^.rgbBlue, intLightValue];
     Inc(pColor);
   end;
-end;
-
-procedure bgraLight_Parallel_Proc(pColor: PRGBQuad; const bmpWidth, intLightValue: Integer);
-var
-  I: Integer;
-begin
-  for I := 0 to bmpWidth - 1 do
-  begin
-    pColor^.rgbRed   := EnsureRange(pColor^.rgbRed + intLightValue, 0, 255);
-    pColor^.rgbGreen := EnsureRange(pColor^.rgbGreen + intLightValue, 0, 255);
-    pColor^.rgbBlue  := EnsureRange(pColor^.rgbBlue + intLightValue, 0, 255);
-    Inc(pColor);
-  end;
-end;
-
-{ 20ms --- 40ms  需要脱离 IDE 执行 / ScanLine 不能用于 TParallel.For 中 }
-procedure bgraLight_Parallel(bmp: TBitmap; const intLightValue: Integer);
-var
-  StartScanLine: Integer;
-  bmpWidthBytes: Integer;
-begin
-  StartScanLine := Integer(bmp.ScanLine[0]);
-  bmpWidthBytes := Integer(bmp.ScanLine[1]) - Integer(bmp.ScanLine[0]);
-
-  TParallel.For(0, bmp.Height - 1,
-    procedure(Y: Integer)
-    var
-      pColor: PRGBQuad;
-    begin
-      pColor := PRGBQuad(StartScanLine + Y * bmpWidthBytes);
-      bgraLight_Parallel_Proc(pColor, bmp.Width, intLightValue);
-    end);
 end;
 
 { 60ms ---- 90ms }
@@ -185,6 +153,76 @@ begin
   Light_ASM_Proc(pColor, intLightValue, Count);
 end;
 
+procedure bgraLight_Parallel_Proc(pColor: PRGBQuad; const bmpWidth, intLightValue: Integer);
+var
+  I: Integer;
+begin
+  for I := 0 to bmpWidth - 1 do
+  begin
+    pColor^.rgbRed   := EnsureRange(pColor^.rgbRed + intLightValue, 0, 255);
+    pColor^.rgbGreen := EnsureRange(pColor^.rgbGreen + intLightValue, 0, 255);
+    pColor^.rgbBlue  := EnsureRange(pColor^.rgbBlue + intLightValue, 0, 255);
+    Inc(pColor);
+  end;
+end;
+
+{ 20ms --- 40ms  需要脱离 IDE 执行 / ScanLine 不能用于 TParallel.For 中 }
+procedure bgraLight_Parallel(bmp: TBitmap; const intLightValue: Integer);
+var
+  StartScanLine: Integer;
+  bmpWidthBytes: Integer;
+begin
+  StartScanLine := Integer(bmp.ScanLine[0]);
+  bmpWidthBytes := Integer(bmp.ScanLine[1]) - Integer(bmp.ScanLine[0]);
+
+  TParallel.For(0, bmp.Height - 1,
+    procedure(Y: Integer)
+    var
+      pColor: PRGBQuad;
+    begin
+      pColor := PRGBQuad(StartScanLine + Y * bmpWidthBytes);
+      bgraLight_Parallel_Proc(pColor, bmp.Width, intLightValue);
+    end);
+end;
+
+procedure Light_SSEParallel_Proc02(pColor: PRGBQuad; const intLightValue, bmpWidth: Integer);
+asm
+  {$IFDEF WIN64}
+  XCHG     RAX,  RCX
+  {$IFEND}
+
+  CMP EDX, 0
+  JG @Large
+  NEG DL
+
+@Large:
+  MOV     DH,   DL
+  PINSRW  XMM1, EDX,  0
+  PINSRW  XMM1, EDX,  1
+  PSHUFD  XMM1, XMM1, 0
+
+@LOOP:
+  MOVUPS  XMM4, [EAX]
+
+  // 计算亮度值(饱和加法)
+  CMP EDX, 0
+  JL  @Little
+
+  PADDUSB   XMM4, XMM1
+  JMP       @RValue
+
+@Little:
+  PSUBUSB   XMM4, XMM1
+
+  // 返回结果
+@RValue:
+  MOVUPS  [EAX], XMM4
+
+  ADD     EAX, 16
+  SUB     ECX, 4
+  JNZ     @LOOP
+end;
+
 procedure Light_SSEParallel_Proc(pColor: PRGBQuad; const intLightValue, bmpWidth: Integer);
 asm
   {$IFDEF WIN64}
@@ -228,10 +266,10 @@ asm
 
   // 返回结果
 @RValue:
-  PSLLD   XMM6, 8                           // XMM6  = |0000Y300|0000Y200|0000Y100|0000Y000|
-  PSLLD   XMM7, 16                          // XMM7  = |00Y30000|00Y20000|00Y10000|00Y00000|
-  ORPS    XMM5, XMM6                        // XMM5  = |0000Y3Y3|0000Y2Y2|0000Y1Y1|0000Y0Y0|
-  ORPS    XMM5, XMM7                        // XMM5  = |00Y3Y3Y3|00Y2Y2Y2|00Y1Y1Y1|00Y0Y0Y0|
+  PSLLD   XMM6, 8                           // XMM6  = |0000G300|0000G200|0000G100|0000G000|
+  PSLLD   XMM7, 16                          // XMM7  = |00R30000|00R20000|00R10000|00R00000|
+  ORPS    XMM5, XMM6                        // XMM5  = |0000G3B3|0000G2B2|0000G1B1|0000G0B0|
+  ORPS    XMM5, XMM7                        // XMM5  = |00R3G3B3|00R2G2B2|00R1G1B1|00R0G0B0|
   MOVUPS  [EAX], XMM5                       // [EAX] = XMM5
 
   ADD     EAX, 16                           // pColor 地址加 16，EAX 指向下4个像素的地址
@@ -240,7 +278,7 @@ asm
 end;
 
 { 4 ms  需要脱离 IDE 执行 / ScanLine 不能用于 TParallel.For 中 }
-procedure Light_SSEParallel(bmp: TBitmap; const intLightValue: Integer);
+procedure Light_SSE_Parallel(bmp: TBitmap; const intLightValue: Integer);
 var
   StartScanLine: Integer;
   bmpWidthBytes: Integer;
@@ -254,11 +292,44 @@ begin
       pColor: PRGBQuad;
     begin
       pColor := PRGBQuad(StartScanLine + Y * bmpWidthBytes);
-      Light_SSEParallel_Proc(pColor, intLightValue, bmp.Width);
+      Light_SSEParallel_Proc02(pColor, intLightValue, bmp.Width);
     end);
 end;
 
-procedure Light(bmp: TBitmap; const intLightValue: Integer; const lt: TLightType = ltSSEParallel);
+procedure Light_AVX2_Parallel_Proc(pColor: PRGBQuad; const intLightValue, bmpWidth: Integer);
+asm
+  PSHUFD      XMM1, XMM1, 0
+  VINSERTF128 YMM1, YMM1, XMM1, 1
+
+@LOOP:
+  VMOVUPS  YMM4, [EAX]                      // YMM4 = |A7R7G7B7|A6R6G6B6|A5R5G5B5|A4R4G4B4||A3R3G3B3|A2R2G2B2|A1R1G1B1|A0R0G0B0|
+  VPSUBUSB YMM4, YMM1, YMM1
+
+  ADD     EAX, 32                           // pColor 地址加 32，EAX 指向下8个像素的地址
+  SUB     ECX, 8                            // Width 减 8, 每 8 个像素一循环
+  JNZ     @LOOP                             // 循环
+end;
+
+{ 不支持 AVX2 指令的机器，就不能使用了 }
+procedure Light_AVX2_Parallel(bmp: TBitmap; const intLightValue: Integer);
+var
+  StartScanLine: Integer;
+  bmpWidthBytes: Integer;
+begin
+  StartScanLine := Integer(bmp.ScanLine[0]);
+  bmpWidthBytes := Integer(bmp.ScanLine[1]) - Integer(bmp.ScanLine[0]);
+
+  TParallel.For(0, bmp.Height - 1,
+    procedure(Y: Integer)
+    var
+      pColor: PRGBQuad;
+    begin
+      pColor := PRGBQuad(StartScanLine + Y * bmpWidthBytes);
+      Light_AVX2_Parallel_Proc(pColor, intLightValue, bmp.Width);
+    end);
+end;
+
+procedure Light(bmp: TBitmap; const intLightValue: Integer; const lt: TLightType = ltParallel_SSE);
 var
   pColor: PByte;
   pLight: PDWORD;
@@ -273,12 +344,14 @@ begin
       Light_Delphi(bmp, intLightValue);
     ltTable:
       Light_Table(bmp, intLightValue);
-    ltParallel:
-      bgraLight_Parallel(bmp, intLightValue);
     ltASM:
       Light_ASM(bmp, intLightValue);
-    ltSSEParallel:
-      Light_SSEParallel(bmp, intLightValue);
+    ltParallel:
+      bgraLight_Parallel(bmp, intLightValue);
+    ltParallel_SSE:
+      Light_SSE_Parallel(bmp, intLightValue);
+    ltParallel_AVX2:
+      Light_AVX2_Parallel(bmp, intLightValue);
     ltSSE2:
       bgraLight_sse2(pColor, pLight, bmp.Width, bmp.Height, intLightValue);
     ltSSE4:

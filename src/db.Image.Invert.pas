@@ -144,6 +144,7 @@ asm
   JNZ @loop
 end;
 
+{ 5 ms }
 procedure Invert_AVX(bmp: TBitmap);
 var
   pColor: PByte;

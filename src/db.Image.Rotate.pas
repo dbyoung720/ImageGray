@@ -4,6 +4,15 @@ unit db.Image.Rotate;
   Name: dbyoung@sina.com
   Date: 2021-2-22
   Vers: Delphi 11
+
+  原理：
+  假设对图片上任意点(x,y)，绕一个坐标点(rx0,ry0)逆时针旋转RotaryAngle角度后的新的坐标设为(x', y')，有公式：
+  x'= (x - rx0)*cos(RotaryAngle) + (y - ry0)*sin(RotaryAngle) + rx0 ;
+  y'=-(x - rx0)*sin(RotaryAngle) + (y - ry0)*cos(RotaryAngle) + ry0 ;
+
+  那么，根据新的坐标点求源坐标点的公式为：
+  x=(x'- rx0)*cos(RotaryAngle) - (y'- ry0)*sin(RotaryAngle) + rx0 ;
+  y=(x'- rx0)*sin(RotaryAngle) + (y'- ry0)*cos(RotaryAngle) + ry0 ;
 }
 
 interface
@@ -14,16 +23,6 @@ uses Winapi.Windows, System.Threading, System.Diagnostics, System.SyncObjs, Syst
 procedure Rotate(const bmpSrc: TBitmap; var bmpDst: TBitmap; const iAngle: Integer);
 
 implementation
-
-{
-  假设对图片上任意点(x,y)，绕一个坐标点(rx0,ry0)逆时针旋转RotaryAngle角度后的新的坐标设为(x', y')，有公式：
-  x'= (x - rx0)*cos(RotaryAngle) + (y - ry0)*sin(RotaryAngle) + rx0 ;
-  y'=-(x - rx0)*sin(RotaryAngle) + (y - ry0)*cos(RotaryAngle) + ry0 ;
-
-  那么，根据新的坐标点求源坐标点的公式为：
-  x=(x'- rx0)*cos(RotaryAngle) - (y'- ry0)*sin(RotaryAngle) + rx0 ;
-  y=(x'- rx0)*sin(RotaryAngle) + (y'- ry0)*cos(RotaryAngle) + ry0 ;
-}
 
 { 存取类的保护成员变量 }
 type
@@ -246,6 +245,7 @@ begin
   end;
 end;
 
+{ ASM }
 procedure Rotate_Proc02(const krx, kry, IndexRow: Integer; const srcBits: PRGBQuadArray; dstBits: PRGBQuadArray; const rac, ras: Integer; const dstWidth, srcWidth, srcHeight: DWORD); assembler;
 asm
   MOV  [EBP-$04], EAX          // [EBP-$04] = krx
@@ -287,18 +287,30 @@ asm
   MOV  ESP,  EBP
 END;
 
+{
+  SSE
+
+}
 procedure Rotate_Proc03(const krx, kry, IndexRow: Integer; const srcBits: PRGBQuadArray; dstBits: PRGBQuadArray; const rac, ras: Integer; const dstWidth, srcWidth, srcHeight: DWORD); assembler;
 asm
-  MOV  EBX, ECX           // EBX = IndexRow
-  MOV  ECX, dstWidth      // ECX = dstWidth 循环计数
+  {$IFDEF WIN32}
+  EMMS
+  MOV   EBX, ECX                                    // EBX = IndexRow
+  MOV   ECX, dstWidth                               // ECX = dstWidth 循环计数
+  PXOR  XMM7,   XMM7                                // MM7 = $0000000000000000
+  MOVQ  XMM6,   c_GrayMMXARGB                       // MM6 = rac, -1, ras, -1
 
-@LOOP:
+@LOOP:                                              //
+  MOVD       XMM0,   ECX                            // MM0 = x, krx, x, kry
+  PMADDWD    XMM0,   XMM6                           // MM0 = x * rac + krx * -1 | x * ras + kry * -1
 
 
 @NEXT:
   DEC ECX
   JNZ @LOOP
-  MOV ESP,EBP
+
+  EMMS
+  {$IFEND}
 end;
 
 { 并行 + SIMD 优化 }
@@ -339,7 +351,7 @@ begin
     begin
       krx := kcx + IndexRow * ras;
       kry := kcy - IndexRow * rac;
-      Rotate_Proc02(krx, kry, IndexRow, srcBits, dstBits, rac, ras, dstWidth, srcWidth, srcHeight);
+      Rotate_Proc03(krx, kry, IndexRow, srcBits, dstBits, rac, ras, dstWidth, srcWidth, srcHeight);
     end);
 end;
 

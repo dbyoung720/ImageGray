@@ -210,7 +210,7 @@ procedure TForm1.mniColorInvertClick(Sender: TObject);
 begin
   with TStopwatch.StartNew do
   begin
-    Invert(imgShow.Picture.Bitmap);
+    Invert(imgShow.Picture.Bitmap, itParallel_AVX);
     statTip.Panels[0].Text := Format('反色用时：%d 毫秒', [ElapsedMilliseconds]);
   end;
   imgShow.Invalidate;
@@ -235,7 +235,7 @@ begin
     with TStopwatch.StartNew do
     begin
       if ccChange = ccLight then
-        Light(bmpTemp, FTrackColorChange.Position, ltSSEParallel)                // 调节亮度
+        Light(bmpTemp, FTrackColorChange.Position)                               // 调节亮度
       else if ccChange = ccContrast then                                         //
         Contrast(bmpTemp, FTrackColorChange.Position, ctSSEParallel)             // 调节对比度
       else if ccChange = ccSaturation then                                       //
