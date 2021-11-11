@@ -82,7 +82,7 @@ begin
     end);
 end;
 
-procedure Contrast_SSEParallel_Proc(pColor: PRGBQuad; const intContrastValue, bmpWidth: Integer);
+procedure Contrast_SSEParallel_Proc(pColor: PByte; const intContrastValue, bmpWidth: Integer);
 asm
   MOVSS   XMM1, [c_ContSSEMask]             // XMM1 = |00000000|00000000|00000000|00000080
   MOVSS   XMM2, [c_ContSSEM257]             // XMM1 = |00000000|00000000|00000000|00000101
@@ -190,9 +190,9 @@ begin
   TParallel.For(0, bmp.Height - 1,
     procedure(Y: Integer)
     var
-      pColor: PRGBQuad;
+      pColor: PByte;
     begin
-      pColor := PRGBQuad(StartScanLine + Y * bmpWidthBytes);
+      pColor := PByte(StartScanLine + Y * bmpWidthBytes);
       Contrast_SSEParallel_Proc(pColor, intContrastValue, bmp.Width);
     end);
 end;
