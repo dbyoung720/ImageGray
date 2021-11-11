@@ -170,7 +170,7 @@ begin
   end;
 end;
 
-procedure Gray_ASM_Proc_x86(pColor: PRGBQuad; const Count: Integer); register;
+procedure Gray_ASM_Proc_x86(pColor: PByte; const Count: Integer); register;
 asm
   {$IFDEF WIN32}
   MOV    ECX, EDX                       // ECX = Count 循环计数 EDX (Count) 赋给 ECX；通常将 ECX 作为计数器来使用。只是约定俗成，不是标准
@@ -443,7 +443,7 @@ end;
   GRAY = (R+G+B) div 3 = (R+G+B) * 85 / 255 = (R+G+B) * $55 >> 8
 }
 
-procedure Gray_SSE_Proc_01(pColor: PRGBQuad; const Count: Integer); register;
+procedure Gray_SSE_Proc_01(pColor: PByte; const Count: Integer); register;
 asm
   {$IFDEF WIN64}
   MOV     RAX,  RCX
@@ -499,7 +499,7 @@ begin
   Gray_SSE_Proc_01(GetBitsPointer(bmp), bmp.Width * bmp.Height * 4);
 end;
 
-procedure Gray_SSEParallel_Proc(pColor: PRGBQuad; const bmpWidth: Integer);
+procedure Gray_SSEParallel_Proc(pColor: PByte; const bmpWidth: Integer);
 asm
   {$IFDEF WIN64}
   MOV     RAX,  RCX
@@ -566,9 +566,9 @@ begin
   TParallel.For(0, bmp.Height - 1,
     procedure(Y: Integer)
     var
-      pColor: PRGBQuad;
+      pColor: PByte;
     begin
-      pColor := PRGBQuad(StartScanLine + Y * bmpWidthBytes);
+      pColor := PByte(StartScanLine + Y * bmpWidthBytes);
       Gray_SSEParallel_Proc(pColor, bmp.Width);
     end);
 end;

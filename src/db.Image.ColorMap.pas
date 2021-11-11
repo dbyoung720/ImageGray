@@ -11,11 +11,11 @@ interface
 uses Winapi.Windows, System.Threading, System.Math, Vcl.Graphics, db.Image.Common;
 
 type
-  TColorMapType   = (cmtScanline, cmtParallel, cmtSSEParallel, cmtSSE2, cmtSSE4, cmtAVX1, cmtAVX2, cmtAVX512knl, cmtAVX512skx);
-  TColorTransType = (cttScanline, cttParallel, cttSSEParallel, cttSSE2, cttSSE4, cttAVX1, cttAVX2, cttAVX512knl, cttAVX512skx);
+  TColorMapType   = (cmtScanline, cmtParallel);
+  TColorTransType = (cttScanline, cttParallel);
 
-procedure ColorMap(bmp: TBitmap; const intColorMapValue: Integer; const cmt: TColorMapType = cmtSSEParallel);
-procedure ColorTrans(bmpDst, bmpSrc: TBitmap; const intTransValue: Integer; const ctt: TColorTransType = cttSSEParallel);
+procedure ColorMap(bmp: TBitmap; const intColorMapValue: Integer; const cmt: TColorMapType = cmtParallel);
+procedure ColorTrans(bmpDst, bmpSrc: TBitmap; const intTransValue: Integer; const ctt: TColorTransType = cttParallel);
 
 implementation
 
@@ -332,89 +332,13 @@ begin
     end);
 end;
 
-procedure ColorMap_SSEParallel_Proc(pColor: PRGBQuad; const intValue, bmpWidth: Integer);
-asm
-  {$IFDEF WIN64}
-  XCHG    RAX,  RCX
-  {$IFEND}
-  MOVSS   XMM1, [c_PixBGRAMask]             // XMM1 = |00000000|00000000|00000000|000000FF|
-  MOVD    XMM2, EDX                         // XMM2 = |000000000000000000000000000intValue|
-  SHUFPS  XMM1, XMM1, 0                     // XMM1 = |000000FF|000000FF|000000FF|000000FF|
-  SHUFPS  XMM2, XMM2, 0                     // XMM2 = |intValue|intValue|intValue|intValue|
-  MOVAPS  XMM3, XMM1                        // XMM3 = |000000FF|000000FF|000000FF|000000FF|
-  PSUBB   XMM3, XMM2                        // XMM3 = |000000FF - intValue|000000FF - intValue|000000FF - intValue|000000FF - intValue|
-
-@LOOP:
-  MOVUPS  XMM4, [EAX]                       // XMM4 = |A3R3G3B3|A2R2G2B2|A1R1G1B1|A0R0G0B0|
-  MOVAPS  XMM5, XMM4                        // XMM5 = |A3R3G3B3|A2R2G2B2|A1R1G1B1|A0R0G0B0|
-  MOVAPS  XMM6, XMM4                        // XMM6 = |A3R3G3B3|A2R2G2B2|A1R1G1B1|A0R0G0B0|
-  MOVAPS  XMM7, XMM4                        // XMM7 = |A3R3G3B3|A2R2G2B2|A1R1G1B1|A0R0G0B0|
-
-  // 获取 4 个像素的 B3, B2, B1, B0
-  ANDPS   XMM5, XMM1                        // XMM5 = |000000B3|000000B2|000000B1|000000B0|
-
-  // 获取 4 个像素的 G3, G2, G1, G0
-  PSRLD   XMM6, 8                           // XMM6 = |00A3R3G3|00A2R2G2|00A1R1G1|00A0R0G0|
-  ANDPS   XMM6, XMM1                        // XMM6 = |000000G3|000000G2|000000G1|000000G0|
-
-  // 获取 4 个像素的 R3, R2, R1, R0
-  PSRLD   XMM7, 16                          // XMM7 = |0000A3R3|0000A2R2|0000A1R1|0000A0R0|
-  ANDPS   XMM7, XMM1                        // XMM7 = |000000R3|000000R2|000000R1|000000R0|
-
-  // 计算色彩模式
-
-  // 返回结果
-@RValue:
-  PSLLD   XMM6, 8                           // XMM6  = |0000Y300|0000Y200|0000Y100|0000Y000|
-  PSLLD   XMM7, 16                          // XMM7  = |00Y30000|00Y20000|00Y10000|00Y00000|
-  ORPS    XMM5, XMM6                        // XMM5  = |0000Y3Y3|0000Y2Y2|0000Y1Y1|0000Y0Y0|
-  ORPS    XMM5, XMM7                        // XMM5  = |00Y3Y3Y3|00Y2Y2Y2|00Y1Y1Y1|00Y0Y0Y0|
-  MOVUPS  [EAX], XMM5                       // [EAX] = XMM5
-
-  ADD     EAX, 16                           // pColor 地址加 16，EAX 指向下4个像素的地址
-  SUB     ECX, 4                            // Width 减 4, 每 4 个像素一循环
-  JNZ     @LOOP                             // 循环
-end;
-
-procedure ColorMap_SSEParallel(bmp: TBitmap; const intValue: Integer);
-var
-  StartScanLine: Integer;
-  bmpWidthBytes: Integer;
-begin
-  StartScanLine := Integer(bmp.ScanLine[0]);
-  bmpWidthBytes := Integer(bmp.ScanLine[1]) - Integer(bmp.ScanLine[0]);
-
-  TParallel.For(0, bmp.Height - 1,
-    procedure(Y: Integer)
-    var
-      pColor: PRGBQuad;
-    begin
-      pColor := PRGBQuad(StartScanLine + Y * bmpWidthBytes);
-      ColorMap_SSEParallel_Proc(pColor, intValue, bmp.Width);
-    end);
-end;
-
-procedure ColorMap(bmp: TBitmap; const intColorMapValue: Integer; const cmt: TColorMapType = cmtSSEParallel);
+procedure ColorMap(bmp: TBitmap; const intColorMapValue: Integer; const cmt: TColorMapType = cmtParallel);
 begin
   case cmt of
     cmtScanline:
       ColorMap_Scanline(bmp, intColorMapValue);
     cmtParallel:
       ColorMap_Parallel(bmp, intColorMapValue);
-    cmtSSEParallel:
-      ColorMap_SSEParallel(bmp, intColorMapValue);
-    cmtSSE2:
-      ;
-    cmtSSE4:
-      ;
-    cmtAVX1:
-      ;
-    cmtAVX2:
-      ;
-    cmtAVX512knl:
-      ;
-    cmtAVX512skx:
-      ;
   end;
 end;
 
@@ -498,27 +422,13 @@ begin
     end);
 end;
 
-procedure ColorTrans(bmpDst, bmpSrc: TBitmap; const intTransValue: Integer; const ctt: TColorTransType = cttSSEParallel);
+procedure ColorTrans(bmpDst, bmpSrc: TBitmap; const intTransValue: Integer; const ctt: TColorTransType = cttParallel);
 begin
   case ctt of
     cttScanline:
       ColorTrans_Scanline(bmpDst, bmpSrc, intTransValue);
     cttParallel:
       ColorTrans_Parallel(bmpDst, bmpSrc, intTransValue);
-    cttSSEParallel:
-      ;
-    cttSSE2:
-      ;
-    cttSSE4:
-      ;
-    cttAVX1:
-      ;
-    cttAVX2:
-      ;
-    cttAVX512knl:
-      ;
-    cttAVX512skx:
-      ;
   end;
 end;
 

@@ -289,10 +289,7 @@ asm
   {$IFEND}
 END;
 
-{
-  SSE
-
-}
+{ SSE }
 procedure Rotate_Proc03(const krx, kry, IndexRow: Integer; const srcBits: PRGBQuadArray; dstBits: PRGBQuadArray; const rac, ras: Integer; const dstWidth, srcWidth, srcHeight: DWORD); assembler;
 asm
   {$IFDEF WIN32}
@@ -353,7 +350,7 @@ begin
     begin
       krx := kcx + IndexRow * ras;
       kry := kcy - IndexRow * rac;
-      Rotate_Proc03(krx, kry, IndexRow, srcBits, dstBits, rac, ras, dstWidth, srcWidth, srcHeight);
+      Rotate_Proc02(krx, kry, IndexRow, srcBits, dstBits, rac, ras, dstWidth, srcWidth, srcHeight);
     end);
 end;
 

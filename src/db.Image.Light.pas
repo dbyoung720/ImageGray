@@ -222,7 +222,7 @@ asm
   JNZ     @LOOP02
 end;
 
-procedure Light_SSE_Parallel_Proc01(pColor: PRGBQuad; const intLightValue, bmpWidth: Integer);
+procedure Light_SSE_Parallel_Proc01(pColor: PByte; const intLightValue, bmpWidth: Integer);
 asm
   {$IFDEF WIN64}
   XCHG    RAX,  RCX
