@@ -185,45 +185,44 @@ begin
     end);
 end;
 
-procedure Light_SSEParallel_Proc02(pColor: PRGBQuad; const intLightValue, bmpWidth: Integer);
+procedure Light_SSE_Parallel_Proc02(pColor: PByte; const intLightValue, bmpWidth: Integer);
 asm
   {$IFDEF WIN64}
-  XCHG     RAX,  RCX
+  XCHG RAX,  RCX
   {$IFEND}
 
-  CMP EDX, 0
-  JG @Large
-  NEG DL
+  CMP  EDX, 0
+  JLE  @Little
 
-@Large:
-  MOV     DH,   DL
-  PINSRW  XMM1, EDX,  0
-  PINSRW  XMM1, EDX,  1
-  PSHUFD  XMM1, XMM1, 0
-
-@LOOP:
-  MOVUPS  XMM4, [EAX]
-
-  // 计算亮度值(饱和加法)
-  CMP EDX, 0
-  JL  @Little
-
-  PADDUSB   XMM4, XMM1
-  JMP       @RValue
+  MOV     DH,    DL
+  PINSRW  XMM1,  EDX,  0
+  PINSRW  XMM1,  EDX,  1
+  PSHUFD  XMM1,  XMM1, 0
+@LOOP01:
+  MOVUPS  XMM4,  [EAX]
+  PADDUSB XMM4,  XMM1
+  MOVUPS  [EAX], XMM4
+  ADD     EAX,   16
+  SUB     ECX,   4
+  JNZ     @LOOP01
+  ret
 
 @Little:
-  PSUBUSB   XMM4, XMM1
-
-  // 返回结果
-@RValue:
+  NEG     DL
+  MOV     DH,    DL
+  PINSRW  XMM1,  EDX,  0
+  PINSRW  XMM1,  EDX,  1
+  PSHUFD  XMM1,  XMM1, 0
+@LOOP02:
+  MOVUPS  XMM4,  [EAX]
+  PSUBUSB XMM4,  XMM1
   MOVUPS  [EAX], XMM4
-
-  ADD     EAX, 16
-  SUB     ECX, 4
-  JNZ     @LOOP
+  ADD     EAX,   16
+  SUB     ECX,   4
+  JNZ     @LOOP02
 end;
 
-procedure Light_SSEParallel_Proc(pColor: PRGBQuad; const intLightValue, bmpWidth: Integer);
+procedure Light_SSE_Parallel_Proc01(pColor: PRGBQuad; const intLightValue, bmpWidth: Integer);
 asm
   {$IFDEF WIN64}
   XCHG    RAX,  RCX
@@ -289,28 +288,52 @@ begin
   TParallel.For(0, bmp.Height - 1,
     procedure(Y: Integer)
     var
-      pColor: PRGBQuad;
+      pColor: PByte;
     begin
-      pColor := PRGBQuad(StartScanLine + Y * bmpWidthBytes);
-      Light_SSEParallel_Proc02(pColor, intLightValue, bmp.Width);
+      pColor := PByte(StartScanLine + Y * bmpWidthBytes);
+      Light_SSE_Parallel_Proc02(pColor, intLightValue, bmp.Width);
     end);
 end;
 
-procedure Light_AVX2_Parallel_Proc(pColor: PRGBQuad; const intLightValue, bmpWidth: Integer);
+procedure Light_AVX2_Parallel_Proc(pColor: PByte; const intLightValue, bmpWidth: Integer);
 asm
-  PSHUFD      XMM1, XMM1, 0
-  VINSERTF128 YMM1, YMM1, XMM1, 1
+  {$IFDEF WIN64}
+  XCHG RAX,  RCX
+  {$IFEND}
 
-@LOOP:
-  VMOVUPS  YMM4, [EAX]                      // YMM4 = |A7R7G7B7|A6R6G6B6|A5R5G5B5|A4R4G4B4||A3R3G3B3|A2R2G2B2|A1R1G1B1|A0R0G0B0|
-  VPSUBUSB YMM4, YMM1, YMM1
+  CMP  EDX, 0
+  JLE  @Little
 
-  ADD     EAX, 32                           // pColor 地址加 32，EAX 指向下8个像素的地址
-  SUB     ECX, 8                            // Width 减 8, 每 8 个像素一循环
-  JNZ     @LOOP                             // 循环
+  MOV          DH,    DL
+  PINSRW       XMM1,  EDX,  0
+  PINSRW       XMM1,  EDX,  1
+  PSHUFD       XMM1,  XMM1, 0
+  VINSERTF128  YMM1,  YMM1, XMM1, 1
+@LOOP01:
+  VMOVUPS  YMM0,  [EAX]
+  VPADDUSB YMM0,  YMM1, YMM0
+  VMOVUPS  [EAX], YMM0
+  ADD      EAX,   32
+  SUB      ECX,   8
+  JNZ      @LOOP01
+  ret
+
+@Little:
+  NEG          DL
+  MOV          DH,    DL
+  PINSRW       XMM1,  EDX,  0
+  PINSRW       XMM1,  EDX,  1
+  PSHUFD       XMM1,  XMM1, 0
+  VINSERTF128  YMM1,  YMM1, XMM1, 1
+@LOOP02:
+  VMOVUPS  YMM0,  [EAX]
+  VPSUBUSB YMM0,  YMM0, YMM1
+  VMOVUPS  [EAX], YMM0
+  ADD      EAX,   32
+  SUB      ECX,   8
+  JNZ      @LOOP02
 end;
 
-{ 不支持 AVX2 指令的机器，就不能使用了 }
 procedure Light_AVX2_Parallel(bmp: TBitmap; const intLightValue: Integer);
 var
   StartScanLine: Integer;
@@ -322,9 +345,9 @@ begin
   TParallel.For(0, bmp.Height - 1,
     procedure(Y: Integer)
     var
-      pColor: PRGBQuad;
+      pColor: PByte;
     begin
-      pColor := PRGBQuad(StartScanLine + Y * bmpWidthBytes);
+      pColor := PByte(StartScanLine + Y * bmpWidthBytes);
       Light_AVX2_Parallel_Proc(pColor, intLightValue, bmp.Width);
     end);
 end;

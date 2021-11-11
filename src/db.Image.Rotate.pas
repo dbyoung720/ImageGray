@@ -248,6 +248,7 @@ end;
 { ASM }
 procedure Rotate_Proc02(const krx, kry, IndexRow: Integer; const srcBits: PRGBQuadArray; dstBits: PRGBQuadArray; const rac, ras: Integer; const dstWidth, srcWidth, srcHeight: DWORD); assembler;
 asm
+  {$IFDEF  WIN32}
   MOV  [EBP-$04], EAX          // [EBP-$04] = krx
   MOV  [EBP-$08], EDX          // [EBP-$08] = kry
   MOV  EBX, ECX                // EBX = IndexRow
@@ -285,6 +286,7 @@ asm
   DEC  ECX
   JNZ  @LOOP
   MOV  ESP,  EBP
+  {$IFEND}
 END;
 
 {

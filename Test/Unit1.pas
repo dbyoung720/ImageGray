@@ -235,7 +235,7 @@ begin
     with TStopwatch.StartNew do
     begin
       if ccChange = ccLight then
-        Light(bmpTemp, FTrackColorChange.Position)                               // 调节亮度
+        Light(bmpTemp, FTrackColorChange.Position, ltParallel_AVX2)              // 调节亮度
       else if ccChange = ccContrast then                                         //
         Contrast(bmpTemp, FTrackColorChange.Position, ctSSEParallel)             // 调节对比度
       else if ccChange = ccSaturation then                                       //
