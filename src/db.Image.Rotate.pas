@@ -229,7 +229,7 @@ begin
     end);
 end;
 
-procedure Rotate_Proc01(const krx, kry, IndexRow: Integer; const srcBits: PRGBQuadArray; dstBits: PRGBQuadArray; const rac, ras: Integer; const dstWidth, srcWidth, srcHeight: DWORD); assembler; inline;
+procedure Rotate_Proc(const krx, kry, IndexRow: Integer; const srcBits: PRGBQuadArray; dstBits: PRGBQuadArray; const rac, ras: Integer; const dstWidth, srcWidth, srcHeight: DWORD); assembler; inline;
 var
   X         : Integer;
   SrcX, SrcY: DWORD;
@@ -245,8 +245,7 @@ begin
   end;
 end;
 
-{ ASM }
-procedure Rotate_Proc02(const krx, kry, IndexRow: Integer; const srcBits: PRGBQuadArray; dstBits: PRGBQuadArray; const rac, ras: Integer; const dstWidth, srcWidth, srcHeight: DWORD); assembler;
+procedure Rotate_ASM_Proc(const krx, kry, IndexRow: Integer; const srcBits: PRGBQuadArray; dstBits: PRGBQuadArray; const rac, ras: Integer; const dstWidth, srcWidth, srcHeight: DWORD); assembler;
 asm
   {$IFDEF  WIN32}
   MOV  [EBP-$04], EAX          // [EBP-$04] = krx
@@ -289,27 +288,14 @@ asm
   {$IFEND}
 END;
 
-{ SSE }
-procedure Rotate_Proc03(const krx, kry, IndexRow: Integer; const srcBits: PRGBQuadArray; dstBits: PRGBQuadArray; const rac, ras: Integer; const dstWidth, srcWidth, srcHeight: DWORD); assembler;
+procedure Rotate_SSE_Proc(const krx, kry, IndexRow: Integer; const srcBits: PRGBQuadArray; dstBits: PRGBQuadArray; const rac, ras: Integer; const dstWidth, srcWidth, srcHeight: DWORD); assembler;
 asm
-  {$IFDEF WIN32}
-  EMMS
-  MOV   EBX, ECX                                    // EBX = IndexRow
-  MOV   ECX, dstWidth                               // ECX = dstWidth 循环计数
-  PXOR  XMM7,   XMM7                                // MM7 = $0000000000000000
-  MOVQ  XMM6,   c_GrayMMXARGB                       // MM6 = rac, -1, ras, -1
 
-@LOOP:                                              //
-  MOVD       XMM0,   ECX                            // MM0 = x, krx, x, kry
-  PMADDWD    XMM0,   XMM6                           // MM0 = x * rac + krx * -1 | x * ras + kry * -1
+end;
 
+procedure Rotate_AVX_Proc(const krx, kry, IndexRow: Integer; const srcBits: PRGBQuadArray; dstBits: PRGBQuadArray; const rac, ras: Integer; const dstWidth, srcWidth, srcHeight: DWORD); assembler;
+asm
 
-@NEXT:
-  DEC ECX
-  JNZ @LOOP
-
-  EMMS
-  {$IFEND}
 end;
 
 { 并行 + SIMD 优化 }
@@ -350,7 +336,7 @@ begin
     begin
       krx := kcx + IndexRow * ras;
       kry := kcy - IndexRow * rac;
-      Rotate_Proc02(krx, kry, IndexRow, srcBits, dstBits, rac, ras, dstWidth, srcWidth, srcHeight);
+      Rotate_ASM_Proc(krx, kry, IndexRow, srcBits, dstBits, rac, ras, dstWidth, srcWidth, srcHeight);
     end);
 end;
 
