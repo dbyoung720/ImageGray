@@ -166,8 +166,8 @@ asm
   CVTTPS2DQ XMM7, XMM7                      // XMM7 = Round((pColor^.rgbBlue - 128) * intContrastValue / kValue)
   PADDUSB   XMM7, XMM4                      // XMM7 = pColor^.rgbBlue + Round((pColor^.rgbBlue - 128) * intContrastValue / kValue);
 
-@Result:
   // ·µ»Ø½á¹û
+@Result:
   PSLLD   XMM6,  8                          // XMM6  = |0000Y300|0000Y200|0000Y100|0000Y000|
   PSLLD   XMM7,  16                         // XMM7  = |00Y30000|00Y20000|00Y10000|00Y00000|
   ORPS    XMM5,  XMM6                       // XMM5  = |0000Y3Y3|0000Y2Y2|0000Y1Y1|0000Y0Y0|
@@ -207,12 +207,12 @@ begin
 
   case ct of
     ctScanline:
-      Contrast_ScanLine(bmp, intContrastValue); // 105 ms
-    ctDelphi:                                   //
-      Contrast_Delphi(bmp, intContrastValue);   // 100 ms
-    ctParallel:                                 //
-      Contrast_Parallel(bmp, intContrastValue); //
-    ctSSEParallel:
+      Contrast_ScanLine(bmp, intContrastValue);                                        // 105 ms
+    ctDelphi:                                                                          //
+      Contrast_Delphi(bmp, intContrastValue);                                          // 100 ms
+    ctParallel:                                                                        //
+      Contrast_Parallel(bmp, intContrastValue);                                        //
+    ctSSEParallel:                                                                     //
       Contrast_SSEParallel(bmp, intContrastValue);                                     //
     ctSSE2:                                                                            //
       bgraContrast_sse2(pColor, pContr, bmp.Width, bmp.Height, intContrastValue);      // 62 ms

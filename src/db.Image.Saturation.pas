@@ -133,6 +133,8 @@ asm
   // º∆À„±•∫Õ÷µ                             // Gray = I - alpha[I] = I - (I * intSaturationValue) shr 8
   CMP     EDX,  255
   JGE     @Large
+
+@Small:
   MOVAPS  XMM3, XMM5                        // XMM3  = XMM5
   PADDD   XMM5, XMM6                        // XMM5  = G+B
   PADDD   XMM5, XMM7                        // XMM5  = G+B+R

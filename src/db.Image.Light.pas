@@ -192,8 +192,9 @@ asm
   {$IFEND}
 
   CMP  EDX, 0
-  JLE  @Little
+  JLE  @Small
 
+@Large:
   MOV     DH,    DL
   PINSRW  XMM1,  EDX,  0
   PINSRW  XMM1,  EDX,  1
@@ -207,7 +208,7 @@ asm
   JNZ     @LOOP01
   ret
 
-@Little:
+@Small:
   NEG     DL
   MOV     DH,    DL
   PINSRW  XMM1,  EDX,  0
@@ -253,12 +254,15 @@ asm
 
   // 计算亮度值(饱和加法)
   CMP EDX, 0
-  JL  @Little
+  JL  @Small
+
+@Large:
   PADDUSB   XMM5, XMM2                      // XMM5 = |B3+intLightValue|B2+intLightValue|B1+intLightValue|B0+intLightValue|
   PADDUSB   XMM6, XMM2                      // XMM6 = |G3+intLightValue|G2+intLightValue|G1+intLightValue|G0+intLightValue|
   PADDUSB   XMM7, XMM2                      // XMM7 = |R3+intLightValue|R2+intLightValue|R1+intLightValue|R0+intLightValue|
   JMP       @RValue
-@Little:
+
+@Small:
   PSUBUSB   XMM5, XMM3                      // XMM5 = |B3 - (000000FF - intLightValue)|B2 - (000000FF - intLightValue)|B1 - (000000FF - intLightValue)|B0 - (000000FF - intLightValue)|
   PSUBUSB   XMM6, XMM3                      // XMM6 = |G3 - (000000FF - intLightValue)|G2 - (000000FF - intLightValue)|G1 - (000000FF - intLightValue)|G0 - (000000FF - intLightValue)|
   PSUBUSB   XMM7, XMM3                      // XMM7 = |R3 - (000000FF - intLightValue)|R2 - (000000FF - intLightValue)|R1 - (000000FF - intLightValue)|R0 - (000000FF - intLightValue)|
@@ -302,8 +306,9 @@ asm
   {$IFEND}
 
   CMP  EDX, 0
-  JLE  @Little
+  JLE  @Small
 
+@Large:
   MOV          DH,    DL
   PINSRW       XMM1,  EDX,  0
   PINSRW       XMM1,  EDX,  1
@@ -318,7 +323,7 @@ asm
   JNZ      @LOOP01
   ret
 
-@Little:
+@Small:
   NEG          DL
   MOV          DH,    DL
   PINSRW       XMM1,  EDX,  0
