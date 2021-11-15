@@ -284,13 +284,51 @@ asm
 @NEXT:
   DEC  ECX
   JNZ  @LOOP
-  MOV  ESP,  EBP
   {$IFEND}
 END;
 
 procedure Rotate_SSE_Proc(const krx, kry, IndexRow: Integer; const srcBits: PRGBQuadArray; dstBits: PRGBQuadArray; const rac, ras: Integer; const dstWidth, srcWidth, srcHeight: DWORD); assembler;
 asm
+  MOV     EBX,   ECX            // EBX = IndexRow
+  MOV     ECX,   dstWidth       // ECX = dstWidth Ñ­»·¼ÆÊý
+  MOVD    XMM1,  rac            // XMM1 = 0, 0, 0, rac
+  MOVD    XMM0,  ras            // XMM0 = 0, 0, 0, ras
+  SHUFPS  XMM0,  XMM1, 0        // XMM0 = rac, rac, ras, ras
+  MOVD    XMM2,  krx            // XMM2 = 0, 0, 0, krx
+  MOVD    XMM1,  kry            // XMM1 = 0, 0, 0, kry
+  SHUFPS  XMM1,  XMM2, 0        // XMM1 = krx, krx, kry, kry
 
+@LOOP:
+  MOVD    XMM4,  ECX            // XMM4 = 0, 0, 0, X
+  SHUFPS  XMM4,  XMM4, 0        // XMM4 = X, X, X, X
+
+  PMULLD  XMM4,  XMM0           // X * rac | X * ras
+  PSUBD   XMM4,  XMM1           // X * rac - krx | X * ras - kry
+  PSRLD   XMM4,  16             // (X * rac - krx) shr 16 |  (X * ras - kry) shr 16
+
+  PEXTRD  EAX,   XMM4, 3        // EAX = (X * rac - krx) shr 16  = SrcX
+  PEXTRD  EDX,   XMM4, 1        // EDX = (X * ras - kry) shr 16  = SrcY
+
+  CMP   EAX,  srcWidth          // IF SrcX < srcWidth
+  JNB   @NEXT                   //
+  CMP   EDX,  srcHeight         // IF SrcY < srcHeight
+  JNB   @NEXT                   //
+
+  MOV  EDI,  EDX                // EDI = (X * ras - kry) shr 16  = SrcY
+  IMUL EDI,  srcWidth           // EDI = SrcY * srcWidth
+  ADD  EDI,  EAX                // EDI = SrcY * srcWidth + SrcX
+  MOV  EDX,  [srcBits]          // EDI = [srcBits]
+  MOV  EDI,  [EDX + EDI * 4]    // EDI = srcBits[SrcY * srcWidth + SrcX]
+
+  MOV  EDX,  EBX                // EDX = IndexRow
+  IMUL EDX,  dstWidth           // EDX = IndexRow * dstWidth
+  ADD  EDX,  ECX                // EDX = IndexRow * dstWidth + X
+  MOV  ESI,  [dstBits]          // ESI = [dstBits]
+  MOV  [ESI + EDX * 4], EDI     // dstBits[IndexRow * Integer(dstWidth) + X] = EDI
+
+@NEXT:
+  DEC  ECX
+  JNZ  @LOOP
 end;
 
 procedure Rotate_AVX_Proc(const krx, kry, IndexRow: Integer; const srcBits: PRGBQuadArray; dstBits: PRGBQuadArray; const rac, ras: Integer; const dstWidth, srcWidth, srcHeight: DWORD); assembler;
@@ -336,7 +374,7 @@ begin
     begin
       krx := kcx + IndexRow * ras;
       kry := kcy - IndexRow * rac;
-      Rotate_ASM_Proc(krx, kry, IndexRow, srcBits, dstBits, rac, ras, dstWidth, srcWidth, srcHeight);
+      Rotate_SSE_Proc(krx, kry, IndexRow, srcBits, dstBits, rac, ras, dstWidth, srcWidth, srcHeight);
     end);
 end;
 
