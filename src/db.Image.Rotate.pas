@@ -163,8 +163,8 @@ begin
     kry   := kcy - Y * rac;
     for X := 0 to dstWidth - 1 do
     begin
-      SrcX := ((X * rac - krx) shr 16);
-      SrcY := ((X * ras - kry) shr 16);
+      SrcX := (X * rac - krx) shr 16;
+      SrcY := (X * ras - kry) shr 16;
       if (SrcY < srcHeight) and (SrcX < srcWidth) then
       begin
         dstBits[Y * dstWidth + X] := srcBits[SrcY * srcWidth + SrcX];
@@ -381,6 +381,7 @@ begin
   rac := Trunc(srac * (1 shl 16));
   ras := Trunc(sras * (1 shl 16));
 
+  { 创建目标图片，耗时 30 毫秒左右 }
   bmpDst.PixelFormat        := pf32bit;
   bmpDst.Width              := Round(ABS(bmpSrc.Width * srac) + ABS(bmpSrc.Height * sras));
   bmpDst.Height             := Round(ABS(bmpSrc.Width * sras) + ABS(bmpSrc.Height * srac));
