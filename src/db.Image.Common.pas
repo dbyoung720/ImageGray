@@ -14,8 +14,8 @@ unit db.Image.Common;
 
   通用寄存器：
   CPU  :
-  EAX/EBX/ECX/EDX/EDI/ESI           32位 (x86)
-  RAX/RBX/RCX/RDX/RDI/RSI           64位 (x64, EAX 寄存器是 RAX 寄存器的低 32 位)
+  EAX/EBX/ECX/EDX/EDI/ESI/EBP/ESP           32位 (x86)
+  RAX/RBX/RCX/RDX/RDI/RSI/RBP/RSP/R8---R15  64位 (x64, EAX 寄存器是 RAX 寄存器的低 32 位)
 
   SIMD寄存器：
   MMX    :   MM0 --- MM7                             064位                                         ( 主要针对浮点运算 )
