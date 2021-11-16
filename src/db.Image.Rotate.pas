@@ -104,8 +104,7 @@ begin
   srcWidth  := bmpSrc.Width;
   srcHeight := bmpSrc.Height;
 
-  rac := Cos(RotaryAngle);
-  ras := Sin(RotaryAngle);
+  SinCos(RotaryAngle, ras, rac);
   cxc := (CenterX + MoveX) * rac;
   cxs := (CenterX + MoveX) * ras;
   cys := (CenterY + MoveY) * ras;
@@ -128,7 +127,7 @@ begin
 end;
 
 { 优化浮点运算为整数运算 }
-procedure Optimize04(bmpSrc, bmpDst: TBitmap; const RotaryAngle: double; const CenterX, CenterY, MoveX, MoveY: Integer);
+procedure Optimize04(bmpSrc, bmpDst: TBitmap; const RotaryAngle: double; const CenterX, CenterY, MoveX, MoveY: Integer; const ras: Integer = 0; rac: Integer = 0);
 var
   X, Y      : Integer;
   SrcX, SrcY: Integer;
@@ -136,7 +135,6 @@ var
   dstBits   : PRGBQuadArray;
   cxc, cxs  : Integer;
   cyc, cys  : Integer;
-  rac, ras  : Integer;
   kcx, kcy  : Integer;
   dstWidth  : Integer;
   dstHeight : Integer;
@@ -152,8 +150,6 @@ begin
   srcWidth  := bmpSrc.Width;
   srcHeight := bmpSrc.Height;
 
-  rac := Trunc(Cos(RotaryAngle) * (1 shl 16));
-  ras := Trunc(Sin(RotaryAngle) * (1 shl 16));
   cxc := (CenterX + MoveX) * rac;
   cxs := (CenterX + MoveX) * ras;
   cys := (CenterY + MoveY) * ras;
@@ -178,13 +174,12 @@ begin
 end;
 
 { 并行优化 }
-procedure Optimize05(bmpSrc, bmpDst: TBitmap; const RotaryAngle: double; const CenterX, CenterY, MoveX, MoveY: Integer);
+procedure Optimize05(bmpSrc, bmpDst: TBitmap; const RotaryAngle: double; const CenterX, CenterY, MoveX, MoveY: Integer; const ras: Integer = 0; rac: Integer = 0);
 var
   srcBits  : PRGBQuadArray;
   dstBits  : PRGBQuadArray;
   cxc, cxs : Integer;
   cyc, cys : Integer;
-  rac, ras : Integer;
   kcx, kcy : Integer;
   dstWidth : Integer;
   dstHeight: Integer;
@@ -199,8 +194,6 @@ begin
   srcWidth  := bmpSrc.Width;
   srcHeight := bmpSrc.Height;
 
-  rac := Trunc(Cos(RotaryAngle) * (1 shl 16));
-  ras := Trunc(Sin(RotaryAngle) * (1 shl 16));
   cxc := (CenterX + MoveX) * rac;
   cxs := (CenterX + MoveX) * ras;
   cys := (CenterY + MoveY) * ras;
@@ -337,13 +330,12 @@ asm
 end;
 
 { 并行 + SIMD 优化 }
-procedure Optimize06(bmpSrc, bmpDst: TBitmap; const RotaryAngle: double; const CenterX, CenterY, MoveX, MoveY: Integer);
+procedure Optimize06(bmpSrc, bmpDst: TBitmap; const RotaryAngle: double; const CenterX, CenterY, MoveX, MoveY: Integer; const ras: Integer = 0; rac: Integer = 0);
 var
   srcBits  : PRGBQuadArray;
   dstBits  : PRGBQuadArray;
   cxc, cxs : Integer;
   cyc, cys : Integer;
-  rac, ras : Integer;
   kcx, kcy : Integer;
   dstWidth : Integer;
   dstHeight: Integer;
@@ -358,8 +350,6 @@ begin
   srcWidth  := bmpSrc.Width;
   srcHeight := bmpSrc.Height;
 
-  rac := Trunc(Cos(RotaryAngle) * (1 shl 16));
-  ras := Trunc(Sin(RotaryAngle) * (1 shl 16));
   cxc := (CenterX + MoveX) * rac;
   cxs := (CenterX + MoveX) * ras;
   cys := (CenterY + MoveY) * ras;
@@ -383,11 +373,17 @@ var
   RotaryAngle     : double;
   CenterX, CenterY: Integer;
   MoveX, MoveY    : Integer;
+  srac, sras      : Single;
+  rac, ras        : Integer;
 begin
-  RotaryAngle               := (iAngle mod 360) * PI / 180;
+  RotaryAngle := (iAngle mod 360) * PI / 180;
+  SinCos(RotaryAngle, sras, srac);
+  rac := Trunc(srac * (1 shl 16));
+  ras := Trunc(sras * (1 shl 16));
+
   bmpDst.PixelFormat        := pf32bit;
-  bmpDst.Width              := Round(ABS(bmpSrc.Width * Cos(RotaryAngle)) + ABS(bmpSrc.Height * Sin(RotaryAngle)));
-  bmpDst.Height             := Round(ABS(bmpSrc.Width * Sin(RotaryAngle)) + ABS(bmpSrc.Height * Cos(RotaryAngle)));
+  bmpDst.Width              := Round(ABS(bmpSrc.Width * srac) + ABS(bmpSrc.Height * sras));
+  bmpDst.Height             := Round(ABS(bmpSrc.Width * sras) + ABS(bmpSrc.Height * srac));
   bmpDst.Canvas.Brush.Color := clBlack;
   bmpDst.Canvas.FillRect(bmpDst.Canvas.ClipRect);
 
@@ -396,7 +392,7 @@ begin
   CenterX := bmpSrc.Width div 2;
   CenterY := bmpSrc.Height div 2;
 
-  Optimize06(bmpSrc, bmpDst, RotaryAngle, CenterX, CenterY, MoveX, MoveY);
+  Optimize06(bmpSrc, bmpDst, RotaryAngle, CenterX, CenterY, MoveX, MoveY, ras, rac);
 end;
 
 end.
