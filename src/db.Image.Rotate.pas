@@ -130,7 +130,7 @@ end;
 procedure Optimize04(bmpSrc, bmpDst: TBitmap; const RotaryAngle: double; const CenterX, CenterY, MoveX, MoveY: Integer; const ras: Integer = 0; rac: Integer = 0);
 var
   X, Y      : Integer;
-  SrcX, SrcY: Integer;
+  SrcX, SrcY: DWORD;
   srcBits   : PRGBQuadArray;
   dstBits   : PRGBQuadArray;
   cxc, cxs  : Integer;
@@ -138,8 +138,8 @@ var
   kcx, kcy  : Integer;
   dstWidth  : Integer;
   dstHeight : Integer;
-  srcWidth  : Integer;
-  srcHeight : Integer;
+  srcWidth  : DWORD;
+  srcHeight : DWORD;
   krx, kry  : Integer;
 begin
   srcBits := TBitmapImageAccess(TBMPAccess(bmpSrc).FImage).FDIB.dsBm.bmBits;
@@ -163,9 +163,9 @@ begin
     kry   := kcy - Y * rac;
     for X := 0 to dstWidth - 1 do
     begin
-      SrcX := SmallInt((X * rac - krx) shr 16);
-      SrcY := SmallInt((X * ras - kry) shr 16);
-      if (DWORD(SrcY) < DWORD(srcHeight)) and (DWORD(SrcX) < DWORD(srcWidth)) then
+      SrcX := ((X * rac - krx) shr 16);
+      SrcY := ((X * ras - kry) shr 16);
+      if (SrcY < srcHeight) and (SrcX < srcWidth) then
       begin
         dstBits[Y * dstWidth + X] := srcBits[SrcY * srcWidth + SrcX];
       end;
@@ -183,8 +183,8 @@ var
   kcx, kcy : Integer;
   dstWidth : Integer;
   dstHeight: Integer;
-  srcWidth : Integer;
-  srcHeight: Integer;
+  srcWidth : DWORD;
+  srcHeight: DWORD;
 begin
   srcBits := TBitmapImageAccess(TBMPAccess(bmpSrc).FImage).FDIB.dsBm.bmBits;
   dstBits := TBitmapImageAccess(TBMPAccess(bmpDst).FImage).FDIB.dsBm.bmBits;
@@ -206,15 +206,15 @@ begin
     var
       X: Integer;
       krx, kry: Integer;
-      SrcX, SrcY: Integer;
+      SrcX, SrcY: DWORD;
     begin
       krx := kcx + Y * ras;
       kry := kcy - Y * rac;
       for X := 0 to dstWidth - 1 do
       begin
-        SrcX := SmallInt((X * rac - krx) shr 16);
-        SrcY := SmallInt((X * ras - kry) shr 16);
-        if (DWORD(SrcY) < DWORD(srcHeight)) and (DWORD(SrcX) < DWORD(srcWidth)) then
+        SrcX := (X * rac - krx) shr 16;
+        SrcY := (X * ras - kry) shr 16;
+        if (SrcY < srcHeight) and (SrcX < srcWidth) then
         begin
           dstBits[Y * dstWidth + X] := srcBits[SrcY * srcWidth + SrcX];
         end;
