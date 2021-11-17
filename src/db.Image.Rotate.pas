@@ -381,7 +381,7 @@ begin
   rac := Trunc(srac * (1 shl 16));
   ras := Trunc(sras * (1 shl 16));
 
-  { 创建目标图片，耗时 20---30 毫秒 }
+  { 创建目标图片，耗时 30---40 毫秒 }
   bmpDst.PixelFormat        := pf32bit;
   bmpDst.Width              := Round(ABS(bmpSrc.Width * srac) + ABS(bmpSrc.Height * sras));
   bmpDst.Height             := Round(ABS(bmpSrc.Width * sras) + ABS(bmpSrc.Height * srac));
