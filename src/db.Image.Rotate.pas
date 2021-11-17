@@ -381,19 +381,15 @@ begin
   rac := Trunc(srac * (1 shl 16));
   ras := Trunc(sras * (1 shl 16));
 
-  { 创建目标图片，耗时 30---40 毫秒 }
   bmpDst.PixelFormat        := pf32bit;
   bmpDst.Width              := Round(ABS(bmpSrc.Width * srac) + ABS(bmpSrc.Height * sras));
   bmpDst.Height             := Round(ABS(bmpSrc.Width * sras) + ABS(bmpSrc.Height * srac));
-  bmpDst.Canvas.Brush.Color := clBlack;
-  bmpDst.Canvas.FillRect(bmpDst.Canvas.ClipRect);
 
   MoveX   := (bmpDst.Width - bmpSrc.Width) div 2;
   MoveY   := (bmpDst.Height - bmpSrc.Height) div 2;
   CenterX := bmpSrc.Width div 2;
   CenterY := bmpSrc.Height div 2;
 
-  { 旋转图片，耗时 10---20 毫秒 }
   Optimize06(bmpSrc, bmpDst, RotaryAngle, CenterX, CenterY, MoveX, MoveY, ras, rac);
 end;
 
