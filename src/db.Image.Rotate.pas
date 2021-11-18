@@ -394,7 +394,10 @@ begin
   CenterX := bmpSrc.Width div 2;
   CenterY := bmpSrc.Height div 2;
 
-  Optimize06(bmpSrc, bmpDst, RotaryAngle, CenterX, CenterY, MoveX, MoveY, ras, rac);
+  if iAngle mod 90 = 0 then
+    Optimize05(bmpSrc, bmpDst, RotaryAngle, CenterX, CenterY, MoveX, MoveY, ras, rac)
+  else
+    Optimize06(bmpSrc, bmpDst, RotaryAngle, CenterX, CenterY, MoveX, MoveY, ras, rac);
 end;
 
 end.
