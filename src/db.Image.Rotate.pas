@@ -141,6 +141,7 @@ var
   srcWidth  : DWORD;
   srcHeight : DWORD;
   krx, kry  : Integer;
+  intOffset : Integer;
 begin
   srcBits := TBitmapImageAccess(TBMPAccess(bmpSrc).FImage).FDIB.dsBm.bmBits;
   dstBits := TBitmapImageAccess(TBMPAccess(bmpDst).FImage).FDIB.dsBm.bmBits;
@@ -159,15 +160,16 @@ begin
 
   for Y := 0 to dstHeight - 1 do
   begin
-    krx   := kcx + Y * ras;
-    kry   := kcy - Y * rac;
-    for X := 0 to dstWidth - 1 do
+    krx       := kcx + Y * ras;
+    kry       := kcy - Y * rac;
+    intOffset := Y * dstWidth;
+    for X     := 0 to dstWidth - 1 do
     begin
       SrcX := (X * rac - krx) shr 16;
       SrcY := (X * ras - kry) shr 16;
       if (SrcY < srcHeight) and (SrcX < srcWidth) then
       begin
-        dstBits[Y * dstWidth + X] := srcBits[SrcY * srcWidth + SrcX];
+        dstBits[intOffset + X] := srcBits[SrcY * srcWidth + SrcX];
       end;
     end;
   end;
@@ -207,16 +209,18 @@ begin
       X: Integer;
       krx, kry: Integer;
       SrcX, SrcY: DWORD;
+      intOffset: Integer;
     begin
       krx := kcx + Y * ras;
       kry := kcy - Y * rac;
+      intOffset := Y * dstWidth;
       for X := 0 to dstWidth - 1 do
       begin
         SrcX := (X * rac - krx) shr 16;
         SrcY := (X * ras - kry) shr 16;
         if (SrcY < srcHeight) and (SrcX < srcWidth) then
         begin
-          dstBits[Y * dstWidth + X] := srcBits[SrcY * srcWidth + SrcX];
+          dstBits[intOffset + X] := srcBits[SrcY * srcWidth + SrcX];
         end;
       end;
     end);
@@ -238,12 +242,12 @@ begin
   end;
 end;
 
-procedure Rotate_ASM_Proc(const krx, kry, IndexRow: Integer; const srcBits: PRGBQuadArray; dstBits: PRGBQuadArray; const rac, ras: Integer; const dstWidth, srcWidth, srcHeight: DWORD); assembler;
+procedure Rotate_ASM_Proc(const krx, kry, intOffset: Integer; const srcBits: PRGBQuadArray; dstBits: PRGBQuadArray; const rac, ras: Integer; const dstWidth, srcWidth, srcHeight: DWORD); assembler;
 asm
   {$IFDEF  WIN32}
   MOV  [EBP-$04], EAX          // [EBP-$04] = krx
   MOV  [EBP-$08], EDX          // [EBP-$08] = kry
-  MOV  EBX, ECX                // EBX = IndexRow
+  MOV  EBX, ECX                // EBX = intOffset
   MOV  ECX, dstWidth           // ECX = dstWidth 循环计数
 
 @LOOP:
@@ -268,9 +272,8 @@ asm
   MOV  EDX,  [srcBits]          // EDI = [srcBits]
   MOV  EDI,  [EDX + EDI * 4]    // EDI = srcBits[SrcY * srcWidth + SrcX]
 
-  MOV  EDX,  EBX                // EDX = IndexRow
-  IMUL EDX,  dstWidth           // EDX = IndexRow * dstWidth
-  ADD  EDX,  ECX                // EDX = IndexRow * dstWidth + X
+  MOV  EDX,  EBX                // EDX = intOffset
+  ADD  EDX,  ECX                // EDX = intOffset + X
   MOV  ESI,  [dstBits]          // ESI = [dstBits]
   MOV  [ESI + EDX * 4], EDI     // dstBits[IndexRow * Integer(dstWidth) + X] = EDI
 
@@ -280,9 +283,9 @@ asm
   {$IFEND}
 END;
 
-procedure Rotate_SSE_Proc(const krx, kry, IndexRow: Integer; const srcBits: PRGBQuadArray; dstBits: PRGBQuadArray; const rac, ras: Integer; const dstWidth, srcWidth, srcHeight: DWORD); assembler;
+procedure Rotate_SSE_Proc(const krx, kry, intOffset: Integer; const srcBits: PRGBQuadArray; dstBits: PRGBQuadArray; const rac, ras: Integer; const dstWidth, srcWidth, srcHeight: DWORD); assembler;
 asm
-  MOV     EBX,   ECX            // EBX = IndexRow
+  MOV     EBX,   ECX            // EBX = intOffset
   MOV     ECX,   dstWidth       // ECX = dstWidth 循环计数
   MOVD    XMM1,  rac            // XMM1 = 0, 0, 0, rac
   MOVD    XMM0,  ras            // XMM0 = 0, 0, 0, ras
@@ -313,9 +316,8 @@ asm
   MOV  EDX,  [srcBits]          // EDI = [srcBits]
   MOV  EDI,  [EDX + EDI * 4]    // EDI = srcBits[SrcY * srcWidth + SrcX]
 
-  MOV  EDX,  EBX                // EDX = IndexRow
-  IMUL EDX,  dstWidth           // EDX = IndexRow * dstWidth
-  ADD  EDX,  ECX                // EDX = IndexRow * dstWidth + X
+  MOV  EDX,  EBX                // EDX = intOffset
+  ADD  EDX,  ECX                // EDX = intOffset + X
   MOV  ESI,  [dstBits]          // ESI = [dstBits]
   MOV  [ESI + EDX * 4], EDI     // dstBits[IndexRow * Integer(dstWidth) + X] = EDI
 
@@ -361,10 +363,12 @@ begin
     procedure(IndexRow: Integer)
     var
       krx, kry: Integer;
+      intOffset: Integer;
     begin
       krx := kcx + IndexRow * ras;
       kry := kcy - IndexRow * rac;
-      Rotate_SSE_Proc(krx, kry, IndexRow, srcBits, dstBits, rac, ras, dstWidth, srcWidth, srcHeight);
+      intOffset := IndexRow * dstWidth;
+      Rotate_SSE_Proc(krx, kry, intOffset, srcBits, dstBits, rac, ras, dstWidth, srcWidth, srcHeight);
     end);
 end;
 
@@ -381,9 +385,9 @@ begin
   rac := Trunc(srac * (1 shl 16));
   ras := Trunc(sras * (1 shl 16));
 
-  bmpDst.PixelFormat        := pf32bit;
-  bmpDst.Width              := Round(ABS(bmpSrc.Width * srac) + ABS(bmpSrc.Height * sras));
-  bmpDst.Height             := Round(ABS(bmpSrc.Width * sras) + ABS(bmpSrc.Height * srac));
+  bmpDst.PixelFormat := pf32bit;
+  bmpDst.Width       := Round(ABS(bmpSrc.Width * srac) + ABS(bmpSrc.Height * sras));
+  bmpDst.Height      := Round(ABS(bmpSrc.Width * sras) + ABS(bmpSrc.Height * srac));
 
   MoveX   := (bmpDst.Width - bmpSrc.Width) div 2;
   MoveY   := (bmpDst.Height - bmpSrc.Height) div 2;
