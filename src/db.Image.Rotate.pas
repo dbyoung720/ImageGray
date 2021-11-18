@@ -226,7 +226,7 @@ begin
     end);
 end;
 
-procedure Rotate_Proc(const krx, kry, IndexRow: Integer; const srcBits: PRGBQuadArray; dstBits: PRGBQuadArray; const rac, ras: Integer; const dstWidth, srcWidth, srcHeight: DWORD); assembler; inline;
+procedure Rotate_Proc(const krx, kry, intOffset: Integer; const srcBits: PRGBQuadArray; dstBits: PRGBQuadArray; const rac, ras: Integer; const dstWidth, srcWidth, srcHeight: DWORD); assembler; inline;
 var
   X         : Integer;
   SrcX, SrcY: DWORD;
@@ -237,7 +237,7 @@ begin
     SrcY := (X * ras - kry) shr 16;
     if (SrcY < srcHeight) and (SrcX < srcWidth) then
     begin
-      dstBits[IndexRow * Integer(dstWidth) + X] := srcBits[SrcY * srcWidth + SrcX];
+      dstBits[intOffset + X] := srcBits[SrcY * srcWidth + SrcX];
     end;
   end;
 end;
