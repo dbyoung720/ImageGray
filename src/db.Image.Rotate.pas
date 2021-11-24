@@ -285,6 +285,7 @@ END;
 
 procedure Rotate_SSE_Proc(const krx, kry, intOffset: Integer; const srcBits: PRGBQuadArray; dstBits: PRGBQuadArray; const rac, ras: Integer; const dstWidth, srcWidth, srcHeight: DWORD); assembler;
 asm
+  {$IFDEF  WIN32}
   MOV     EBX,   ECX            // EBX = intOffset
   MOV     ECX,   dstWidth       // ECX = dstWidth Ñ­»·¼ÆÊý
   MOVD    XMM1,  rac            // XMM1 = 0, 0, 0, rac
@@ -324,6 +325,7 @@ asm
 @NEXT:
   DEC  ECX
   JNZ  @LOOP
+  {$IFEND}
 end;
 
 procedure Rotate_AVX_Proc(const krx, kry, IndexRow: Integer; const srcBits: PRGBQuadArray; dstBits: PRGBQuadArray; const rac, ras: Integer; const dstWidth, srcWidth, srcHeight: DWORD); assembler;

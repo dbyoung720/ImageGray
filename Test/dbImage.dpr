@@ -22,7 +22,8 @@ uses
   db.Image.ColorMap in '..\src\db.Image.ColorMap.pas',
   db.Image.Effect in '..\src\db.Image.Effect.pas',
   db.Image.GeometricTrans in '..\src\db.Image.GeometricTrans.pas',
-  db.Image.Rotate in '..\src\db.Image.Rotate.pas';
+  db.Image.Rotate in '..\src\db.Image.Rotate.pas',
+  db.Image.Blend in '..\src\db.Image.Blend.pas';
 
 {$R *.res}
 
