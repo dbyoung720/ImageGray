@@ -13,7 +13,7 @@ uses Winapi.Windows, System.Threading, System.Math, Vcl.Graphics, db.Image.Commo
 type
   TColorBlendType = (cbtScanline, cbtParallel);
 
-procedure ColorBlend(bmpDst, bmpSrc: TBitmap; const intBlendValue: Integer; const ctt: TColorBlendType = cbtParallel);
+procedure ColorBlend(bmpDst, bmpSrc: TBitmap; const intBlendValue: Integer; const cbt: TColorBlendType = cbtParallel);
 
 implementation
 
@@ -98,9 +98,9 @@ begin
     end);
 end;
 
-procedure ColorBlend(bmpDst, bmpSrc: TBitmap; const intBlendValue: Integer; const ctt: TColorBlendType = cbtParallel);
+procedure ColorBlend(bmpDst, bmpSrc: TBitmap; const intBlendValue: Integer; const cbt: TColorBlendType = cbtParallel);
 begin
-  case ctt of
+  case cbt of
     cbtScanline:
       ColorBlend_Scanline(bmpDst, bmpSrc, intBlendValue);
     cbtParallel:
