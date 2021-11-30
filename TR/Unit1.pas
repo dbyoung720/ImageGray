@@ -73,7 +73,7 @@ begin
           Rotate(FbmpSrc, bmpDst, FAngle);                                                                                                  // 旋转图像
           DTime := ElapsedMilliseconds;                                                                                                     // 旋转图片用时
           Inc(FTotalTime, DTime);                                                                                                           // 旋转用时总时间
-          Caption := Format('图像：800X600；旋转角度：%0.3d  耗时：%0.3d 毫秒   帧率：%0.3f 帧/秒', [FAngle mod 360, DTime, PI * 1000 * FAngle / FTotalTime]); // 显示信息
+          Caption := Format('图像：800X600；旋转角度：%0.3d  耗时：%0.3d 毫秒   帧率：%0.3f 帧/秒', [FAngle mod 360, DTime, 1000 * FAngle / FTotalTime]); // 显示信息
           Canvas.StretchDraw(Canvas.ClipRect, bmpDst);                                                                                      // 绘制图像
         end;
 
