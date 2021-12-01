@@ -1,4 +1,4 @@
-# RGB2Gray MMX/SSE/SSE2/SSE4/AVX/AVX2/AVX512 optimization
+# Delphi digital image processing optimization MMX/SSE/SSE2/SSE4/AVX/AVX2/AVX512
 
 - [简体中文](readmeCN.md)
 

@@ -1,4 +1,4 @@
-# RGB2Gray MMX/SSE/SSE2/SSE4/AVX/AVX2/AVX512 优化
+# Delphi 数字图像处理优化 MMX/SSE/SSE2/SSE4/AVX/AVX2/AVX512
 
 - [English](readme.md)
 
