@@ -191,7 +191,6 @@ var
   srcHeight : DWORD;
   krx, kry  : Integer;
   intOffset : Integer;
-  KKK       : Integer;
 begin
   srcBits := TBitmapImageAccess(TBMPAccess(bmpSrc).FImage).FDIB.dsBm.bmBits;
   dstBits := TBitmapImageAccess(TBMPAccess(bmpDst).FImage).FDIB.dsBm.bmBits;
@@ -446,10 +445,14 @@ begin
   CenterX := bmpSrc.Width div 2;
   CenterY := bmpSrc.Height div 2;
 
+{$IFDEF WIN32}
   if iAngle mod 90 = 0 then
     Optimize06(bmpSrc, bmpDst, RotaryAngle, CenterX, CenterY, MoveX, MoveY, ras, rac)
   else
     Optimize07(bmpSrc, bmpDst, RotaryAngle, CenterX, CenterY, MoveX, MoveY, ras, rac);
+{$ELSE}
+  Optimize06(bmpSrc, bmpDst, RotaryAngle, CenterX, CenterY, MoveX, MoveY, ras, rac);
+{$ENDIF}
 end;
 
 end.
