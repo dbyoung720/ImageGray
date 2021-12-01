@@ -155,8 +155,8 @@ begin
   cxs := (CenterX + MoveX) * ras;
   cys := (CenterY + MoveY) * ras;
   cyc := (CenterY + MoveY) * rac;
-  kcx := cxc - cys - CenterX * (1 shl 16);
-  kcy := cxs + cyc - CenterY * (1 shl 16);
+  kcx := cxc - cys - CenterX * (1 shl 8);
+  kcy := cxs + cyc - CenterY * (1 shl 8);
 
   for Y := 0 to dstHeight - 1 do
   begin
@@ -165,8 +165,8 @@ begin
     intOffset := Y * dstWidth;
     for X     := 0 to dstWidth - 1 do
     begin
-      SrcX := (X * rac - krx) shr 16;
-      SrcY := (X * ras - kry) shr 16;
+      SrcX := (X * rac - krx) shr 8;
+      SrcY := (X * ras - kry) shr 8;
       if (SrcY < srcHeight) and (SrcX < srcWidth) then
       begin
         dstBits[intOffset + X] := srcBits[SrcY * srcWidth + SrcX];
@@ -175,8 +175,58 @@ begin
   end;
 end;
 
-{ 并行优化 }
+{ 乘法优化为查表 }
 procedure Optimize05(bmpSrc, bmpDst: TBitmap; const RotaryAngle: double; const CenterX, CenterY, MoveX, MoveY: Integer; const ras: Integer = 0; rac: Integer = 0);
+var
+  X, Y      : Integer;
+  SrcX, SrcY: DWORD;
+  srcBits   : PRGBQuadArray;
+  dstBits   : PRGBQuadArray;
+  cxc, cxs  : Integer;
+  cyc, cys  : Integer;
+  kcx, kcy  : Integer;
+  dstWidth  : Integer;
+  dstHeight : Integer;
+  srcWidth  : DWORD;
+  srcHeight : DWORD;
+  krx, kry  : Integer;
+  intOffset : Integer;
+  KKK       : Integer;
+begin
+  srcBits := TBitmapImageAccess(TBMPAccess(bmpSrc).FImage).FDIB.dsBm.bmBits;
+  dstBits := TBitmapImageAccess(TBMPAccess(bmpDst).FImage).FDIB.dsBm.bmBits;
+
+  dstWidth  := bmpDst.Width;
+  dstHeight := bmpDst.Height;
+  srcWidth  := bmpSrc.Width;
+  srcHeight := bmpSrc.Height;
+
+  cxc := (CenterX + MoveX) * rac;
+  cxs := (CenterX + MoveX) * ras;
+  cys := (CenterY + MoveY) * ras;
+  cyc := (CenterY + MoveY) * rac;
+  kcx := cxc - cys - CenterX * (1 shl 8);
+  kcy := cxs + cyc - CenterY * (1 shl 8);
+
+  for Y := 0 to dstHeight - 1 do
+  begin
+    krx       := kcx + g_RotateTable[ras, Y];
+    kry       := kcy - g_RotateTable[rac, Y];
+    intOffset := Y * dstWidth;
+    for X     := 0 to dstWidth - 1 do
+    begin
+      SrcX := (g_RotateTable[rac, X] - krx) shr 8;
+      SrcY := (g_RotateTable[ras, X] - kry) shr 8;
+      if (SrcY < srcHeight) and (SrcX < srcWidth) then
+      begin
+        dstBits[intOffset + X] := srcBits[srcWidth * SrcY + SrcX];
+      end;
+    end;
+  end;
+end;
+
+{ 并行优化 }
+procedure Optimize06(bmpSrc, bmpDst: TBitmap; const RotaryAngle: double; const CenterX, CenterY, MoveX, MoveY: Integer; const ras: Integer = 0; rac: Integer = 0);
 var
   srcBits  : PRGBQuadArray;
   dstBits  : PRGBQuadArray;
@@ -200,8 +250,8 @@ begin
   cxs := (CenterX + MoveX) * ras;
   cys := (CenterY + MoveY) * ras;
   cyc := (CenterY + MoveY) * rac;
-  kcx := cxc - cys - CenterX * (1 shl 16);
-  kcy := cxs + cyc - CenterY * (1 shl 16);
+  kcx := cxc - cys - CenterX * (1 shl 8);
+  kcy := cxs + cyc - CenterY * (1 shl 8);
 
   TParallel.For(0, dstHeight - 1,
     procedure(Y: Integer)
@@ -211,16 +261,16 @@ begin
       SrcX, SrcY: DWORD;
       intOffset: Integer;
     begin
-      krx := kcx + Y * ras;
-      kry := kcy - Y * rac;
+      krx := kcx + g_RotateTable[ras, Y];
+      kry := kcy - g_RotateTable[rac, Y];
       intOffset := Y * dstWidth;
       for X := 0 to dstWidth - 1 do
       begin
-        SrcX := (X * rac - krx) shr 16;
-        SrcY := (X * ras - kry) shr 16;
+        SrcX := (g_RotateTable[rac, X] - krx) shr 8;
+        SrcY := (g_RotateTable[ras, X] - kry) shr 8;
         if (SrcY < srcHeight) and (SrcX < srcWidth) then
         begin
-          dstBits[intOffset + X] := srcBits[SrcY * srcWidth + SrcX];
+          dstBits[intOffset + X] := srcBits[srcWidth * SrcY + SrcX];
         end;
       end;
     end);
@@ -233,8 +283,8 @@ var
 begin
   for X := dstWidth - 1 downto 0 do
   begin
-    SrcX := (X * rac - krx) shr 16;
-    SrcY := (X * ras - kry) shr 16;
+    SrcX := (X * rac - krx) shr 8;
+    SrcY := (X * ras - kry) shr 8;
     if (SrcY < srcHeight) and (SrcX < srcWidth) then
     begin
       dstBits[intOffset + X] := srcBits[SrcY * srcWidth + SrcX];
@@ -254,19 +304,19 @@ asm
   MOV   EAX,  ECX               // EAX = X
   IMUL  EAX,  rac               // EAX = X * rac
   SUB   EAX,  [EBP-$04]         // EAX = X * rac - krx
-  SHR   EAX,  16                // EAX = (X * rac - krx) shr 16  = SrcX
+  SHR   EAX,  8                 // EAX = (X * rac - krx) shr 8  = SrcX
 
   MOV   EDX,  ECX               // EDX = X
   IMUL  EDX,  ras               // EDX = X * ras
   SUB   EDX,  [EBP-$08]         // EDX = X * ras - kry
-  SHR   EDX,  16                // EDX = (X * ras - kry) shr 16  = SrcY
+  SHR   EDX,  8                 // EDX = (X * ras - kry) shr 8  = SrcY
 
   CMP   EAX,  srcWidth          // IF SrcX < srcWidth
   JNB   @NEXT                   //
   CMP   EDX,  srcHeight         // IF SrcY < srcHeight
   JNB   @NEXT                   //
 
-  MOV  EDI,  EDX                // EDI = (X * ras - kry) shr 16  = SrcY
+  MOV  EDI,  EDX                // EDI = (X * ras - kry) shr 8  = SrcY
   IMUL EDI,  srcWidth           // EDI = SrcY * srcWidth
   ADD  EDI,  EAX                // EDI = SrcY * srcWidth + SrcX
   MOV  EDX,  [srcBits]          // EDI = [srcBits]
@@ -301,17 +351,17 @@ asm
 
   PMULLD  XMM4,  XMM0           // X * rac | X * ras
   PSUBD   XMM4,  XMM1           // X * rac - krx | X * ras - kry
-  PSRLD   XMM4,  16             // (X * rac - krx) shr 16 |  (X * ras - kry) shr 16
+  PSRLD   XMM4,  8              // (X * rac - krx) shr 8 |  (X * ras - kry) shr 8
 
-  PEXTRD  EAX,   XMM4, 3        // EAX = (X * rac - krx) shr 16  = SrcX
-  PEXTRD  EDX,   XMM4, 1        // EDX = (X * ras - kry) shr 16  = SrcY
+  PEXTRD  EAX,   XMM4, 3        // EAX = (X * rac - krx) shr 8  = SrcX
+  PEXTRD  EDX,   XMM4, 1        // EDX = (X * ras - kry) shr 8  = SrcY
 
   CMP   EAX,  srcWidth          // IF SrcX < srcWidth
   JNB   @NEXT                   //
   CMP   EDX,  srcHeight         // IF SrcY < srcHeight
   JNB   @NEXT                   //
 
-  MOV  EDI,  EDX                // EDI = (X * ras - kry) shr 16  = SrcY
+  MOV  EDI,  EDX                // EDI = (X * ras - kry) shr 8  = SrcY
   IMUL EDI,  srcWidth           // EDI = SrcY * srcWidth
   ADD  EDI,  EAX                // EDI = SrcY * srcWidth + SrcX
   MOV  EDX,  [srcBits]          // EDI = [srcBits]
@@ -334,7 +384,7 @@ asm
 end;
 
 { 并行 + SIMD 优化 }
-procedure Optimize06(bmpSrc, bmpDst: TBitmap; const RotaryAngle: double; const CenterX, CenterY, MoveX, MoveY: Integer; const ras: Integer = 0; rac: Integer = 0);
+procedure Optimize07(bmpSrc, bmpDst: TBitmap; const RotaryAngle: double; const CenterX, CenterY, MoveX, MoveY: Integer; const ras: Integer = 0; rac: Integer = 0);
 var
   srcBits  : PRGBQuadArray;
   dstBits  : PRGBQuadArray;
@@ -358,8 +408,8 @@ begin
   cxs := (CenterX + MoveX) * ras;
   cys := (CenterY + MoveY) * ras;
   cyc := (CenterY + MoveY) * rac;
-  kcx := cxc - cys - CenterX * (1 shl 16);
-  kcy := cxs + cyc - CenterY * (1 shl 16);
+  kcx := cxc - cys - CenterX * (1 shl 8);
+  kcy := cxs + cyc - CenterY * (1 shl 8);
 
   TParallel.For(0, dstHeight - 1,
     procedure(IndexRow: Integer)
@@ -367,8 +417,8 @@ begin
       krx, kry: Integer;
       intOffset: Integer;
     begin
-      krx := kcx + IndexRow * ras;
-      kry := kcy - IndexRow * rac;
+      krx := kcx + g_RotateTable[ras, IndexRow];
+      kry := kcy - g_RotateTable[rac, IndexRow];
       intOffset := IndexRow * dstWidth;
       Rotate_SSE_Proc(krx, kry, intOffset, srcBits, dstBits, rac, ras, dstWidth, srcWidth, srcHeight);
     end);
@@ -384,8 +434,8 @@ var
 begin
   RotaryAngle := (iAngle mod 360) * PI / 180;
   SinCos(RotaryAngle, sras, srac);
-  rac := Trunc(srac * (1 shl 16));
-  ras := Trunc(sras * (1 shl 16));
+  rac := Trunc(srac * (1 shl 8));
+  ras := Trunc(sras * (1 shl 8));
 
   bmpDst.PixelFormat := pf32bit;
   bmpDst.Width       := Round(ABS(bmpSrc.Width * srac) + ABS(bmpSrc.Height * sras));
@@ -397,9 +447,9 @@ begin
   CenterY := bmpSrc.Height div 2;
 
   if iAngle mod 90 = 0 then
-    Optimize05(bmpSrc, bmpDst, RotaryAngle, CenterX, CenterY, MoveX, MoveY, ras, rac)
+    Optimize06(bmpSrc, bmpDst, RotaryAngle, CenterX, CenterY, MoveX, MoveY, ras, rac)
   else
-    Optimize06(bmpSrc, bmpDst, RotaryAngle, CenterX, CenterY, MoveX, MoveY, ras, rac);
+    Optimize07(bmpSrc, bmpDst, RotaryAngle, CenterX, CenterY, MoveX, MoveY, ras, rac);
 end;
 
 end.

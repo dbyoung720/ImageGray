@@ -342,7 +342,7 @@ begin
     with TStopwatch.StartNew do
     begin
       Rotate(FbmpBackup, bmpDst, FintRotateAngle);
-      statTip.Panels[0].Text := Format('旋转用时：%d 毫秒', [ElapsedMilliseconds]);
+      statTip.Panels[0].Text := Format('旋转角度：%0.3d，旋转用时：%d 毫秒', [FintRotateAngle, ElapsedMilliseconds]);
     end;
     imgShow.Picture.Bitmap.Assign(bmpDst);
     imgShow.Invalidate;
