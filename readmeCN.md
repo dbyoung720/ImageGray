@@ -8,10 +8,5 @@
     开发：Delphi 11
     平台：Win10X64；支持 X86/X64
 
-### Delphi 下实现的函数：
-```
-type
-  TGrayType = (gtAPI, gtScanLine, gtDelphi, gtFourPoint, gtParallel, gtGDIPLUS, gtTable, gtASM, gtMMX, gtSSE, gtSSE2, gtSSE4, gtSSEParallel, gtAVX1, gtAVX2, gtAVX512knl, gtAVX512skx, gtGPU, gtOther);
-```
-## 最优的方案： 
-    gtSSEParallel
+### 博客：
+    https://blog.csdn.net/dbyoung/category_10762408.html
