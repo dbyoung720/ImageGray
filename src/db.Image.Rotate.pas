@@ -32,16 +32,16 @@ type
   { 标准旋转函数 }
 procedure Optimize01(bmpSrc, bmpDst: TBitmap; const RotaryAngle: double; const CenterX, CenterY, MoveX, MoveY: Integer);
 var
-  X, Y      : Integer;
-  SrcX, SrcY: Integer;
+  dstX, dstY: Integer;
+  srcX, srcY: Integer;
 begin
-  for Y := 0 to bmpDst.Height - 1 do
+  for dstY := 0 to bmpDst.Height - 1 do
   begin
-    for X := 0 to bmpDst.Width - 1 do
+    for dstX := 0 to bmpDst.Width - 1 do
     begin
-      SrcX                       := Round((X - CenterX - MoveX) * Cos(RotaryAngle) - (Y - CenterY - MoveY) * Sin(RotaryAngle) + CenterX);
-      SrcY                       := Round((X - CenterX - MoveX) * Sin(RotaryAngle) + (Y - CenterY - MoveY) * Cos(RotaryAngle) + CenterY);
-      bmpDst.Canvas.Pixels[X, Y] := bmpSrc.Canvas.Pixels[SrcX, SrcY];
+      srcX                             := Round((dstX - CenterX - MoveX) * Cos(RotaryAngle) - (dstY - CenterY - MoveY) * Sin(RotaryAngle) + CenterX);
+      srcY                             := Round((dstX - CenterX - MoveX) * Sin(RotaryAngle) + (dstY - CenterY - MoveY) * Cos(RotaryAngle) + CenterY);
+      bmpDst.Canvas.Pixels[dstX, dstY] := bmpSrc.Canvas.Pixels[srcX, srcY];
     end;
   end;
 end;
@@ -49,8 +49,8 @@ end;
 { 优化 Pixels }
 procedure Optimize02(bmpSrc, bmpDst: TBitmap; const RotaryAngle: double; const CenterX, CenterY, MoveX, MoveY: Integer);
 var
-  X, Y      : Integer;
-  SrcX, SrcY: Integer;
+  dstX, dstY: Integer;
+  srcX, srcY: Integer;
   srcBits   : PRGBQuadArray;
   dstBits   : PRGBQuadArray;
   dstWidth  : Integer;
@@ -66,15 +66,15 @@ begin
   srcWidth  := bmpSrc.Width;
   srcHeight := bmpSrc.Height;
 
-  for Y := 0 to dstHeight - 1 do
+  for dstY := 0 to dstHeight - 1 do
   begin
-    for X := 0 to dstWidth - 1 do
+    for dstX := 0 to dstWidth - 1 do
     begin
-      SrcX := Round((X - CenterX - MoveX) * Cos(RotaryAngle) - (Y - CenterY - MoveY) * Sin(RotaryAngle) + CenterX);
-      SrcY := Round((X - CenterX - MoveX) * Sin(RotaryAngle) + (Y - CenterY - MoveY) * Cos(RotaryAngle) + CenterY);
-      if (DWORD(SrcY) < DWORD(srcHeight)) and (DWORD(SrcX) < DWORD(srcWidth)) then
+      srcX := Round((dstX - CenterX - MoveX) * Cos(RotaryAngle) - (dstY - CenterY - MoveY) * Sin(RotaryAngle) + CenterX);
+      srcY := Round((dstX - CenterX - MoveX) * Sin(RotaryAngle) + (dstY - CenterY - MoveY) * Cos(RotaryAngle) + CenterY);
+      if (DWORD(srcY) < DWORD(srcHeight)) and (DWORD(srcX) < DWORD(srcWidth)) then
       begin
-        dstBits[Y * dstWidth + X] := srcBits[SrcY * srcWidth + SrcX];
+        dstBits[dstY * dstWidth + dstX] := srcBits[srcY * srcWidth + srcX];
       end;
     end;
   end;
@@ -83,8 +83,8 @@ end;
 { 优化循环 }
 procedure Optimize03(bmpSrc, bmpDst: TBitmap; const RotaryAngle: double; const CenterX, CenterY, MoveX, MoveY: Integer);
 var
-  X, Y      : Integer;
-  SrcX, SrcY: Integer;
+  dstX, dstY: Integer;
+  srcX, srcY: Integer;
   srcBits   : PRGBQuadArray;
   dstBits   : PRGBQuadArray;
   cxc, cxs  : Single;
@@ -110,17 +110,17 @@ begin
   cys := (CenterY + MoveY) * ras;
   cyc := (CenterY + MoveY) * rac;
 
-  for Y := 0 to dstHeight - 1 do
+  for dstY := 0 to dstHeight - 1 do
   begin
-    krx   := cxc - cys - CenterX + Y * ras;
-    kry   := cxs + cyc - CenterY - Y * rac;
-    for X := 0 to dstWidth - 1 do
+    krx      := cxc - cys - CenterX + dstY * ras;
+    kry      := cxs + cyc - CenterY - dstY * rac;
+    for dstX := 0 to dstWidth - 1 do
     begin
-      SrcX := Round(X * rac - krx);
-      SrcY := Round(X * ras - kry);
-      if (DWORD(SrcY) < DWORD(srcHeight)) and (DWORD(SrcX) < DWORD(srcWidth)) then
+      srcX := Round(dstX * rac - krx);
+      srcY := Round(dstX * ras - kry);
+      if (DWORD(srcY) < DWORD(srcHeight)) and (DWORD(srcX) < DWORD(srcWidth)) then
       begin
-        dstBits[Y * dstWidth + X] := srcBits[SrcY * srcWidth + SrcX];
+        dstBits[dstY * dstWidth + dstX] := srcBits[srcY * srcWidth + srcX];
       end;
     end;
   end;
@@ -129,8 +129,8 @@ end;
 { 优化浮点运算为整数运算 }
 procedure Optimize04(bmpSrc, bmpDst: TBitmap; const RotaryAngle: double; const CenterX, CenterY, MoveX, MoveY: Integer; const ras: Integer = 0; rac: Integer = 0);
 var
-  X, Y      : Integer;
-  SrcX, SrcY: DWORD;
+  dstX, dstY: Integer;
+  srcX, srcY: DWORD;
   srcBits   : PRGBQuadArray;
   dstBits   : PRGBQuadArray;
   cxc, cxs  : Integer;
@@ -158,18 +158,18 @@ begin
   kcx := cxc - cys - CenterX * (1 shl 8);
   kcy := cxs + cyc - CenterY * (1 shl 8);
 
-  for Y := 0 to dstHeight - 1 do
+  for dstY := 0 to dstHeight - 1 do
   begin
-    krx       := kcx + Y * ras;
-    kry       := kcy - Y * rac;
-    intOffset := Y * dstWidth;
-    for X     := 0 to dstWidth - 1 do
+    krx       := kcx + dstY * ras;
+    kry       := kcy - dstY * rac;
+    intOffset := dstY * dstWidth;
+    for dstX  := 0 to dstWidth - 1 do
     begin
-      SrcX := (X * rac - krx) shr 8;
-      SrcY := (X * ras - kry) shr 8;
-      if (SrcY < srcHeight) and (SrcX < srcWidth) then
+      srcX := (dstX * rac - krx) shr 8;
+      srcY := (dstX * ras - kry) shr 8;
+      if (srcY < srcHeight) and (srcX < srcWidth) then
       begin
-        dstBits[intOffset + X] := srcBits[SrcY * srcWidth + SrcX];
+        dstBits[intOffset + dstX] := srcBits[srcY * srcWidth + srcX];
       end;
     end;
   end;
@@ -178,8 +178,8 @@ end;
 { 乘法优化为查表 }
 procedure Optimize05(bmpSrc, bmpDst: TBitmap; const RotaryAngle: double; const CenterX, CenterY, MoveX, MoveY: Integer; const ras: Integer = 0; rac: Integer = 0);
 var
-  X, Y      : Integer;
-  SrcX, SrcY: DWORD;
+  dstX, dstY: Integer;
+  srcX, srcY: DWORD;
   srcBits   : PRGBQuadArray;
   dstBits   : PRGBQuadArray;
   cxc, cxs  : Integer;
@@ -207,18 +207,18 @@ begin
   kcx := cxc - cys - CenterX * (1 shl 8);
   kcy := cxs + cyc - CenterY * (1 shl 8);
 
-  for Y := 0 to dstHeight - 1 do
+  for dstY := 0 to dstHeight - 1 do
   begin
-    krx       := kcx + g_RotateTable[ras, Y];
-    kry       := kcy - g_RotateTable[rac, Y];
-    intOffset := Y * dstWidth;
-    for X     := 0 to dstWidth - 1 do
+    krx       := kcx + g_RotateTable[ras, dstY];
+    kry       := kcy - g_RotateTable[rac, dstY];
+    intOffset := dstY * dstWidth;
+    for dstX  := 0 to dstWidth - 1 do
     begin
-      SrcX := (g_RotateTable[rac, X] - krx) shr 8;
-      SrcY := (g_RotateTable[ras, X] - kry) shr 8;
-      if (SrcY < srcHeight) and (SrcX < srcWidth) then
+      srcX := (g_RotateTable[rac, dstX] - krx) shr 8;
+      srcY := (g_RotateTable[ras, dstX] - kry) shr 8;
+      if (srcY < srcHeight) and (srcX < srcWidth) then
       begin
-        dstBits[intOffset + X] := srcBits[srcWidth * SrcY + SrcX];
+        dstBits[intOffset + dstX] := srcBits[srcWidth * srcY + srcX];
       end;
     end;
   end;
@@ -253,23 +253,23 @@ begin
   kcy := cxs + cyc - CenterY * (1 shl 8);
 
   TParallel.For(0, dstHeight - 1,
-    procedure(Y: Integer)
+    procedure(dstY: Integer)
     var
-      X: Integer;
+      dstX: Integer;
       krx, kry: Integer;
-      SrcX, SrcY: DWORD;
+      srcX, srcY: DWORD;
       intOffset: Integer;
     begin
-      krx := kcx + g_RotateTable[ras, Y];
-      kry := kcy - g_RotateTable[rac, Y];
-      intOffset := Y * dstWidth;
-      for X := 0 to dstWidth - 1 do
+      krx := kcx + g_RotateTable[ras, dstY];
+      kry := kcy - g_RotateTable[rac, dstY];
+      intOffset := dstY * dstWidth;
+      for dstX := 0 to dstWidth - 1 do
       begin
-        SrcX := (g_RotateTable[rac, X] - krx) shr 8;
-        SrcY := (g_RotateTable[ras, X] - kry) shr 8;
-        if (SrcY < srcHeight) and (SrcX < srcWidth) then
+        srcX := (g_RotateTable[rac, dstX] - krx) shr 8;
+        srcY := (g_RotateTable[ras, dstX] - kry) shr 8;
+        if (srcY < srcHeight) and (srcX < srcWidth) then
         begin
-          dstBits[intOffset + X] := srcBits[srcWidth * SrcY + SrcX];
+          dstBits[intOffset + dstX] := srcBits[srcWidth * srcY + srcX];
         end;
       end;
     end);
@@ -277,16 +277,16 @@ end;
 
 procedure Rotate_Proc(const krx, kry, intOffset: Integer; const srcBits: PRGBQuadArray; dstBits: PRGBQuadArray; const rac, ras: Integer; const dstWidth, srcWidth, srcHeight: DWORD); assembler; inline;
 var
-  X         : Integer;
-  SrcX, SrcY: DWORD;
+  dstX      : Integer;
+  srcX, srcY: DWORD;
 begin
-  for X := dstWidth - 1 downto 0 do
+  for dstX := dstWidth - 1 downto 0 do
   begin
-    SrcX := (X * rac - krx) shr 8;
-    SrcY := (X * ras - kry) shr 8;
-    if (SrcY < srcHeight) and (SrcX < srcWidth) then
+    srcX := (dstX * rac - krx) shr 8;
+    srcY := (dstX * ras - kry) shr 8;
+    if (srcY < srcHeight) and (srcX < srcWidth) then
     begin
-      dstBits[intOffset + X] := srcBits[SrcY * srcWidth + SrcX];
+      dstBits[intOffset + dstX] := srcBits[srcY * srcWidth + srcX];
     end;
   end;
 end;
