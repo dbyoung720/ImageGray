@@ -29,7 +29,7 @@ type
   TBMPAccess         = class(TBitmap);
   TBitmapImageAccess = class(TBitmapImage);
 
-  { 标准旋转函数 }
+{ 标准旋转函数 }
 procedure Optimize01(bmpSrc, bmpDst: TBitmap; const RotaryAngle: double; const CenterX, CenterY, MoveX, MoveY: Integer);
 var
   dstX, dstY: Integer;
@@ -375,11 +375,6 @@ asm
   DEC  ECX
   JNZ  @LOOP
   {$IFEND}
-end;
-
-procedure Rotate_AVX_Proc(const krx, kry, IndexRow: Integer; const srcBits: PRGBQuadArray; dstBits: PRGBQuadArray; const rac, ras: Integer; const dstWidth, srcWidth, srcHeight: DWORD); assembler;
-asm
-
 end;
 
 { 并行 + SIMD 优化 }
