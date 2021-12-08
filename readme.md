@@ -4,7 +4,7 @@
 
 ## Description：
     This is my record of learning SIMD
-    Function：32bit Pixel RGB to Gray
+    Function: 32bit bitmap, gray、invert color、mirror、rotate、adjust brightness、saturation、contrast、transparency, etc.
     DevTools：Delphi 11
     Platform：Win10X64；Support X86、X64
 
