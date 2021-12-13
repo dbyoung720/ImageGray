@@ -380,13 +380,18 @@ end;
 
 procedure InitContrastTable;
 var
-  I, J: Integer;
+  kValue          : Integer;
+  kCoeff          : Single;
+  intContrastValue: Integer;
+  byeColor        : Byte;
 begin
-  for I := 0 to 255 do
+  for intContrastValue := -255 to 255 do
   begin
-    for J := 0 to 255 do
+    kValue       := IfThen(intContrastValue < 0, 255, 128);
+    kCoeff       := intContrastValue / kValue;
+    for byeColor := 0 to 255 do
     begin
-      g_ContrastTable[I, J] := EnsureRange((I - 128) * J div 100 + 128, 0, 255);
+      g_ContrastTable[intContrastValue, byeColor] := EnsureRange(byeColor + Round(((byeColor - 128) * kCoeff)), 0, 255);
     end;
   end;
 end;

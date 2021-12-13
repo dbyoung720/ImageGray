@@ -11,7 +11,7 @@ interface
 uses Winapi.Windows, System.Threading, System.Math, Vcl.Graphics, db.Image.Common;
 
 type
-  TContrastType = (ctScanline, ctDelphi, ctParallel, ctSSEParallel, ctSSE2, ctSSE4, ctAVX1, ctAVX2, ctAVX512knl, ctAVX512skx);
+  TContrastType = (ctScanline, ctDelphi, ctTable, ctParallel, ctSSEParallel, ctSSE2, ctSSE4, ctAVX1, ctAVX2, ctAVX512knl, ctAVX512skx);
 
 procedure Contrast(bmp: TBitmap; const intContrastValue: Integer; const ct: TContrastType = ctParallel);
 
@@ -22,16 +22,18 @@ var
   X, Y  : Integer;
   pColor: PRGBQuad;
   kValue: Integer;
+  kCoeff: Single;
 begin
   kValue := IfThen(intContrastValue < 0, 255, 128);
+  kCoeff := intContrastValue / kValue;
   for Y  := 0 to bmp.Height - 1 do
   begin
     pColor := bmp.ScanLine[Y];
     for X  := 0 to bmp.Width - 1 do
     begin
-      pColor^.rgbRed   := EnsureRange(pColor^.rgbRed + Round(((pColor^.rgbRed - 128) * intContrastValue) / kValue), 0, 255);
-      pColor^.rgbGreen := EnsureRange(pColor^.rgbGreen + Round(((pColor^.rgbGreen - 128) * intContrastValue) / kValue), 0, 255);
-      pColor^.rgbBlue  := EnsureRange(pColor^.rgbBlue + Round(((pColor^.rgbBlue - 128) * intContrastValue) / kValue), 0, 255);
+      pColor^.rgbRed   := EnsureRange(pColor^.rgbRed + Round(((pColor^.rgbRed - 128) * kCoeff)), 0, 255);
+      pColor^.rgbGreen := EnsureRange(pColor^.rgbGreen + Round(((pColor^.rgbGreen - 128) * kCoeff)), 0, 255);
+      pColor^.rgbBlue  := EnsureRange(pColor^.rgbBlue + Round(((pColor^.rgbBlue - 128) * kCoeff)), 0, 255);
       Inc(pColor);
     end;
   end;
@@ -42,15 +44,33 @@ var
   I, Count: Integer;
   pColor  : PRGBQuad;
   kValue  : Integer;
+  kCoeff  : Single;
 begin
   Count  := bmp.Width * bmp.Height;
   pColor := GetBitsPointer(bmp);
   kValue := IfThen(intContrastValue < 0, 255, 128);
+  kCoeff := intContrastValue / kValue;
   for I  := 0 to Count - 1 do
   begin
-    pColor^.rgbRed   := EnsureRange(pColor^.rgbRed + Round(((pColor^.rgbRed - 128) * intContrastValue) / kValue), 0, 255);
-    pColor^.rgbGreen := EnsureRange(pColor^.rgbGreen + Round(((pColor^.rgbGreen - 128) * intContrastValue) / kValue), 0, 255);
-    pColor^.rgbBlue  := EnsureRange(pColor^.rgbBlue + Round(((pColor^.rgbBlue - 128) * intContrastValue) / kValue), 0, 255);
+    pColor^.rgbRed   := EnsureRange(pColor^.rgbRed + Round(((pColor^.rgbRed - 128) * kCoeff)), 0, 255);
+    pColor^.rgbGreen := EnsureRange(pColor^.rgbGreen + Round(((pColor^.rgbGreen - 128) * kCoeff)), 0, 255);
+    pColor^.rgbBlue  := EnsureRange(pColor^.rgbBlue + Round(((pColor^.rgbBlue - 128) * kCoeff)), 0, 255);
+    Inc(pColor);
+  end;
+end;
+
+procedure Contrast_Table(bmp: TBitmap; const intContrastValue: Integer);
+var
+  I, Count: Integer;
+  pColor  : PRGBQuad;
+begin
+  Count  := bmp.Width * bmp.Height;
+  pColor := GetBitsPointer(bmp);
+  for I  := 0 to Count - 1 do
+  begin
+    pColor^.rgbRed   := g_ContrastTable[intContrastValue, pColor^.rgbRed];
+    pColor^.rgbGreen := g_ContrastTable[intContrastValue, pColor^.rgbGreen];
+    pColor^.rgbBlue  := g_ContrastTable[intContrastValue, pColor^.rgbBlue];
     Inc(pColor);
   end;
 end;
@@ -68,15 +88,13 @@ begin
     var
       X: Integer;
       pColor: PRGBQuad;
-      kValue: Integer;
     begin
       pColor := PRGBQuad(StartScanLine + Y * bmpWidthBytes);
-      kValue := IfThen(intContrastValue < 0, 255, 128);
       for X := 0 to bmp.Width - 1 do
       begin
-        pColor^.rgbRed := EnsureRange(pColor^.rgbRed + Round(((pColor^.rgbRed - 128) * intContrastValue) / kValue), 0, 255);
-        pColor^.rgbGreen := EnsureRange(pColor^.rgbGreen + Round(((pColor^.rgbGreen - 128) * intContrastValue) / kValue), 0, 255);
-        pColor^.rgbBlue := EnsureRange(pColor^.rgbBlue + Round(((pColor^.rgbBlue - 128) * intContrastValue) / kValue), 0, 255);
+        pColor^.rgbRed := g_ContrastTable[intContrastValue, pColor^.rgbRed];
+        pColor^.rgbGreen := g_ContrastTable[intContrastValue, pColor^.rgbGreen];
+        pColor^.rgbBlue := g_ContrastTable[intContrastValue, pColor^.rgbBlue];
         Inc(pColor);
       end;
     end);
@@ -210,8 +228,10 @@ begin
       Contrast_ScanLine(bmp, intContrastValue);                                        // 105 ms
     ctDelphi:                                                                          //
       Contrast_Delphi(bmp, intContrastValue);                                          // 100 ms
+    ctTable:                                                                           //
+      Contrast_Table(bmp, intContrastValue);                                           // 50 ms
     ctParallel:                                                                        //
-      Contrast_Parallel(bmp, intContrastValue);                                        //
+      Contrast_Parallel(bmp, intContrastValue);                                        // 06 ms
     ctSSEParallel:                                                                     //
       Contrast_SSEParallel(bmp, intContrastValue);                                     //
     ctSSE2:                                                                            //

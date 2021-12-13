@@ -237,7 +237,7 @@ begin
       if ccChange = ccLight then
         Light(bmpTemp, FTrackColorChange.Position, ltParallel_AVX2)              // 调节亮度
       else if ccChange = ccContrast then                                         //
-        Contrast(bmpTemp, FTrackColorChange.Position, ctSSEParallel)             // 调节对比度
+        Contrast(bmpTemp, FTrackColorChange.Position, ctParallel)                // 调节对比度
       else if ccChange = ccSaturation then                                       //
         Saturation(bmpTemp, FTrackColorChange.Position + 255, stSSEParallel)     // 调节饱和度
       else if ccChange = ccColorMode then                                        //
