@@ -31,9 +31,9 @@ begin
     pColor := bmp.ScanLine[Y];
     for X  := 0 to bmp.Width - 1 do
     begin
-      pColor^.rgbRed   := EnsureRange(pColor^.rgbRed + Round(((pColor^.rgbRed - 128) * kCoeff)), 0, 255);
+      pColor^.rgbRed   := EnsureRange(pColor^.rgbRed   + Round(((pColor^.rgbRed   - 128) * kCoeff)), 0, 255);
       pColor^.rgbGreen := EnsureRange(pColor^.rgbGreen + Round(((pColor^.rgbGreen - 128) * kCoeff)), 0, 255);
-      pColor^.rgbBlue  := EnsureRange(pColor^.rgbBlue + Round(((pColor^.rgbBlue - 128) * kCoeff)), 0, 255);
+      pColor^.rgbBlue  := EnsureRange(pColor^.rgbBlue  + Round(((pColor^.rgbBlue  - 128) * kCoeff)), 0, 255);
       Inc(pColor);
     end;
   end;
@@ -52,9 +52,9 @@ begin
   kCoeff := intContrastValue / kValue;
   for I  := 0 to Count - 1 do
   begin
-    pColor^.rgbRed   := EnsureRange(pColor^.rgbRed + Round(((pColor^.rgbRed - 128) * kCoeff)), 0, 255);
+    pColor^.rgbRed   := EnsureRange(pColor^.rgbRed   + Round(((pColor^.rgbRed   - 128) * kCoeff)), 0, 255);
     pColor^.rgbGreen := EnsureRange(pColor^.rgbGreen + Round(((pColor^.rgbGreen - 128) * kCoeff)), 0, 255);
-    pColor^.rgbBlue  := EnsureRange(pColor^.rgbBlue + Round(((pColor^.rgbBlue - 128) * kCoeff)), 0, 255);
+    pColor^.rgbBlue  := EnsureRange(pColor^.rgbBlue   + Round(((pColor^.rgbBlue - 128) * kCoeff)), 0, 255);
     Inc(pColor);
   end;
 end;
@@ -92,9 +92,9 @@ begin
       pColor := PRGBQuad(StartScanLine + Y * bmpWidthBytes);
       for X := 0 to bmp.Width - 1 do
       begin
-        pColor^.rgbRed := g_ContrastTable[intContrastValue, pColor^.rgbRed];
+        pColor^.rgbRed   := g_ContrastTable[intContrastValue, pColor^.rgbRed];
         pColor^.rgbGreen := g_ContrastTable[intContrastValue, pColor^.rgbGreen];
-        pColor^.rgbBlue := g_ContrastTable[intContrastValue, pColor^.rgbBlue];
+        pColor^.rgbBlue  := g_ContrastTable[intContrastValue, pColor^.rgbBlue];
         Inc(pColor);
       end;
     end);
