@@ -24,7 +24,6 @@ var
   iLeft, iTop: Integer;
   pColorDst  : PRGBQuad;
   pColorSrc  : PRGBQuad;
-  K          : Integer;
 begin
   if bmpSrc.Width > bmpDst.Width then
     Exit;
@@ -34,7 +33,6 @@ begin
 
   iTop  := (bmpDst.Height - bmpSrc.Height) div 2;
   iLeft := (bmpDst.Width - bmpSrc.Width) div 2;
-  K     := (intBlendValue + 1) * 256;
 
   for Y := iTop to iTop + bmpSrc.Height - 1 do
   begin
@@ -43,9 +41,9 @@ begin
     Inc(pColorDst, iLeft);
     for X := 0 to bmpSrc.Width - 1 do
     begin
-      pColorDst^.rgbRed   := (pColorDst^.rgbRed   * (65536 - K) + pColorSrc^.rgbRed   * K) shr 16;
-      pColorDst^.rgbGreen := (pColorDst^.rgbGreen * (65536 - K) + pColorSrc^.rgbGreen * K) shr 16;
-      pColorDst^.rgbBlue  := (pColorDst^.rgbBlue  * (65536 - K) + pColorSrc^.rgbBlue  * K) shr 16;
+      pColorDst^.rgbRed   := (pColorDst^.rgbRed   * (256 - intBlendValue) + pColorSrc^.rgbRed   * intBlendValue) shr 8;
+      pColorDst^.rgbGreen := (pColorDst^.rgbGreen * (256 - intBlendValue) + pColorSrc^.rgbGreen * intBlendValue) shr 8;
+      pColorDst^.rgbBlue  := (pColorDst^.rgbBlue  * (256 - intBlendValue) + pColorSrc^.rgbBlue  * intBlendValue) shr 8;
       Inc(pColorDst);
       Inc(pColorSrc);
     end;
@@ -56,7 +54,6 @@ end;
 procedure ColorBlend_Parallel(bmpDst, bmpSrc: TBitmap; const intBlendValue: Integer);
 var
   iLeft, iTop     : Integer;
-  K               : Integer;
   bmpWidthBytesSrc: Integer;
   bmpWidthBytesDst: Integer;
   StartScanLineDst: Integer;
@@ -70,7 +67,6 @@ begin
 
   iTop  := (bmpDst.Height - bmpSrc.Height) div 2;
   iLeft := (bmpDst.Width - bmpSrc.Width) div 2;
-  K     := (intBlendValue + 1) * 256;
 
   StartScanLineSrc := Integer(bmpSrc.ScanLine[0]);
   StartScanLineDst := Integer(bmpDst.ScanLine[iTop]);
@@ -89,9 +85,9 @@ begin
       Inc(pColorDst, iLeft);
       for X := 0 to bmpSrc.Width - 1 do
       begin
-        pColorDst^.rgbRed   := (pColorDst^.rgbRed   * (65536 - K) + pColorSrc^.rgbRed   * K) shr 16;
-        pColorDst^.rgbGreen := (pColorDst^.rgbGreen * (65536 - K) + pColorSrc^.rgbGreen * K) shr 16;
-        pColorDst^.rgbBlue  := (pColorDst^.rgbBlue  * (65536 - K) + pColorSrc^.rgbBlue  * K) shr 16;
+        pColorDst^.rgbRed   := (pColorDst^.rgbRed   * (256 - intBlendValue) + pColorSrc^.rgbRed   * intBlendValue) shr 8;
+        pColorDst^.rgbGreen := (pColorDst^.rgbGreen * (256 - intBlendValue) + pColorSrc^.rgbGreen * intBlendValue) shr 8;
+        pColorDst^.rgbBlue  := (pColorDst^.rgbBlue  * (256 - intBlendValue) + pColorSrc^.rgbBlue  * intBlendValue) shr 8;
         Inc(pColorDst);
         Inc(pColorSrc);
       end;
@@ -99,12 +95,15 @@ begin
 end;
 
 procedure ColorBlend(bmpDst, bmpSrc: TBitmap; const intBlendValue: Integer; const cbt: TColorBlendType = cbtParallel);
+var
+  K: Integer;
 begin
+  K := Round(intBlendValue * 2.56);
   case cbt of
     cbtScanline:
-      ColorBlend_Scanline(bmpDst, bmpSrc, intBlendValue);
+      ColorBlend_Scanline(bmpDst, bmpSrc, K);
     cbtParallel:
-      ColorBlend_Parallel(bmpDst, bmpSrc, intBlendValue);
+      ColorBlend_Parallel(bmpDst, bmpSrc, K);
   end;
 end;
 
