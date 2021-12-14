@@ -143,6 +143,7 @@ type
 function GetBmpWidthBytes(bmp: TBitmap): DWORD;
 function GetBitsPointer(bmp: TBitmap): Pointer;
 function GetPixelGray(const r, g, b: Byte): TRGBQuad; inline;
+procedure GetGrayAlpha(const intSaturationValue: Integer; var alpha: TAlpha; var grays: TGrays);
 procedure ShowColorChange(frmMain: TForm; cc: TColorChange; OnChangeLight, OnLightResetClick, OnLightCancelClick, OnLightOKClick: TNotifyEvent; var lblValueShow: TLabel; const intMinValue, intMaxValue: Integer; const strCaption, strTip: string);
 
 function CRC32_Calculate(Buffer: PChar; len: Cardinal): Cardinal; cdecl; external name {$IFDEF win32} '_sse42_calculate'; {$ELSE} 'sse42_calculate'; {$ENDIF}
@@ -194,10 +195,11 @@ function __alldiv(a, b: Int64): Int64; stdcall; external 'ntdll.dll' name '_alld
 function __aulldiv(a, b: UINT64): UINT64; stdcall; external 'ntdll.dll' name '_aulldiv';
 
 var
-  g_GrayTable    : TGrayTable;
-  g_LightTable   : TLightTable;
-  g_ContrastTable: array [0 .. 255, 0 .. 255] of Byte;
-  g_RotateTable  : array [-256 .. 256, 0 .. 8192] of Integer;
+  g_GrayTable      : TGrayTable;
+  g_LightTable     : TLightTable;
+  g_ContrastTable  : array [0 .. 255, 0 .. 255] of Byte;
+  g_SaturationTable: array [0 .. 510, 0 .. 765, 0 .. 255] of Byte;
+  g_RotateTable    : array [-256 .. 256, 0 .. 8192] of Integer;
 
 {$IFDEF WIN32}
   __fltused: Integer;
@@ -410,10 +412,58 @@ begin
   end;
 end;
 
+procedure GetGrayAlpha(const intSaturationValue: Integer; var alpha: TAlpha; var grays: TGrays);
+var
+  X   : Integer;
+  I   : Integer;
+  Gray: Integer;
+begin
+  for I := 0 to 255 do
+  begin
+    alpha[I] := (I * intSaturationValue) shr 8;
+  end;
+
+  X     := 0;
+  for I := 0 to 255 do
+  begin
+    Gray     := I - alpha[I];
+    grays[X] := Gray;
+    Inc(X);
+    grays[X] := Gray;
+    Inc(X);
+    grays[X] := Gray;
+    Inc(X);
+  end;
+end;
+
+procedure InitSaturationTable;
+var
+  alpha: TAlpha;
+  grays: TGrays;
+  J    : Integer;
+  I    : Integer;
+  Gray : Integer;
+  Color: Integer;
+begin
+  for J := 0 to 510 do
+  begin
+    GetGrayAlpha(J, alpha, grays);
+    for Color := 0 to 765 do
+    begin
+      for I := 0 to 255 do
+      begin
+        Gray                           := grays[Color];
+        g_SaturationTable[J, Color, I] := Max(0, Min(255, Gray + alpha[I]));
+      end;
+    end;
+  end;
+end;
+
 initialization
   InitGrayTable;
   InitLightTable;
   InitContrastTable;
+  InitSaturationTable;
   InitRotateTable;
 
 end.
