@@ -30,9 +30,9 @@ begin
     pColor := bmp.ScanLine[I];
     for J  := 0 to bmp.Width - 1 do
     begin
-      pColor^.rgbRed   := EnsureRange(pColor^.rgbRed + intLightValue, 0, 255);
+      pColor^.rgbRed   := EnsureRange(pColor^.rgbRed   + intLightValue, 0, 255);
       pColor^.rgbGreen := EnsureRange(pColor^.rgbGreen + intLightValue, 0, 255);
-      pColor^.rgbBlue  := EnsureRange(pColor^.rgbBlue + intLightValue, 0, 255);
+      pColor^.rgbBlue  := EnsureRange(pColor^.rgbBlue  + intLightValue, 0, 255);
       Inc(pColor);
     end;
   end;
@@ -48,9 +48,9 @@ begin
   pColor := GetBitsPointer(bmp);
   for I  := 0 to Count - 1 do
   begin
-    pColor^.rgbRed   := EnsureRange(pColor^.rgbRed + intLightValue, 0, 255);
+    pColor^.rgbRed   := EnsureRange(pColor^.rgbRed   + intLightValue, 0, 255);
     pColor^.rgbGreen := EnsureRange(pColor^.rgbGreen + intLightValue, 0, 255);
-    pColor^.rgbBlue  := EnsureRange(pColor^.rgbBlue + intLightValue, 0, 255);
+    pColor^.rgbBlue  := EnsureRange(pColor^.rgbBlue  + intLightValue, 0, 255);
     Inc(pColor);
   end;
 end;
@@ -65,9 +65,9 @@ begin
   pColor := GetBitsPointer(bmp);
   for I  := 0 to Count - 1 do
   begin
-    pColor^.rgbRed   := g_LightTable[pColor^.rgbRed, intLightValue];
+    pColor^.rgbRed   := g_LightTable[pColor^.rgbRed,   intLightValue];
     pColor^.rgbGreen := g_LightTable[pColor^.rgbGreen, intLightValue];
-    pColor^.rgbBlue  := g_LightTable[pColor^.rgbBlue, intLightValue];
+    pColor^.rgbBlue  := g_LightTable[pColor^.rgbBlue,  intLightValue];
     Inc(pColor);
   end;
 end;
@@ -159,9 +159,9 @@ var
 begin
   for I := 0 to bmpWidth - 1 do
   begin
-    pColor^.rgbRed   := EnsureRange(pColor^.rgbRed + intLightValue, 0, 255);
+    pColor^.rgbRed   := EnsureRange(pColor^.rgbRed   + intLightValue, 0, 255);
     pColor^.rgbGreen := EnsureRange(pColor^.rgbGreen + intLightValue, 0, 255);
-    pColor^.rgbBlue  := EnsureRange(pColor^.rgbBlue + intLightValue, 0, 255);
+    pColor^.rgbBlue  := EnsureRange(pColor^.rgbBlue  + intLightValue, 0, 255);
     Inc(pColor);
   end;
 end;

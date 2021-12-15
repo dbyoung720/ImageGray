@@ -54,7 +54,7 @@ begin
   begin
     pColor^.rgbRed   := EnsureRange(pColor^.rgbRed   + Round(((pColor^.rgbRed   - 128) * kCoeff)), 0, 255);
     pColor^.rgbGreen := EnsureRange(pColor^.rgbGreen + Round(((pColor^.rgbGreen - 128) * kCoeff)), 0, 255);
-    pColor^.rgbBlue  := EnsureRange(pColor^.rgbBlue   + Round(((pColor^.rgbBlue - 128) * kCoeff)), 0, 255);
+    pColor^.rgbBlue  := EnsureRange(pColor^.rgbBlue  + Round(((pColor^.rgbBlue  - 128) * kCoeff)), 0, 255);
     Inc(pColor);
   end;
 end;
