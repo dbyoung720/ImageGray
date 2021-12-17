@@ -46,7 +46,7 @@ begin
   end;
 end;
 
-{ 优化 Pixels }
+{ 优化 Pixels 函数 }
 procedure Optimize02(bmpSrc, bmpDst: TBitmap; const RotaryAngle: double; const CenterX, CenterY, MoveX, MoveY: Integer);
 var
   dstX, dstY: Integer;

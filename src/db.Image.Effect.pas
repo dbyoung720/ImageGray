@@ -50,9 +50,9 @@ begin
       pColor := PRGBQuad(StartScanLine + Y * bmpWidthBytes);
       for X := 0 to bmp.Width - 1 do
       begin
-        pColor^.rgbBlue := Ifthen(pColor^.rgbBlue < 128, not pColor^.rgbBlue, pColor^.rgbBlue);
+        pColor^.rgbBlue  := Ifthen(pColor^.rgbBlue  < 128, not pColor^.rgbBlue,  pColor^.rgbBlue);
         pColor^.rgbGreen := Ifthen(pColor^.rgbGreen < 128, not pColor^.rgbGreen, pColor^.rgbGreen);
-        pColor^.rgbRed := Ifthen(pColor^.rgbRed < 128, not pColor^.rgbRed, pColor^.rgbRed);
+        pColor^.rgbRed   := Ifthen(pColor^.rgbRed   < 128, not pColor^.rgbRed,   pColor^.rgbRed);
         Inc(pColor);
       end;
     end);
@@ -98,9 +98,9 @@ begin
       for X := 0 to bmp.Width - 1 do
       begin
         Inc(pColor02);
-        pColor01^.rgbRed := EnsureRange(pColor01^.rgbRed - pColor02^.rgbRed + 128, 0, 255);
+        pColor01^.rgbRed   := EnsureRange(pColor01^.rgbRed   - pColor02^.rgbRed   + 128, 0, 255);
         pColor01^.rgbGreen := EnsureRange(pColor01^.rgbGreen - pColor02^.rgbGreen + 128, 0, 255);
-        pColor01^.rgbBlue := EnsureRange(pColor01^.rgbBlue - pColor02^.rgbBlue + 128, 0, 255);
+        pColor01^.rgbBlue  := EnsureRange(pColor01^.rgbBlue  - pColor02^.rgbBlue  + 128, 0, 255);
         Inc(pColor01);
       end;
     end);
@@ -120,9 +120,9 @@ begin
     for X      := 0 to bmp.Width - 1 do
     begin
       Inc(SrcNextRow);
-      pColor01^.rgbRed   := EnsureRange(SrcNextRow^.rgbRed - pColor01^.rgbRed + 128, 0, 255);
+      pColor01^.rgbRed   := EnsureRange(SrcNextRow^.rgbRed   - pColor01^.rgbRed   + 128, 0, 255);
       pColor01^.rgbGreen := EnsureRange(SrcNextRow^.rgbGreen - pColor01^.rgbGreen + 128, 0, 255);
-      pColor01^.rgbBlue  := EnsureRange(SrcNextRow^.rgbBlue - pColor01^.rgbBlue + 128, 0, 255);
+      pColor01^.rgbBlue  := EnsureRange(SrcNextRow^.rgbBlue  - pColor01^.rgbBlue  + 128, 0, 255);
       Inc(pColor01);
     end;
   end;
@@ -144,23 +144,23 @@ begin
     pColorPre := bmp.ScanLine[Y - 1];
     for X     := 1 to bmp.Width - 2 do
     begin
-      ValueR := pColorPre^.rgbRed + pColorOne^.rgbRed + pColorTwo^.rgbRed;
+      ValueR := pColorPre^.rgbRed   + pColorOne^.rgbRed   + pColorTwo^.rgbRed;
       ValueG := pColorPre^.rgbGreen + pColorOne^.rgbGreen + pColorTwo^.rgbGreen;
-      ValueB := pColorPre^.rgbBlue + pColorOne^.rgbBlue + pColorTwo^.rgbBlue;
+      ValueB := pColorPre^.rgbBlue  + pColorOne^.rgbBlue  + pColorTwo^.rgbBlue;
 
       Inc(pColorPre);
       Inc(pColorOne);
       Inc(pColorTwo);
-      ValueR := ValueR + pColorPre^.rgbRed + pColorOne^.rgbRed + pColorTwo^.rgbRed;
+      ValueR := ValueR + pColorPre^.rgbRed   + pColorOne^.rgbRed   + pColorTwo^.rgbRed;
       ValueG := ValueG + pColorPre^.rgbGreen + pColorOne^.rgbGreen + pColorTwo^.rgbGreen;
-      ValueB := ValueB + pColorPre^.rgbBlue + pColorOne^.rgbBlue + pColorTwo^.rgbBlue;
+      ValueB := ValueB + pColorPre^.rgbBlue  + pColorOne^.rgbBlue  + pColorTwo^.rgbBlue;
 
       Inc(pColorPre);
       Inc(pColorOne);
       Inc(pColorTwo);
-      ValueR := ValueR + pColorPre^.rgbRed + pColorOne^.rgbRed + pColorTwo^.rgbRed;
+      ValueR := ValueR + pColorPre^.rgbRed   + pColorOne^.rgbRed   + pColorTwo^.rgbRed;
       ValueG := ValueG + pColorPre^.rgbGreen + pColorOne^.rgbGreen + pColorTwo^.rgbGreen;
-      ValueB := ValueB + pColorPre^.rgbBlue + pColorOne^.rgbBlue + pColorTwo^.rgbBlue;
+      ValueB := ValueB + pColorPre^.rgbBlue  + pColorOne^.rgbBlue  + pColorTwo^.rgbBlue;
 
       pColorOne^.rgbRed   := ValueR div 9;
       pColorOne^.rgbGreen := ValueG div 9;
@@ -194,9 +194,9 @@ begin
       for X := 0 to bmp.Width - 1 do
       begin
         Dec(pColor02);
-        pColor01^.rgbRed := EnsureRange(pColor01^.rgbRed + (pColor01^.rgbRed - pColor02^.rgbRed) div 2, 0, 255);
+        pColor01^.rgbRed   := EnsureRange(pColor01^.rgbRed   + (pColor01^.rgbRed   - pColor02^.rgbRed)   div 2, 0, 255);
         pColor01^.rgbGreen := EnsureRange(pColor01^.rgbGreen + (pColor01^.rgbGreen - pColor02^.rgbGreen) div 2, 0, 255);
-        pColor01^.rgbBlue := EnsureRange(pColor01^.rgbBlue + (pColor01^.rgbBlue - pColor02^.rgbBlue) div 2, 0, 255);
+        pColor01^.rgbBlue  := EnsureRange(pColor01^.rgbBlue  + (pColor01^.rgbBlue  - pColor02^.rgbBlue)  div 2, 0, 255);
         Inc(pColor01);
         Inc(pColor02, 2);
       end;
