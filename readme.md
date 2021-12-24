@@ -7,6 +7,7 @@
     Function: 32bit bitmap, gray、invert color、mirror、rotate、adjust brightness、saturation、contrast、transparency, etc.
     DevTools：Delphi 11
     Platform：Win10X64；Support X86、X64
+    Test    ：4096*4096
 
 ### BLOG：
     https://blog.csdn.net/dbyoung/category_10762408.html

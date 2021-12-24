@@ -7,6 +7,7 @@
     功能：32bit 位图，灰度化、反色、镜像、旋转、调节亮度、饱和度、对比度、透明，等等。
     开发：Delphi 11
     平台：Win10X64；支持 X86/X64
+    测试：4096*4096
 
 ### 博客：
     https://blog.csdn.net/dbyoung/category_10762408.html
