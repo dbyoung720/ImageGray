@@ -200,6 +200,7 @@ var
   g_ContrastTable  : array [0 .. 255, 0 .. 255] of Byte;
   g_SaturationTable: array [0 .. 510, 0 .. 765, 0 .. 255] of Byte;
   g_RotateTable    : array [-256 .. 256, 0 .. 8192] of Integer;
+  g_BlendTable     : array [0 .. 255, 0 .. 256] of Integer;
 
 {$IFDEF WIN32}
   __fltused: Integer;
@@ -459,11 +460,26 @@ begin
   end;
 end;
 
+procedure InitBlendTable;
+var
+  I: Integer;
+  J: Integer;
+begin
+  for I := 0 to 255 do
+  begin
+    for J := 0 to 256 do
+    begin
+      g_BlendTable[I, J] := I * J;
+    end;
+  end;
+end;
+
 initialization
   InitGrayTable;
   InitLightTable;
   InitContrastTable;
   InitSaturationTable;
+  InitBlendTable;
   InitRotateTable;
 
 end.
