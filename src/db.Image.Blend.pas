@@ -32,7 +32,7 @@ begin
     Exit;
 
   iTop  := (bmpDst.Height - bmpSrc.Height) div 2;
-  iLeft := (bmpDst.Width - bmpSrc.Width) div 2;
+  iLeft := (bmpDst.Width  - bmpSrc.Width)  div 2;
 
   for Y := iTop to iTop + bmpSrc.Height - 1 do
   begin
@@ -65,7 +65,7 @@ begin
     Exit;
 
   iTop  := (bmpDst.Height - bmpSrc.Height) div 2;
-  iLeft := (bmpDst.Width - bmpSrc.Width) div 2;
+  iLeft := (bmpDst.Width  - bmpSrc.Width)  div 2;
 
   for Y := iTop to iTop + bmpSrc.Height - 1 do
   begin
@@ -99,7 +99,7 @@ begin
     Exit;
 
   iTop  := (bmpDst.Height - bmpSrc.Height) div 2;
-  iLeft := (bmpDst.Width - bmpSrc.Width) div 2;
+  iLeft := (bmpDst.Width  - bmpSrc.Width)  div 2;
 
   StartScanLineSrc := Integer(bmpSrc.ScanLine[0]);
   StartScanLineDst := Integer(bmpDst.ScanLine[iTop]);
