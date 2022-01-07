@@ -29,7 +29,7 @@ type
   TBMPAccess         = class(TBitmap);
   TBitmapImageAccess = class(TBitmapImage);
 
-{ 标准旋转函数 }
+  { 标准旋转函数 }
 procedure Optimize01(bmpSrc, bmpDst: TBitmap; const RotaryAngle: double; const CenterX, CenterY, MoveX, MoveY: Integer);
 var
   dstX, dstY: Integer;
@@ -415,6 +415,7 @@ begin
       kry := kcy - g_RotateTable[rac, IndexRow];
       intOffset := IndexRow * dstWidth;
       Rotate_SSE_Proc(krx, kry, intOffset, srcBits, dstBits, rac, ras, dstWidth, srcWidth, srcHeight);
+      // RotateSSE_avx1(krx, kry, intOffset, srcBits, dstBits, rac, ras, dstWidth, srcWidth, srcHeight);
     end);
 end;
 
