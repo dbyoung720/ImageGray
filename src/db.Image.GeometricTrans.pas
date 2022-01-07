@@ -36,7 +36,6 @@ var
   StartScanLine: Integer;
   bmpWidthBytes: Integer;
 begin
-
   StartScanLine := Integer(bmp.ScanLine[0]);
   bmpWidthBytes := Integer(bmp.ScanLine[1]) - Integer(bmp.ScanLine[0]);
 
