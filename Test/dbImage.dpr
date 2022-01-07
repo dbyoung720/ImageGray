@@ -10,8 +10,6 @@ uses
   {$IFEND }
   Vcl.Forms,
   Unit1 in 'Unit1.pas' {Form1},
-  db.Memory.Move in '..\src\db.Memory.Move.pas',
-  db.Memory.Call in '..\src\db.Memory.Call.pas',
   db.Image.Gray in '..\src\db.Image.Gray.pas',
   db.Image.Load in '..\src\db.Image.Load.pas',
   db.Image.Common in '..\src\db.Image.Common.pas',
