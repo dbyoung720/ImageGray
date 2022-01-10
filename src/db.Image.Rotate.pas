@@ -432,7 +432,7 @@ begin
   rac := Trunc(srac * (1 shl 8));
   ras := Trunc(sras * (1 shl 8));
 
-  { 这里必须修改 Vcl.Graphics.pas，否则创建大尺寸位图时比较耗时 }
+  { 这里必须修改 Vcl.Graphics.pas，否则创建大尺寸位图时比较耗时。注释掉 7965 行代码：PatBlt(NewImageDC, 0, 0, bmWidth, bmHeight, WHITENESS); }
   bmpDst.PixelFormat := pf32bit;
   bmpDst.Width       := Round(ABS(bmpSrc.Width * srac) + ABS(bmpSrc.Height * sras));
   bmpDst.Height      := Round(ABS(bmpSrc.Width * sras) + ABS(bmpSrc.Height * srac));
