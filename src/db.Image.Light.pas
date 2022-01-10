@@ -166,7 +166,7 @@ begin
   end;
 end;
 
-{ 20ms --- 40ms  需要脱离 IDE 执行 / ScanLine 不要用于 TParallel.For 中 }
+{ 20ms --- 40ms  需要脱离 IDE 执行 }
 procedure Light_Parallel(bmp: TBitmap; const intLightValue: Integer);
 var
   StartScanLine: Integer;
@@ -280,7 +280,7 @@ asm
   JNZ     @LOOP02
 end;
 
-{ 4 ms  需要脱离 IDE 执行 / ScanLine 不要用于 TParallel.For 中 }
+{ 4 ms  需要脱离 IDE 执行 }
 procedure Light_Parallel_SSE(bmp: TBitmap; const intLightValue: Integer);
 var
   StartScanLine: Integer;
@@ -339,7 +339,7 @@ asm
   JNZ      @Loop02
 end;
 
-{ 4 ms  需要脱离 IDE 执行 / ScanLine 不要用于 TParallel.For 中 }
+{ 4 ms  需要脱离 IDE 执行 }
 procedure Light_Parallel_AVX2(bmp: TBitmap; const intLightValue: Integer);
 var
   StartScanLine: Integer;

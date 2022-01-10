@@ -109,7 +109,7 @@ begin
   end;
 end;
 
-{ 45 ms  需要脱离 IDE 执行 / ScanLine 不要用于 TParallel.For 中 }
+{ 45 ms  需要脱离 IDE 执行 }
 procedure Gray_Parallel(bmp: TBitmap);
 var
   StartScanLine: Integer;
@@ -554,7 +554,7 @@ asm
   JNZ     @LOOP                             // 循环
 end;
 
-{ 4 ms  需要脱离 IDE 执行 / ScanLine 不要用于 TParallel.For 中 }
+{ 4 ms  需要脱离 IDE 执行 }
 procedure Gray_SSEParallel(bmp: TBitmap);
 var
   StartScanLine: Integer;

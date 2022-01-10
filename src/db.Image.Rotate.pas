@@ -29,7 +29,7 @@ type
   TBMPAccess         = class(TBitmap);
   TBitmapImageAccess = class(TBitmapImage);
 
-  { 标准旋转函数 }
+{ 标准旋转函数 }
 procedure Optimize01(bmpSrc, bmpDst: TBitmap; const RotaryAngle: double; const CenterX, CenterY, MoveX, MoveY: Integer);
 var
   dstX, dstY: Integer;
