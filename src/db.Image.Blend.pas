@@ -83,7 +83,7 @@ begin
   end;
 end;
 
-{ 5 ms  需要脱离 IDE 执行 / ScanLine 不能用于 TParallel.For 中 }
+{ 5 ms  需要脱离 IDE 执行 / ScanLine 不要用于 TParallel.For 中 }
 procedure ColorBlend_Parallel(bmpDst, bmpSrc: TBitmap; const intBlendValue: Integer);
 var
   iLeft, iTop     : Integer;

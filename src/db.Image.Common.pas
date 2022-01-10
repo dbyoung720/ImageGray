@@ -5,9 +5,10 @@ unit db.Image.Common;
   Date: 2020-10-01
   Vers: Delphi 11
   Test: 4096 * 4096 * 32
-  Note：Delphi 的 Release 模式是有优化的，Debug 是没有的；下面的时间，都是在 X86、DEBUG 模式下的用时；
+  Note: Delphi 的 Release 模式是有优化的，Debug 是没有的；下面的时间，都是在 X86、DEBUG 模式下的用时；
   Note: 并行程序，不能在 IDE 下运行查看效果。必须脱离 IDE 执行查看效果。
-
+  Note: ScanLine 最好不要用与并行代码中。因为 Delphi 的 ScanLine 封装了一些操作，比较耗时。用图像指针，则提速明显；
+  
   Delphi 参数寄存器顺序：
   X86: EAX, EDX, ECX
   X64: ECX, EDX, EAX
