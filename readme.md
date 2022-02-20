@@ -8,6 +8,10 @@
     DevTools：Delphi 11
     Platform：Win10X64；Support X86、X64
     Test    ：4096*4096
+    
+### Remarks:
+		Because when creating a large bitmap in memory, vcl.graphics.pas is time-consuming, so it needs to be modified.
+		See: https://stackoverflow.com/questions/2500498/delphi-fast-large-bitmap-creation-without-clearing/21281835#21281835
 
-### BLOG：
+#### BLOG：
     https://blog.csdn.net/dbyoung/category_10762408.html

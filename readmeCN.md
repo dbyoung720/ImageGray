@@ -9,5 +9,9 @@
     平台：Win10X64；支持 X86/X64
     测试：4096*4096
 
-### 博客：
+### 备注：
+	由于在内存中创建大的位图时，vcl.graphics.pas，会很耗时，所以要作修改。
+	详见：https://stackoverflow.com/questions/2500498/delphi-fast-large-bitmap-creation-without-clearing/21281835#21281835
+
+#### 博客：
     https://blog.csdn.net/dbyoung/category_10762408.html
