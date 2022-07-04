@@ -43,7 +43,7 @@ begin
     procedure(Y: Integer)
     var
       X: Integer;
-      swapColor: DWORD;
+      swpColor: DWORD;
       pColor01: PDWORD;
       pColor02: PDWORD;
     begin
@@ -51,9 +51,9 @@ begin
       pColor02 := PDWORD(StartScanLine + Y * bmpWidthBytes + 4 * (bmp.Width - 1));
       for X := 0 to bmp.Width div 2 - 1 do
       begin
-        swapColor := pColor02^;
+        swpColor  := pColor02^;
         pColor02^ := pColor01^;
-        pColor01^ := swapColor;
+        pColor01^ := swpColor;
         Inc(pColor01);
         Dec(pColor02);
       end;
