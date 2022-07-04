@@ -5,7 +5,7 @@
 ## Description：
     This is my record of learning SIMD
     Function: 32bit bitmap, gray、invert color、mirror、rotate、adjust brightness、saturation、contrast、transparency, etc.
-    DevTools：Delphi 11.0(Due to the problem of Delphi 11.1 compiler, Delphi 11.1, x64 mode cannot be used normally. Thank 阿木 for his feedback)
+    DevTools：Delphi 11.0(Due to the problem of Delphi 11.1 x64 compiler, Delphi 11.1, x64 mode cannot be used normally. Thank 阿木 for his feedback)
     Platform：Win10X64；Support X86、X64
     Test    ：4096*4096
     
