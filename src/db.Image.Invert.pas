@@ -169,7 +169,7 @@ begin
       pColor: PDWORD;
     begin
       pColor := PDWORD(StartScanLine + Y * bmpWidthBytes);
-      for I := 0 to bmp.Width div 2 - 1 do
+      for I := 0 to bmp.Width - 1 do
       begin
         pColor^ := not pColor^;
         Inc(pColor);
