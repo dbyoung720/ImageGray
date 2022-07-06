@@ -11,8 +11,8 @@
     
 ## Remarks:
     1.Due to the problem of Delphi 11.1 x64 compiler, Delphi 11.1, x64 mode cannot be used normally. Thank 阿木 for his feedback;
-		2.Because when creating a large bitmap in memory, vcl.graphics.pas is time-consuming, so it needs to be modified.
-		  See: https://stackoverflow.com/questions/2500498/delphi-fast-large-bitmap-creation-without-clearing/21281835#21281835
+    2.Because when creating a large bitmap in memory, vcl.graphics.pas is time-consuming, so it needs to be modified.
+    See: https://stackoverflow.com/questions/2500498/delphi-fast-large-bitmap-creation-without-clearing/21281835#21281835
 
 ## BLOG：
     https://blog.csdn.net/dbyoung/category_10762408.html
